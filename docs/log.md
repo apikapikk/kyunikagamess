@@ -632,3 +632,122 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 - `npm run build` sukses tanpa error TypeScript maupun Turbopack bundling.
 - Navigasi dan kontrol sentuh mobile terisolasi tanpa memicu gesture pull-to-refresh atau page scroll browser.
 
+## 2026-11-11 — Analisis Bug Presensi Pemain, Rencana Bank Soal Berjenjang & Live Monitor Admin
+
+### Laporan Bug & Temuan
+
+1. **Pemain Tidak Kedeteksi di Admin & Leaderboard Kosong Antar-Pemain**:
+   - Di `app/play/page.tsx`, listener `onDisconnect(playerRef).remove()` menghapus node pemain saat halaman berpindah ke `/game`.
+   - Di `app/game/page.tsx`, pemain tidak pernah didaftarkan ulang ke `rooms/{code}/players/{playerId}` saat masuk atau refresh, sehingga node pemain di Realtime Database hilang.
+   - Karena node pemain hilang atau tidak memiliki `name`, filter `validPlayers` mengabaikan pemain tersebut sehingga pemain lain maupun admin tidak dapat melihatnya.
+2. **Data & Skor Hilang Saat Refresh**:
+   - `app/game/page.tsx` tidak membaca kembali `kyunika-player-name` dari `localStorage` saat inisialisasi ulang.
+   - Panggilan `update` saat menjawab soal hanya memperbarui `{ completedQuestions, score }` tanpa menyertakan `name`, sehingga data dianggap *malformed* dan tidak ditampilkan.
+3. **Kebutuhan Bank Soal Hierarki (Kategori/Paket Soal)**:
+   - Sebelumnya, seluruh soal dimasukkan ke dalam satu daftar global tanpa kategori. Saat room dibuat, seluruh soal diimpor sekaligus.
+   - Dibutuhkan model paket soal (misal: "Matematika Lanjutan", "Pengetahuan Umum") agar admin dapat mengelompokkan soal dan memilih bank soal tertentu untuk diimpor ke dalam room.
+4. **Kebutuhan Monitor Pengerjaan Detail Siswa di Admin**:
+   - Admin belum memiliki visibilitas terhadap siapa saja yang menjawab benar atau salah untuk masing-masing soal.
+   - Diperlukan pencatatan riwayat jawaban siswa (`answers/{questionId}`) dengan rincian jawaban siswa, kunci jawaban, dan status benar/salah secara real-time.
+
+### Keputusan Arsitektur & Rencana Solusi
+
+- Mengganti `onDisconnect().remove()` dengan `onDisconnect().set({ online: false })` agar data skor dan progres pemain tetap tersimpan permanen di Realtime Database.
+- Menambahkan auto-reconnection & auto-registration di `app/game/page.tsx` untuk memastikan data pemain dipulihkan secara otomatis saat refresh browser.
+- Merancang entitas `QuestionBank` (`id`, `title`, `description`) dengan relasi `Question.bankId`, serta selector bank soal saat pembuatan room.
+- Memperluas skema data jawaban pemain dengan `answers` log per soal, dan menambahkan antarmuka inspeksi detail siswa di Room Monitor Admin.
+- Rencana kerja lengkap telah dituangkan dalam `docs/todo.md`.
+
+## 2026-11-11 — Implementasi Tuntas Presensi Pemain, Bank Soal Berjenjang, & Live Monitor Pengerjaan Siswa
+
+### Hasil Implementasi
+
+1. **Presensi Real-Time & Pencegahan Kehilangan Data Pemain (`app/play/page.tsx` & `app/game/page.tsx`)**:
+   - `onDisconnect(playerRef).remove()` diganti menjadi `onDisconnect(onlineRef).set(false)`. Data pemain (nama, skor, jawaban) tidak lagi terhapus saat berpindah halaman atau me-refresh browser.
+   - Mengimplementasikan `localStorage` recovery untuk `kyunika-player-name`, `kyunika-player-id`, dan `kyunika-active-room`.
+   - `app/game/page.tsx` otomatis melakukan assert dan re-registrasi node pemain di RTDB (`rooms/${roomCode}/players/${playerId}`) dengan field `name`, `score`, `online: true`, dan `lastActive`.
+   - Sinkronisasi skor dan status penyelesaian soal pemain lama ditarik dari RTDB saat mount jika tersedia, sehingga nilai pemain tidak kembali ke 0 saat refresh.
+
+2. **Leaderboard Multiplayer Real-Time Aktif**:
+   - Filter `validPlayers` kini selalu menemukan semua pemain online/terdaftar karena field `name` dijamin ada di RTDB.
+   - Seluruh pemain dapat melihat peringkat dan skor satu sama lain secara langsung (live update) tanpa jeda.
+
+3. **Sistem Bank Soal Berjenjang / Paket Kategori (`app/admin/page.tsx`)**:
+   - Tipe data `QuestionBank` (`id`, `title`, `description`, `createdAt`) ditambahkan, dan setiap `Question` memiliki relasi `bankId`.
+   - Default bank disiapkan: "Bank Umum" (`bank-umum`) dan "Matematika Lanjutan" (`bank-mtk-lanjutan`).
+   - Admin dapat membuat bank soal baru secara fleksibel melalui modal/inline card "Buat Bank Baru".
+   - Soal difilter berdasarkan chip bank yang dipilih (dengan ringkasan total soal dan poin per bank).
+   - Saat membuat soal baru, admin dapat menentukan bank soal target melalui dropdown.
+   - Sinkronisasi bank soal disimpan ke Firestore (`questionBanks`) dan `localStorage` (`kyunika-banks`).
+
+4. **Import Eksklusif Bank Soal ke Room (`app/admin/page.tsx`)**:
+   - Pada form pembuatan room di tab "Room Manager", admin dapat memilih bank soal yang akan diujikan via dropdown "Import Dari Bank Soal".
+   - Kuis hanya mengambil soal dari bank yang dipilih dan menyimpannya langsung ke `rooms/${roomCode}/questions` di Realtime Database.
+   - Kartu room di admin menampilkan label bank soal yang digunakan.
+
+5. **Live Monitor & Analisis Pengerjaan Siswa di Admin (`app/admin/page.tsx` & `app/globals.css`)**:
+   - Saat pemain menjawab (pilihan ganda maupun isian singkat di `/game`), rekaman jawaban lengkap disimpan ke RTDB: `rooms/${roomCode}/players/${playerId}/answers/${questionId}` (`playerAnswer`, `correctAnswer`, `isCorrect`, `pointsAwarded`, `answeredAt`).
+   - Admin Room Monitor menampilkan **Bar Analisis Kelas**:
+     - Total Siswa terdaftar & jumlah siswa online (hijau).
+     - Rata-rata skor kelas.
+     - Persentase akurasi kelas (jumlah benar vs total jawaban).
+     - Total butir soal tersedia dalam room.
+   - Daftar siswa menampilkan kartu interaktif dengan status online/offline, jumlah soal yang telah dikerjakan (`X/total`), pil hijau `✓ Benar`, pil merah `✗ Salah`, serta total skor.
+   - Accordion drawer **"Lihat pengerjaan ▼"** memungkinkan admin menginspeksi lembar jawaban siswa butir per butir:
+     - Teks pertanyaan
+     - Status butir (Benar / Salah / Belum dikerjakan)
+     - Jawaban siswa vs Kunci jawaban
+
+### Verifikasi & Uji Mutu
+
+- `npm run build`: Kompilasi Turbopack dan pemeriksaan tipe TypeScript 100% sukses tanpa error maupun peringatan.
+- `docs/todo.md` dan `docs/log.md` telah diperbarui sesuai arahan.
+
+## 2026-11-11 — Perbaikan Kritis Timer Sinkron, Pencegahan Penghapusan Data Siswa, Isolasi Bank Soal, & Layar Akhir Pertandingan
+
+### Temuan & Masalah Lanjutan
+
+1. **Timer Pertandingan Ter-reset Setiap 100ms**:
+   - Di `app/game/page.tsx`, listener `onValue(rooms/${roomCode})` sebelumnya memanggil `setRemainingSeconds(meta.duration * 60)` setiap kali ada snapshot masuk.
+   - Karena pergerakan mobil lokal dan remote memperbarui node posisi pemain setiap 100ms, listener `onValue` terpicu berulang-ulang, menyebabkan timer match selalu ter-reset kembali ke durasi awal (misal 10:00) dan tidak pernah berjalan mundur.
+2. **Penghapusan Node Pemain saat Room Dihentikan Admin**:
+   - Di `app/play/page.tsx`, saat admin menghentikan room (`finished`), listener mengeksekusi `remove(playerRef)`. Akibatnya, seluruh riwayat jawaban siswa terhapus dari RTDB dan admin tidak dapat lagi menginspeksi lembar jawaban siswa di Room Monitor.
+   - Saat pemain me-refresh atau membuka kembali `/play`, pemanggilan `set(playerRef, player)` menimpa data pemain lama dan mereset skor serta riwayat soal ke 0.
+3. **Soal Room Tertimpa Bank Global**:
+   - Di `app/game/page.tsx`, fungsi `loadFallbackQuestions` berjalan asinkron saat mount dan memanggil `setQuestions(loaded)` dengan seluruh soal dari `localStorage`, menimpa daftar soal terseleksi dari Bank Soal room.
+   - Struktur RTDB pada room questions dapat berupa dictionary objek jika disimpan secara renggang/sparsely, sehingga pengecekan `Array.isArray` gagal mengenali daftar soal.
+4. **Ketiadaan Layar Akhir Pertandingan (Game Over / Podium)**:
+   - Saat status room menjadi `finished` atau waktu match habis, game tidak menampilkan status akhir sehingga pemain kebingungan apakah pertandingan sudah selesai.
+5. **Ketiadaan Manajemen Hapus Bank Soal Kustom**:
+   - Admin belum dapat menghapus bank soal yang sudah dibuat secara manual di antarmuka admin.
+
+### Perubahan & Solusi
+
+1. **Sinkronisasi Timer Pertandingan Global Berbasis Timestamp (`startedAt`)**:
+   - Saat admin memulai room (`running`), admin mencatat timestamp `startedAt: Date.now()` ke Firestore dan Realtime Database (`rooms/${code}/meta/startedAt`).
+   - Di `app/game/page.tsx`, timer dihitung secara dinamis terhadap selisih waktu sekarang dengan `startedAt`:
+     `remainingSeconds = Math.max(0, durationSec - Math.floor((Date.now() - meta.startedAt) / 1000))`.
+   - Timer match terisolasi dari event pergerakan kendaraan dan 100% sinkron antar seluruh pemain dan host.
+2. **Pencegahan Penghapusan & Timpa Data Pemain (`app/play/page.tsx` & `app/game/page.tsx`)**:
+   - Saat room berstatus `finished`, pemain hanya ditandai `online: false` dan node pemain **tidak dihapus** dari RTDB. Admin tetap dapat melihat rekaman jawaban, akurasi, dan skor akhir seluruh siswa.
+   - Saat pemain masuk/refresh di `/play`, sistem memeriksa keberadaan node pemain dengan `get(playerRef)`. Jika sudah ada, sistem hanya memperbarui `{ online: true, lastActive }` tanpa mereset skor dan jawaban.
+   - Menggunakan `playerNameRef` untuk mengeliminasi re-render loop dan mencegah event `online: false` terpanggil secara tidak sengaja saat inisialisasi state.
+   - Sinkronisasi instan daftar `completedQuestions` dan `answers` dari RTDB ke state lokal saat mount.
+3. **Isolasi Bank Soal Eksklusif & Parsing RTDB Fleksibel**:
+   - Menambahkan flag `hasRoomQuestionsRef` agar `loadFallbackQuestions` tidak pernah menimpa soal dari bank terpilih.
+   - Parsing `value.questions` kini mendukung format array maupun dictionary objek (`Object.values(value.questions)`).
+4. **Layar Akhir Pertandingan Interaktif (*Match Finished / Game Over Modal*)**:
+   - Ditambahkan modal overlay perayaan akhir match saat `room.status === "finished"` atau waktu habis.
+   - Menampilkan piala emas, peringkat pemain (`#Rank dari N pemain`), skor akhir, jumlah soal terselesaikan, dan Top 5 Podium Leaderboard.
+   - Tombol navigasi cepat menggunakan Next.js router (`router.push`) menuju lobby atau beranda.
+5. **Fitur Hapus Bank Soal Kustom di Admin**:
+   - Ditambahkan tombol hapus (×) pada chip bank soal kustom dengan konfirmasi interaktif.
+   - Soal yang berada di bank yang dihapus otomatis dialihkan (*migrated*) ke Bank Umum (`bank-umum`).
+
+### Verifikasi & Uji Mutu
+
+- `npm run lint`: 100% lolos tanpa ada error maupun warning (`eslint` clean).
+- `npm run build`: Kompilasi Turbopack dan pemeriksaan TypeScript berhasil 100% (7/7 route statis sukses ter-generate).
+- Seluruh tugas di `docs/todo.md` dan dokumentasi di `docs/log.md` terverifikasi tuntas.
+
+

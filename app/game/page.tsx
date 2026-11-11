@@ -2,7 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { onValue, ref, update } from "firebase/database";
+import { useRouter } from "next/navigation";
+import { get, onDisconnect, onValue, ref, set, update } from "firebase/database";
 import { collection, getDocs } from "firebase/firestore";
 import { firestore, realtimeDb } from "@/lib/firebase";
 import { Point, seededPoints } from "../../components/CityCanvas";
@@ -22,14 +23,28 @@ type RoomMeta = {
   duration: number;
   questionIds: string[];
   status: "lobby" | "running" | "finished";
+  startedAt?: number;
+};
+
+export type PlayerAnswer = {
+  questionId: string;
+  questionText: string;
+  playerAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  pointsAwarded: number;
+  answeredAt: number;
 };
 
 type Player = {
   name: string;
   joinedAt: number;
   score?: number;
+  online?: boolean;
+  lastActive?: number;
   position?: { x: number; z: number };
   completedQuestions?: string[];
+  answers?: Record<string, PlayerAnswer>;
 };
 
 export type QuestionType = "multiple-choice" | "short-answer";
@@ -57,12 +72,19 @@ const defaultQuestions: Question[] = [
 ];
 
 export default function GamePage() {
+  const router = useRouter();
   const [roomCode, setRoomCode] = useState("");
   const [room, setRoom] = useState<RoomMeta | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [error, setError] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [playerId, setPlayerId] = useState("");
+  const [playerName, setPlayerName] = useState("");
+  const playerNameRef = useRef(playerName);
+
+  useEffect(() => {
+    playerNameRef.current = playerName;
+  }, [playerName]);
 
   // Virtual Analog Controller refs (high performance, no React re-render lag)
   const joystickRef = useRef<JoystickVector>({ x: 0, y: 0 });
@@ -76,6 +98,7 @@ export default function GamePage() {
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [playerPos, setPlayerPos] = useState<Point>({ x: 0, z: 0 });
   const [nearQuestionIndex, setNearQuestionIndex] = useState<number | null>(null);
+  const hasRoomQuestionsRef = useRef(false);
 
   // Active quiz modal state
   const [activeQuizIndex, setActiveQuizIndex] = useState<number | null>(null);
@@ -84,7 +107,7 @@ export default function GamePage() {
   const [quizFeedback, setQuizFeedback] = useState<{ correct: boolean; message: string } | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
 
-  // Initial load: room and player id from storage / query
+  // Initial load: room, player id, and player name from storage / query
   useEffect(() => {
     queueMicrotask(() => {
       const queryRoom = new URLSearchParams(window.location.search).get("room");
@@ -92,8 +115,21 @@ export default function GamePage() {
       const code = (queryRoom ?? savedRoom ?? "").toUpperCase();
       setRoomCode(code);
 
-      const savedPlayerId = window.localStorage.getItem("kyunika-player-id") ?? "";
+      let savedPlayerId = window.localStorage.getItem("kyunika-player-id") ?? "";
+      if (!savedPlayerId) {
+        savedPlayerId = crypto.randomUUID();
+        window.localStorage.setItem("kyunika-player-id", savedPlayerId);
+      }
       setPlayerId(savedPlayerId);
+
+      const savedPlayerName = window.localStorage.getItem("kyunika-player-name") ?? "";
+      if (savedPlayerName) {
+        setPlayerName(savedPlayerName);
+      } else {
+        const defaultName = `Pemain-${savedPlayerId.slice(0, 4)}`;
+        setPlayerName(defaultName);
+        window.localStorage.setItem("kyunika-player-name", defaultName);
+      }
 
       if (code) {
         const savedProgress = window.localStorage.getItem(`kyunika-completed-${code}`);
@@ -107,6 +143,66 @@ export default function GamePage() {
       }
     });
   }, []);
+
+  // Ensure persistent player presence and real-time session sync in Realtime Database
+  useEffect(() => {
+    if (!realtimeDb || !roomCode || !playerId) return;
+
+    const playerRef = ref(realtimeDb, `rooms/${roomCode}/players/${playerId}`);
+    const onlineRef = ref(realtimeDb, `rooms/${roomCode}/players/${playerId}/online`);
+    const lastActiveRef = ref(realtimeDb, `rooms/${roomCode}/players/${playerId}/lastActive`);
+
+    async function syncPlayerSession() {
+      try {
+        const snap = await get(playerRef);
+        const current = (snap.val() ?? {}) as Partial<Player>;
+        const localName = window.localStorage.getItem("kyunika-player-name") ?? "";
+        const resolvedName = (playerNameRef.current || localName || current.name || `Pemain-${playerId.slice(0, 4)}`).trim();
+
+        if (resolvedName && resolvedName !== playerNameRef.current) {
+          window.localStorage.setItem("kyunika-player-name", resolvedName);
+          setPlayerName(resolvedName);
+        }
+
+        const updates: Record<string, unknown> = {
+          name: resolvedName,
+          online: true,
+          lastActive: Date.now(),
+        };
+
+        if (current.joinedAt === undefined) {
+          updates.joinedAt = Date.now();
+        }
+        if (current.score === undefined) {
+          updates.score = 0;
+        }
+
+        // Restore completed questions & answers if available in RTDB
+        const remoteCompleted = Array.isArray(current.completedQuestions) ? current.completedQuestions : [];
+        const answeredKeys = current.answers ? Object.keys(current.answers) : [];
+        const allDone = Array.from(new Set([...remoteCompleted, ...answeredKeys]));
+        if (allDone.length > 0) {
+          setCompletedIds((prev) => {
+            const merged = Array.from(new Set([...prev, ...allDone]));
+            window.localStorage.setItem(`kyunika-completed-${roomCode}`, JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        await update(playerRef, updates);
+        await onDisconnect(onlineRef).set(false);
+        await onDisconnect(lastActiveRef).set(Date.now());
+      } catch (err) {
+        console.error("Failed to sync player presence", err);
+      }
+    }
+
+    void syncPlayerSession();
+
+    return () => {
+      void set(onlineRef, false);
+    };
+  }, [roomCode, playerId]);
 
   // Listen to room data from Realtime Database
   useEffect(() => {
@@ -123,22 +219,52 @@ export default function GamePage() {
         const value = snapshot.val();
         const meta = value.meta as RoomMeta;
         setRoom(meta);
-        setRemainingSeconds(meta?.duration ? Number(meta.duration) * 60 : 0);
+
+        // Synchronize remaining match timer cleanly
+        if (meta) {
+          const durationSec = Number(meta.duration || 10) * 60;
+          if (meta.status === "running" && meta.startedAt) {
+            const elapsed = Math.floor((Date.now() - meta.startedAt) / 1000);
+            setRemainingSeconds(Math.max(0, durationSec - elapsed));
+          } else if (meta.status === "lobby") {
+            setRemainingSeconds(durationSec);
+          } else if (meta.status === "finished") {
+            setRemainingSeconds(0);
+          }
+        }
+
         const playersData = (value.players ?? {}) as Record<string, Player>;
         setPlayers(playersData);
         setError("");
 
         // Synchronize local player's completed questions list from Realtime Database
-        if (playerId && playersData[playerId]?.completedQuestions) {
-          const remoteList = playersData[playerId].completedQuestions;
-          if (Array.isArray(remoteList)) {
-            setCompletedIds((prev) => Array.from(new Set([...prev, ...remoteList])));
+        if (playerId && playersData[playerId]) {
+          const p = playersData[playerId];
+          const remoteCompleted = Array.isArray(p.completedQuestions) ? p.completedQuestions : [];
+          const answeredKeys = p.answers ? Object.keys(p.answers) : [];
+          const allDone = Array.from(new Set([...remoteCompleted, ...answeredKeys]));
+          if (allDone.length > 0) {
+            setCompletedIds((prev) => {
+              const merged = Array.from(new Set([...prev, ...allDone]));
+              if (roomCode) {
+                window.localStorage.setItem(`kyunika-completed-${roomCode}`, JSON.stringify(merged));
+              }
+              return merged;
+            });
           }
         }
 
-        // If room has questions saved in RTDB, prioritize them
-        if (Array.isArray(value.questions) && value.questions.length > 0) {
-          setQuestions(value.questions as Question[]);
+        // If room has questions saved in RTDB, prioritize them (support array and dictionary)
+        let qList: Question[] = [];
+        if (Array.isArray(value.questions)) {
+          qList = value.questions;
+        } else if (value.questions && typeof value.questions === "object") {
+          qList = Object.values(value.questions) as Question[];
+        }
+
+        if (qList.length > 0) {
+          hasRoomQuestionsRef.current = true;
+          setQuestions(qList);
         }
       },
       (firebaseError) => setError(firebaseError.message)
@@ -149,6 +275,8 @@ export default function GamePage() {
   useEffect(() => {
     let cancelled = false;
     async function loadFallbackQuestions() {
+      if (hasRoomQuestionsRef.current) return;
+
       // Check localStorage first
       const stored = window.localStorage.getItem("kyunika-questions");
       let loaded: Question[] = [];
@@ -172,7 +300,11 @@ export default function GamePage() {
         }
       }
 
-      if (!cancelled && loaded.length > 0) {
+      if (!cancelled && !hasRoomQuestionsRef.current && loaded.length > 0) {
+        if (room?.questionIds && room.questionIds.length > 0) {
+          const matched = loaded.filter((q) => room.questionIds.includes(q.id));
+          if (matched.length > 0) loaded = matched;
+        }
         setQuestions(loaded);
       }
     }
@@ -181,17 +313,24 @@ export default function GamePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [room]);
 
-  // Countdown timer for running match
+  // Dynamic countdown timer for running match
   useEffect(() => {
-    if (!room || room.status !== "running" || remainingSeconds <= 0) return;
-    const timer = window.setInterval(
-      () => setRemainingSeconds((current) => Math.max(current - 1, 0)),
-      1000
-    );
-    return () => window.clearInterval(timer);
-  }, [room, remainingSeconds]);
+    if (!room || room.status !== "running") return;
+    const tick = () => {
+      if (room.startedAt) {
+        const elapsed = Math.floor((Date.now() - room.startedAt) / 1000);
+        const durationSec = Number(room.duration || 10) * 60;
+        setRemainingSeconds(Math.max(0, durationSec - elapsed));
+      } else {
+        setRemainingSeconds((cur) => Math.max(0, cur - 1));
+      }
+    };
+    tick();
+    const interval = window.setInterval(tick, 1000);
+    return () => window.clearInterval(interval);
+  }, [room]);
 
   // Save completed questions in localStorage for persistent session
   useEffect(() => {
@@ -283,49 +422,64 @@ export default function GamePage() {
   }, [nearQuestionIndex, activeQuizIndex, openQuiz, questions, completedIds]);
 
   // Handle Multiple Choice selection
-  const handleSelectOption = (opt: string) => {
-    if (isAnswered || activeQuizIndex === null) return;
-    const currentQ = questions[activeQuizIndex] ?? defaultQuestions[activeQuizIndex % defaultQuestions.length];
-    if (completedIds.includes(currentQ.id)) {
-      setIsAnswered(true);
-      return;
-    }
-
-    setSelectedOption(opt);
-    setIsAnswered(true);
-
-    const isCorrect = opt.trim().toLowerCase() === currentQ.answer.trim().toLowerCase();
-    const currentScore = players[playerId]?.score ?? 0;
-    const nextScore = isCorrect ? currentScore + currentQ.points : currentScore;
-    const nextCompleted = Array.from(new Set([...completedIds, currentQ.id]));
-
-    if (isCorrect) {
-      setQuizFeedback({
-        correct: true,
-        message: `Hebat! Jawabanmu benar. Kamu mendapatkan +${currentQ.points} poin!`,
-      });
-    } else {
-      setQuizFeedback({
-        correct: false,
-        message: `Jawaban belum tepat. Jawaban yang benar adalah: ${currentQ.answer}`,
-      });
-    }
-
-    setCompletedIds(nextCompleted);
-
-    // Persist score & completedQuestions strictly under this player's node
-    if (realtimeDb && roomCode && playerId) {
-      const updates: Record<string, unknown> = {
-        completedQuestions: nextCompleted,
-      };
-      if (isCorrect) {
-        updates.score = nextScore;
+  const handleSelectOption = useCallback(
+    (opt: string) => {
+      if (isAnswered || activeQuizIndex === null) return;
+      const currentQ = questions[activeQuizIndex] ?? defaultQuestions[activeQuizIndex % defaultQuestions.length];
+      if (completedIds.includes(currentQ.id)) {
+        setIsAnswered(true);
+        return;
       }
-      void update(ref(realtimeDb, `rooms/${roomCode}/players/${playerId}`), updates).catch((err) =>
-        console.error("Failed to update player progress", err)
-      );
-    }
-  };
+
+      setSelectedOption(opt);
+      setIsAnswered(true);
+
+      const isCorrect = opt.trim().toLowerCase() === currentQ.answer.trim().toLowerCase();
+      const currentScore = players[playerId]?.score ?? 0;
+      const nextScore = isCorrect ? currentScore + currentQ.points : currentScore;
+      const nextCompleted = Array.from(new Set([...completedIds, currentQ.id]));
+
+      if (isCorrect) {
+        setQuizFeedback({
+          correct: true,
+          message: `Hebat! Jawabanmu benar. Kamu mendapatkan +${currentQ.points} poin!`,
+        });
+      } else {
+        setQuizFeedback({
+          correct: false,
+          message: `Jawaban belum tepat. Jawaban yang benar adalah: ${currentQ.answer}`,
+        });
+      }
+
+      setCompletedIds(nextCompleted);
+
+      // Persist score, completedQuestions, and detailed answer record
+      if (realtimeDb && roomCode && playerId) {
+        const resolvedName = (playerName || window.localStorage.getItem("kyunika-player-name") || players[playerId]?.name || "Pemain").trim();
+        const answerRecord: PlayerAnswer = {
+          questionId: currentQ.id,
+          questionText: currentQ.text,
+          playerAnswer: opt,
+          correctAnswer: currentQ.answer,
+          isCorrect,
+          pointsAwarded: isCorrect ? currentQ.points : 0,
+          answeredAt: Date.now(),
+        };
+        const updates: Record<string, unknown> = {
+          name: resolvedName,
+          online: true,
+          lastActive: Date.now(),
+          completedQuestions: nextCompleted,
+          score: nextScore,
+          [`answers/${currentQ.id}`]: answerRecord,
+        };
+        void update(ref(realtimeDb, `rooms/${roomCode}/players/${playerId}`), updates).catch((err) =>
+          console.error("Failed to update player progress", err)
+        );
+      }
+    },
+    [isAnswered, activeQuizIndex, questions, completedIds, players, playerId, playerName, roomCode]
+  );
 
   // Handle Short Answer submission
   const handleShortAnswerSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -358,12 +512,24 @@ export default function GamePage() {
     setCompletedIds(nextCompleted);
 
     if (realtimeDb && roomCode && playerId) {
-      const updates: Record<string, unknown> = {
-        completedQuestions: nextCompleted,
+      const resolvedName = (playerName || window.localStorage.getItem("kyunika-player-name") || players[playerId]?.name || "Pemain").trim();
+      const answerRecord: PlayerAnswer = {
+        questionId: currentQ.id,
+        questionText: currentQ.text,
+        playerAnswer: shortInput.trim(),
+        correctAnswer: currentQ.answer,
+        isCorrect,
+        pointsAwarded: isCorrect ? currentQ.points : 0,
+        answeredAt: Date.now(),
       };
-      if (isCorrect) {
-        updates.score = nextScore;
-      }
+      const updates: Record<string, unknown> = {
+        name: resolvedName,
+        online: true,
+        lastActive: Date.now(),
+        completedQuestions: nextCompleted,
+        score: nextScore,
+        [`answers/${currentQ.id}`]: answerRecord,
+      };
       void update(ref(realtimeDb, `rooms/${roomCode}/players/${playerId}`), updates).catch((err) =>
         console.error("Failed to update player progress", err)
       );
@@ -380,6 +546,8 @@ export default function GamePage() {
   const myPlayer = playerId && players[playerId] ? players[playerId] : null;
   const myScore = myPlayer?.score ?? 0;
   const myRank = myRankIndex >= 0 ? myRankIndex + 1 : "-";
+  const isMatchFinished =
+    room?.status === "finished" || (room?.status === "running" && remainingSeconds <= 0 && !!room.startedAt);
 
   if (error) {
     return (
@@ -407,8 +575,6 @@ export default function GamePage() {
 
   const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
   const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
-  const emitKey = (key: string, type: "keydown" | "keyup") =>
-    window.dispatchEvent(new KeyboardEvent(type, { key, bubbles: true }));
 
   // Question currently open in modal
   const activeQuestion =
@@ -711,6 +877,78 @@ export default function GamePage() {
                 Lanjut Jelajahi Kota ➔
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Match Finished / Game Over Modal */}
+      {isMatchFinished && (
+        <div className="quiz-overlay game-over-overlay">
+          <div className="quiz-card game-over-card">
+            <div className="game-over-header">
+              <span className="game-over-trophy">🏆</span>
+              <div className="eyebrow">PERTANDINGAN SELESAI</div>
+              <h2>Hasil Akhir Pertandingan</h2>
+              <p>Waktu kuis telah berakhir. Berikut ringkasan poin dan peringkatmu!</p>
+            </div>
+
+            <div className="game-over-summary">
+              <div className="summary-stat-box gold">
+                <small>Peringkat Kamu</small>
+                <strong>#{myRank}</strong>
+                <span>dari {validPlayers.length} pemain</span>
+              </div>
+              <div className="summary-stat-box purple">
+                <small>Skor Akhir</small>
+                <strong>{myScore}</strong>
+                <span>total poin</span>
+              </div>
+              <div className="summary-stat-box green">
+                <small>Soal Selesai</small>
+                <strong>{completedIds.length}</strong>
+                <span>dari {questionPoints.length} butir</span>
+              </div>
+            </div>
+
+            <div className="game-over-podium">
+              <div className="podium-title">LEADERBOARD TERATAS</div>
+              <div className="podium-list">
+                {leaderboard.slice(0, 5).map(([id, player], idx) => {
+                  const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
+                  const isMe = id === playerId;
+                  return (
+                    <div key={id} className={`podium-item ${isMe ? "is-me" : ""}`}>
+                      <span className="podium-rank">{medal}</span>
+                      <span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span>
+                      <strong className="podium-name">
+                        {player.name} {isMe ? "(Kamu)" : ""}
+                      </strong>
+                      <b className="podium-score">{player.score ?? 0} pts</b>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="game-over-actions">
+              <button
+                className="primary-button full-button"
+                onClick={() => {
+                  router.push(`/play?room=${roomCode}`);
+                }}
+              >
+                Kembali ke Lobby Room <span>↺</span>
+              </button>
+              <button
+                className="text-button"
+                onClick={() => {
+                  window.localStorage.removeItem("kyunika-active-room");
+                  router.push("/play");
+                }}
+              >
+                Cari / Buat Room Lain
+              </button>
+            </div>
           </div>
         </div>
       )}

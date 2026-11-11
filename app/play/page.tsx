@@ -2,11 +2,11 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { get, onValue, onDisconnect, ref, remove, set } from "firebase/database";
+import { get, onValue, onDisconnect, ref, set, update } from "firebase/database";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { firestore, realtimeDb } from "@/lib/firebase";
 
-type Player = { name: string; joinedAt: number; score?: number; position?: { x: number; z: number } };
+type Player = { name: string; joinedAt: number; score?: number; online?: boolean; position?: { x: number; z: number } };
 
 export default function PlayPage() {
   const router = useRouter();
@@ -18,10 +18,16 @@ export default function PlayPage() {
 
   useEffect(() => {
     queueMicrotask(() => {
+      const queryRoom = new URLSearchParams(window.location.search).get("room");
       const savedName = window.localStorage.getItem("kyunika-player-name");
       const savedRoom = window.localStorage.getItem("kyunika-active-room");
+      const targetRoom = (queryRoom || savedRoom || "").toUpperCase();
+
       if (savedName) setName(savedName);
-      if (savedName && savedRoom) { setRoomCode(savedRoom); setJoined(true); }
+      if (targetRoom) setRoomCode(targetRoom);
+      if (savedName && targetRoom && !queryRoom) {
+        setJoined(true);
+      }
     });
   }, []);
 
@@ -33,40 +39,63 @@ export default function PlayPage() {
     const playersRef = ref(realtimeDb, `rooms/${code}/players`);
     const metaRef = ref(realtimeDb, `rooms/${code}/meta`);
     const playerRef = ref(realtimeDb, `rooms/${code}/players/${playerId}`);
-    const player = { name: name.trim(), joinedAt: Date.now(), score: 0, position: { x: 0, z: 0 } };
+    const onlineRef = ref(realtimeDb, `rooms/${code}/players/${playerId}/online`);
+    const lastActiveRef = ref(realtimeDb, `rooms/${code}/players/${playerId}/lastActive`);
+    const player = { name: name.trim(), joinedAt: Date.now(), score: 0, online: true, position: { x: 0, z: 0 } };
     let cleanup = () => {};
     let cancelled = false;
     async function connectToRoom() {
       try {
-        const [metaSnapshot, firestoreSnapshot] = await Promise.all([
+        const [metaSnapshot, firestoreSnapshot, playerSnapshot] = await Promise.all([
           get(metaRef),
           firestore ? getDoc(doc(firestore, "rooms", code)) : Promise.resolve(null),
+          get(playerRef),
         ]);
         const status = metaSnapshot.val()?.status;
         if (cancelled) return;
         if (!metaSnapshot.exists()) throw new Error("Room tidak ditemukan atau sudah dihapus.");
         if (firestore && (!firestoreSnapshot || !firestoreSnapshot.exists())) throw new Error("Room tidak ditemukan di database.");
         if (status === "finished") throw new Error("Room ini sudah dihentikan oleh admin.");
-        await set(playerRef, player);
-        await onDisconnect(playerRef).remove();
+        
+        window.localStorage.setItem("kyunika-player-name", name.trim());
+        window.localStorage.setItem("kyunika-active-room", code);
+        
+        // Preserve existing score & answer history if player is rejoining or refreshed
+        if (playerSnapshot.exists()) {
+          await update(playerRef, {
+            name: name.trim(),
+            online: true,
+            lastActive: Date.now(),
+          });
+        } else {
+          await set(playerRef, player);
+        }
+        await onDisconnect(onlineRef).set(false);
+        await onDisconnect(lastActiveRef).set(Date.now());
         if (cancelled) return;
         const unsubscribePlayers = onValue(playersRef, (snapshot) => setPlayers((snapshot.val() ?? {}) as Record<string, Player>), (error) => setError(`Gagal membaca lobby: ${error.message}`));
         const unsubscribeMeta = onValue(metaRef, (snapshot) => {
           const nextStatus = snapshot.val()?.status;
           if (nextStatus === "running") {
+            window.localStorage.setItem("kyunika-player-name", name.trim());
+            window.localStorage.setItem("kyunika-active-room", code);
             router.push(`/game?room=${code}`);
             return;
           }
-          if (!snapshot.exists() || nextStatus === "finished") {
-            void remove(playerRef);
-            setError(!snapshot.exists() ? "Room sudah dihapus oleh admin." : "Room ini sudah dihentikan oleh admin.");
+          if (!snapshot.exists()) {
+            setError("Room sudah dihapus oleh admin.");
+            setJoined(false);
+            window.localStorage.removeItem("kyunika-active-room");
+          } else if (nextStatus === "finished") {
+            // Keep player records intact for admin review; mark offline
+            void update(playerRef, { online: false });
+            setError("Room ini sudah dihentikan oleh admin.");
             setJoined(false);
             window.localStorage.removeItem("kyunika-active-room");
           }
         });
         const unsubscribeFirestore = firestore ? onSnapshot(doc(firestore, "rooms", code), (snapshot) => {
           if (!snapshot.exists()) {
-            void remove(playerRef);
             setError("Room sudah dihapus oleh admin.");
             setJoined(false);
             window.localStorage.removeItem("kyunika-active-room");
@@ -105,7 +134,7 @@ export default function PlayPage() {
     }
   }
 
-  if (joined) { const validPlayers = Object.entries(players).filter(([, player]) => typeof player?.name === "string" && player.name.trim().length > 0); return <main className="play-shell"><div className="play-card lobby-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="lobby-top"><div><div className="eyebrow">ROOM LOBBY</div><h1>{roomCode.toUpperCase()}</h1><p>Tunggu pemain lain masuk. Kota akan dimulai saat host membuka pertandingan.</p></div><span className="lobby-status">● LIVE</span></div><div className="player-count"><strong>{validPlayers.length}</strong><span>pemain sudah bergabung</span></div><div className="player-grid">{validPlayers.map(([id, player]) => <div className="player-chip" key={id}><span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span><strong>{player.name}</strong>{id === window.localStorage.getItem("kyunika-player-id") && <small>Kamu</small>}</div>)}</div><button className="play-back" onClick={() => { const playerId = window.localStorage.getItem("kyunika-player-id"); if (realtimeDb && playerId) void remove(ref(realtimeDb, `rooms/${roomCode.toUpperCase()}/players/${playerId}`)); setJoined(false); setPlayers({}); window.localStorage.removeItem("kyunika-active-room"); }}>Keluar dari lobby</button></div></main>; }
+  if (joined) { const validPlayers = Object.entries(players).filter(([, player]) => typeof player?.name === "string" && player.name.trim().length > 0); return <main className="play-shell"><div className="play-card lobby-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="lobby-top"><div><div className="eyebrow">ROOM LOBBY</div><h1>{roomCode.toUpperCase()}</h1><p>Tunggu pemain lain masuk. Kota akan dimulai saat host membuka pertandingan.</p></div><span className="lobby-status">● LIVE</span></div><div className="player-count"><strong>{validPlayers.length}</strong><span>pemain sudah bergabung</span></div><div className="player-grid">{validPlayers.map(([id, player]) => <div className="player-chip" key={id}><span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span><strong>{player.name}</strong>{id === window.localStorage.getItem("kyunika-player-id") && <small>Kamu</small>}</div>)}</div><button className="play-back" onClick={() => { const playerId = window.localStorage.getItem("kyunika-player-id"); if (realtimeDb && playerId) void update(ref(realtimeDb, `rooms/${roomCode.toUpperCase()}/players/${playerId}`), { online: false }); setJoined(false); setPlayers({}); window.localStorage.removeItem("kyunika-active-room"); }}>Keluar dari lobby</button></div></main>; }
 
   return <main className="play-shell"><div className="play-card join-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="eyebrow">MULTIPLAYER QUIZ RACE</div><h1>Masuk ke<br /><em>kota permainan.</em></h1><p>Masukkan kode room dari admin, pilih nama, lalu bersiap menjelajah dan menjawab paling cepat.</p><form onSubmit={joinRoom}><label>Nama pemain<input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Contoh: Budi" /></label><label>Kode room<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={8} placeholder="ABC123" /></label>{error && <div className="play-error">{error}</div>}<button className="primary-button full-button" type="submit">Masuk room <span>↗</span></button></form><small className="data-note">Terhubung real-time dengan Firebase</small><a href="/admin" className="host-admin-link">Host / Buat Room di Admin Dashboard ➔</a></div></main>;
 }
