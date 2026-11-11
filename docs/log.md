@@ -596,3 +596,39 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 2. Tambahkan sinkronisasi posisi karakter dengan throttling agar hemat kuota.
 3. Tambahkan state pertandingan: `lobby`, `running`, dan `finished`.
 4. Tambahkan rules dan autentikasi pemain sebelum deployment publik.
+
+## 2026-11-11 — Kontrol Analog Virtual Mobile & Reposisi Leaderboard Ringkas di Atas
+
+### Masalah / Kebutuhan
+
+- Kontrol mobile sebelumnya menggunakan D-pad 4 tombol panah diskret yang kaku dan terasa aneh saat dimainkan di smartphone; pemain kesulitan membelokkan mobil sambil melaju secara bersamaan.
+- Panel sidebar Leaderboard di layar mobile sebelumnya diletakkan di bagian bawah layar (`bottom: 64px - 72px`), menutupi area pandang mobil, jalan, dan mengganggu kontrol sentuh.
+- Elemen judul layout besar (`stage-top`) dan panduan keyboard desktop tumpang tindih dengan HUD target kuis di mobile.
+
+### Perubahan
+
+1. **Virtual Analog Joystick Mobile (`components/VirtualJoystick.tsx`)**:
+   - Dibuat komponen joystick analog berbasis sentuhan (Pointer Events) dengan pointer capture (`setPointerCapture`) agar pelacakan jempol tidak lepas saat bergerak keluar lingkaran.
+   - Desain frosted glass transparan dengan indikator panduan 4 arah (▲, ◀, ▼, ▶) dan thumbstick knob responsif.
+   - Menghitung vektor analog kontinu normalisasi (-1.0 s/d +1.0) untuk throttle maju/mundur dan kemudi belok kiri/kanan secara dinamis.
+   - Mendukung deadzone 8% untuk menghindari getaran jari yang tidak disengaja.
+
+2. **Integrasi Input Analog pada 3D Engine (`components/CityCanvas.tsx`)**:
+   - Menggunakan `React.RefObject` untuk input joystick dan rem tangan (`isBrakingRef`), mencegah re-render React berulang pada frekuensi tinggi (60–120 FPS).
+   - Fisika mobil membaca akselerasi analog (kecepatan bertahap sesuai tarikan analog) dan sudut belok analog yang responsif bahkan pada kecepatan rendah.
+   - Ditambahkan tombol rem khusus (**🛑 REM**) di sudut kanan bawah untuk jempol kanan agar mobil dapat berhenti presisi di dekat pilar soal kuis.
+
+3. **Reposisi Leaderboard Ringkas di Atas (`app/game/page.tsx` & `app/globals.css`)**:
+   - Leaderboard mobile dipindahkan dari bawah layar ke sisi **kanan atas (di bawah header)** berdampingan dengan Radar Navigasi Soal di kiri atas.
+   - Menampilkan ringkasan Top 3 pemain dan status peringkat pemain lokal secara kompak tanpa menutupi area mengemudi.
+   - Dilengkapi tombol toggle ciutkan/buka (**▼ Ciut / ▲ Buka**). Saat diciutkan, leaderboard menjadi pill minimalis (`🏆 #Rank Kamu · [Skor] pts ▾`).
+   - Menyembunyikan elemen dekoratif desktop yang tidak perlu di mobile (`stage-top`, `game-hint`, `session-panel`).
+
+4. **Optimasi Viewport Mobile (`app/layout.tsx`)**:
+   - Menambahkan metadata `Viewport` (`width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false`) dan `touch-action: none` pada area kontrol untuk mencegah zooming/scrolling tidak sengaja saat bermain.
+
+### Verifikasi
+
+- `npm run build` sukses tanpa error TypeScript maupun Turbopack bundling.
+- Navigasi dan kontrol sentuh mobile terisolasi tanpa memicu gesture pull-to-refresh atau page scroll browser.
+

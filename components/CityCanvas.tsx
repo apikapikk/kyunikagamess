@@ -11,6 +11,11 @@ import { realtimeDb } from "@/lib/firebase";
 export type Point = { x: number; z: number };
 export type RemotePlayer = { name: string; position?: { x: number; z: number } };
 
+export type JoystickInput = {
+  x: number; // -1 to 1 (left to right)
+  y: number; // -1 to 1 (down/reverse to up/forward)
+};
+
 export type ColliderBox = {
   minX: number;
   maxX: number;
@@ -28,6 +33,8 @@ export type CityCanvasProps = {
   completedQuestionIndices?: number[];
   nearestQuestionIndex?: number | null;
   isQuizOpen?: boolean;
+  joystickRef?: React.RefObject<JoystickInput>;
+  isBrakingRef?: React.RefObject<boolean>;
   onPlayerPosUpdate?: (pos: { x: number; z: number }) => void;
   onNearQuestion?: (index: number | null) => void;
 };
@@ -810,6 +817,8 @@ function PlayerCarController({
   remotePlayers,
   questionPoints = [],
   isQuizOpen = false,
+  joystickRef,
+  isBrakingRef,
   onPlayerPosUpdate,
   onNearQuestion,
 }: {
@@ -821,6 +830,8 @@ function PlayerCarController({
   remotePlayers: Record<string, RemotePlayer>;
   questionPoints?: Point[];
   isQuizOpen?: boolean;
+  joystickRef?: React.RefObject<JoystickInput>;
+  isBrakingRef?: React.RefObject<boolean>;
   onPlayerPosUpdate?: (pos: { x: number; z: number }) => void;
   onNearQuestion?: (index: number | null) => void;
 }) {
@@ -879,14 +890,28 @@ function PlayerCarController({
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05);
+    let steerInput = 0;
 
     if (isQuizOpen) {
       speedRef.current = 0;
     } else {
-      const accel   = keys.current["w"] || keys.current["arrowup"];
-      const reverse = keys.current["s"] || keys.current["arrowdown"];
-      const left    = keys.current["a"] || keys.current["arrowleft"];
-      const right   = keys.current["d"] || keys.current["arrowright"];
+      const joyX = joystickRef?.current?.x ?? 0;
+      const joyY = joystickRef?.current?.y ?? 0;
+      const isBraking = isBrakingRef?.current ?? false;
+
+      const keyAccel   = (keys.current["w"] || keys.current["arrowup"]) ? 1 : 0;
+      const keyReverse = (keys.current["s"] || keys.current["arrowdown"]) ? 1 : 0;
+      const keyLeft    = (keys.current["a"] || keys.current["arrowleft"]) ? 1 : 0;
+      const keyRight   = (keys.current["d"] || keys.current["arrowright"]) ? 1 : 0;
+
+      // Throttle (forward / reverse)
+      const fwdThrottle = Math.max(keyAccel, joyY > 0 ? joyY : 0);
+      const revThrottle = Math.max(keyReverse, joyY < 0 ? -joyY : 0);
+
+      // Steering: keyboard overrides joystick if pressed
+      if (keyLeft) steerInput = 1;
+      else if (keyRight) steerInput = -1;
+      else if (Math.abs(joyX) > 0.04) steerInput = -joyX;
 
       // Faster cruise speed for the expansive 180x180 city
       const maxFwd = 15.5;
@@ -894,16 +919,29 @@ function PlayerCarController({
       const acc    = 22;
       const drag   = 8.5;
 
-      if (accel)   speedRef.current = Math.min(speedRef.current + acc * dt, maxFwd);
-      else if (reverse) speedRef.current = Math.max(speedRef.current - acc * dt, -maxRev);
-      else         speedRef.current *= Math.pow(1 - drag * dt, 1);
-      if (Math.abs(speedRef.current) < 0.05) speedRef.current = 0;
+      if (isBraking) {
+        speedRef.current = THREE.MathUtils.lerp(speedRef.current, 0, dt * 14);
+        if (Math.abs(speedRef.current) < 0.08) speedRef.current = 0;
+      } else if (fwdThrottle > 0.04) {
+        const targetMax = maxFwd * fwdThrottle;
+        speedRef.current = Math.min(speedRef.current + acc * fwdThrottle * dt, targetMax);
+      } else if (revThrottle > 0.04) {
+        const targetRev = -maxRev * revThrottle;
+        speedRef.current = Math.max(speedRef.current - acc * revThrottle * dt, targetRev);
+      } else {
+        speedRef.current *= Math.pow(1 - drag * dt, 1);
+        if (Math.abs(speedRef.current) < 0.05) speedRef.current = 0;
+      }
 
-      // Steering
-      const steerRate = 2.0 * (Math.abs(speedRef.current) / maxFwd);
+      // Responsive steering: base factor so turning doesn't stall at low speed
+      const currentSpeedMag = Math.abs(speedRef.current);
+      const speedFactor = THREE.MathUtils.clamp(currentSpeedMag / (maxFwd * 0.35), 0.35, 1.0);
+      const steerRate = 2.4 * speedFactor;
       const steerDir = Math.sign(speedRef.current || 1);
-      if (right) headingRef.current -= steerRate * dt * steerDir;
-      if (left)  headingRef.current += steerRate * dt * steerDir;
+
+      if (Math.abs(steerInput) > 0.02 && currentSpeedMag > 0.08) {
+        headingRef.current += steerInput * steerRate * dt * steerDir;
+      }
 
       // Movement vector
       const moveDir = new THREE.Vector3(Math.sin(headingRef.current), 0, Math.cos(headingRef.current));
@@ -969,7 +1007,7 @@ function PlayerCarController({
     bumpRef.current = THREE.MathUtils.lerp(bumpRef.current, 0, dt * 12);
 
     const tiltZ = !isQuizOpen
-      ? (keys.current["a"] || keys.current["arrowleft"] ? -0.05 : keys.current["d"] || keys.current["arrowright"] ? 0.05 : 0)
+      ? -steerInput * 0.05
       : 0;
 
     if (carGroupRef.current) {
@@ -1055,6 +1093,8 @@ function CityScene({
   completedQuestionIndices = [],
   nearestQuestionIndex = null,
   isQuizOpen = false,
+  joystickRef,
+  isBrakingRef,
   onPlayerPosUpdate,
   onNearQuestion,
 }: CityCanvasProps) {
@@ -1148,6 +1188,8 @@ function CityScene({
         remotePlayers={players}
         questionPoints={points}
         isQuizOpen={isQuizOpen}
+        joystickRef={joystickRef}
+        isBrakingRef={isBrakingRef}
         onPlayerPosUpdate={onPlayerPosUpdate}
         onNearQuestion={onNearQuestion}
       />

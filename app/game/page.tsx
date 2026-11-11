@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { onValue, ref, update } from "firebase/database";
 import { collection, getDocs } from "firebase/firestore";
 import { firestore, realtimeDb } from "@/lib/firebase";
 import { Point, seededPoints } from "../../components/CityCanvas";
+import VirtualJoystick, { JoystickVector } from "../../components/VirtualJoystick";
 
 const CityCanvas = dynamic(() => import("../../components/CityCanvas"), {
   ssr: false,
@@ -62,6 +63,13 @@ export default function GamePage() {
   const [error, setError] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [playerId, setPlayerId] = useState("");
+
+  // Virtual Analog Controller refs (high performance, no React re-render lag)
+  const joystickRef = useRef<JoystickVector>({ x: 0, y: 0 });
+  const isBrakingRef = useRef<boolean>(false);
+
+  // Leaderboard collapse state (especially useful on mobile)
+  const [isLeaderboardMinimized, setIsLeaderboardMinimized] = useState(false);
 
   // Questions and player progress state
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
@@ -368,6 +376,11 @@ export default function GamePage() {
   const safePlayers = Object.fromEntries(validPlayers);
   const leaderboard = validPlayers.sort(([, first], [, second]) => (second.score ?? 0) - (first.score ?? 0));
 
+  const myRankIndex = leaderboard.findIndex(([id]) => id === playerId);
+  const myPlayer = playerId && players[playerId] ? players[playerId] : null;
+  const myScore = myPlayer?.score ?? 0;
+  const myRank = myRankIndex >= 0 ? myRankIndex + 1 : "-";
+
   if (error) {
     return (
       <main className="game-shell">
@@ -478,47 +491,49 @@ export default function GamePage() {
               completedQuestionIndices={completedIndices}
               nearestQuestionIndex={nearestTarget?.index ?? null}
               isQuizOpen={activeQuizIndex !== null}
+              joystickRef={joystickRef}
+              isBrakingRef={isBrakingRef}
               onPlayerPosUpdate={setPlayerPos}
               onNearQuestion={setNearQuestionIndex}
             />
             <div className="map-label">CITY KIT 3D · SEED {room.seed}</div>
 
-            {/* Mobile virtual touch D-pad */}
-            <div className="mobile-pad" onContextMenu={(event) => event.preventDefault()}>
-              <button
-                onPointerDown={() => emitKey("ArrowUp", "keydown")}
-                onPointerUp={() => emitKey("ArrowUp", "keyup")}
-                onPointerLeave={() => emitKey("ArrowUp", "keyup")}
-                aria-label="Gas maju"
-              >
-                ▲
-              </button>
-              <div>
-                <button
-                  onPointerDown={() => emitKey("ArrowLeft", "keydown")}
-                  onPointerUp={() => emitKey("ArrowLeft", "keyup")}
-                  onPointerLeave={() => emitKey("ArrowLeft", "keyup")}
-                  aria-label="Belok kiri"
-                >
-                  ◀
-                </button>
-                <button
-                  onPointerDown={() => emitKey("ArrowDown", "keydown")}
-                  onPointerUp={() => emitKey("ArrowDown", "keyup")}
-                  onPointerLeave={() => emitKey("ArrowDown", "keyup")}
-                  aria-label="Rem / Mundur"
-                >
-                  ▼
-                </button>
-                <button
-                  onPointerDown={() => emitKey("ArrowRight", "keydown")}
-                  onPointerUp={() => emitKey("ArrowRight", "keyup")}
-                  onPointerLeave={() => emitKey("ArrowRight", "keyup")}
-                  aria-label="Belok kanan"
-                >
-                  ▶
-                </button>
+            {/* Mobile virtual touch Analog Joystick + Brake */}
+            <div className="mobile-controls-layer">
+              <div className="analog-stick-wrap">
+                <VirtualJoystick
+                  onMove={(v) => {
+                    joystickRef.current = v;
+                  }}
+                  onStop={() => {
+                    joystickRef.current = { x: 0, y: 0 };
+                  }}
+                />
               </div>
+
+              <button
+                type="button"
+                className="mobile-brake-btn"
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  isBrakingRef.current = true;
+                }}
+                onPointerUp={(e) => {
+                  e.preventDefault();
+                  isBrakingRef.current = false;
+                }}
+                onPointerLeave={() => {
+                  isBrakingRef.current = false;
+                }}
+                onPointerCancel={() => {
+                  isBrakingRef.current = false;
+                }}
+                onContextMenu={(e) => e.preventDefault()}
+                aria-label="Rem mobil"
+              >
+                <span className="brake-icon">🛑</span>
+                <span className="brake-text">REM</span>
+              </button>
             </div>
           </div>
 
@@ -556,23 +571,49 @@ export default function GamePage() {
           </div>
         </div>
 
-        {/* Sidebar: Leaderboard & Match Summary */}
-        <aside className="game-sidebar">
-          <div className="game-panel">
-            <div className="eyebrow">LEADERBOARD</div>
-            <h2>Siapa terdepan?</h2>
-            <div className="game-player-list">
-              {leaderboard.map(([id, player], index) => (
-                <div className="game-player" key={id}>
-                  <span className="rank">{index + 1}</span>
-                  <span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span>
-                  <strong>
-                    {player.name} {id === playerId ? "(Kamu)" : ""}
-                  </strong>
-                  <b>{player.score ?? 0} pts</b>
-                </div>
-              ))}
+        {/* Sidebar: Leaderboard & Match Summary (Desktop sidebar / Mobile compact top-right) */}
+        <aside className={`game-sidebar ${isLeaderboardMinimized ? "minimized" : ""}`}>
+          <div className="game-panel leaderboard-panel">
+            <div className="panel-header-row">
+              <div className="eyebrow">LEADERBOARD</div>
+              <button
+                type="button"
+                className="leaderboard-toggle-btn"
+                onClick={() => setIsLeaderboardMinimized((prev) => !prev)}
+                aria-label={isLeaderboardMinimized ? "Perbesar leaderboard" : "Perkecil leaderboard"}
+              >
+                {isLeaderboardMinimized ? "▲ Buka" : "▼ Ciut"}
+              </button>
             </div>
+
+            {!isLeaderboardMinimized ? (
+              <>
+                <h2>Siapa terdepan?</h2>
+                <div className="game-player-list">
+                  {leaderboard.map(([id, player], index) => (
+                    <div className={`game-player ${id === playerId ? "is-me" : ""}`} key={id}>
+                      <span className="rank">{index + 1}</span>
+                      <span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span>
+                      <strong>
+                        {player.name} {id === playerId ? "(Kamu)" : ""}
+                      </strong>
+                      <b>{player.score ?? 0} pts</b>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div
+                className="leaderboard-mini-summary"
+                onClick={() => setIsLeaderboardMinimized(false)}
+              >
+                <span className="mini-trophy">🏆</span>
+                <span>
+                  <strong>#{myRank}</strong> {myPlayer?.name ?? "Kamu"}
+                </span>
+                <b>{myScore} pts</b>
+              </div>
+            )}
           </div>
 
           <div className="game-panel session-panel">
