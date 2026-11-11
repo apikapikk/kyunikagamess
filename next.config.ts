@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/play",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

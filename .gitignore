@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# firebase
+/.firebase
+.firebase
+
+# 3D Asset raw models & previews not used in production (only GLB format is used)
+**/Models/FBX format/
+**/Models/OBJ format/
+**/Previews/
+public/assets/3d-assets/kenney_mini-characters/
