@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { firebaseEnabled, firestore, realtimeDb } from "@/lib/firebase";
+import { AVENUES, seededPoints } from "@/components/CityCanvas";
 
 export type QuestionType = "multiple-choice" | "short-answer";
 
@@ -42,6 +43,7 @@ export type RoomPlayer = {
   lastActive?: number;
   completedQuestions?: string[];
   answers?: Record<string, PlayerAnswer>;
+  position?: { x: number; z: number };
 };
 
 export type Room = {
@@ -1265,6 +1267,23 @@ function RoomMonitor({
             </button>
           </div>
 
+          {/* World Monitor Map — Spectator View */}
+          {selectedRoom && (
+            <WorldMonitorMap
+              seed={selectedRoom.seed ?? 42}
+              questionCount={selectedRoom.questionIds?.length ?? 5}
+              players={roomPlayers}
+              completedPlayerQuestions={
+                Object.fromEntries(
+                  Object.entries(roomPlayers).map(([id, p]) => [
+                    id,
+                    p.completedQuestions ?? Object.keys(p.answers ?? {}),
+                  ])
+                )
+              }
+            />
+          )}
+
           <div className="monitor-players">
             <div className="label-row">
               <label>Progress & Lembar Jawaban Siswa</label>
@@ -1386,6 +1405,162 @@ function EmptyState({ text }: { text: string }) {
     <div className="empty-state">
       <span>○</span>
       <p>{text}</p>
+    </div>
+  );
+}
+
+// ─── World Monitor Map (2D top-down SVG spectator view) ───────────────────────
+// Maps world coords (−110 to +110) → SVG pixels (0 to MAP_SIZE)
+const MAP_SIZE = 360;
+const WORLD_RANGE = 110; // half-extent of the 220x220 map
+
+function worldToSvg(wCoord: number): number {
+  return ((wCoord + WORLD_RANGE) / (WORLD_RANGE * 2)) * MAP_SIZE;
+}
+
+function WorldMonitorMap({
+  seed,
+  questionCount,
+  players,
+  completedPlayerQuestions,
+}: {
+  seed: number;
+  questionCount: number;
+  players: Record<string, RoomPlayer & { position?: { x: number; z: number } }>;
+  completedPlayerQuestions: Record<string, string[]>;
+}) {
+  const questionPoints = useMemo(() => seededPoints(seed, questionCount), [seed, questionCount]);
+
+  // Collect all completed question indices across all players
+  const completedGlobally = useMemo(() => {
+    const set = new Set<number>();
+    Object.values(completedPlayerQuestions).forEach((qIds) => {
+      qIds.forEach((_, idx) => set.add(idx));
+    });
+    return set;
+  }, [completedPlayerQuestions]);
+
+  // Player colors (cycle through palette)
+  const palette = ["#f59e0b", "#3b82f6", "#ec4899", "#10b981", "#8b5cf6", "#ef4444", "#06b6d4", "#84cc16"];
+  const playerEntries = Object.entries(players).filter(
+    ([, p]) => typeof p?.name === "string" && p.name.trim().length > 0
+  );
+
+  return (
+    <div className="world-monitor-map-wrap">
+      <div className="world-monitor-map-label">
+        <span className="live-dot">●</span> Peta Dunia Live — Posisi Pemain Real-Time
+      </div>
+      <div className="world-monitor-map-container">
+        <svg
+          width={MAP_SIZE}
+          height={MAP_SIZE}
+          viewBox={`0 0 ${MAP_SIZE} ${MAP_SIZE}`}
+          className="world-monitor-svg"
+        >
+          {/* Background */}
+          <rect width={MAP_SIZE} height={MAP_SIZE} fill="#1a2235" rx="8" />
+
+          {/* Road grid lines (avenues) */}
+          {AVENUES.map((av) => {
+            const svgCoord = worldToSvg(av);
+            return (
+              <g key={`road-${av}`}>
+                {/* Horizontal avenue */}
+                <line
+                  x1={0} y1={svgCoord} x2={MAP_SIZE} y2={svgCoord}
+                  stroke="#374151" strokeWidth={3.5} strokeLinecap="round"
+                />
+                {/* Vertical avenue */}
+                <line
+                  x1={svgCoord} y1={0} x2={svgCoord} y2={MAP_SIZE}
+                  stroke="#374151" strokeWidth={3.5} strokeLinecap="round"
+                />
+              </g>
+            );
+          })}
+
+          {/* Question markers */}
+          {questionPoints.map((pt, i) => {
+            const sx = worldToSvg(pt.x);
+            const sz = worldToSvg(pt.z);
+            const isCompleted = completedGlobally.has(i);
+            return (
+              <g key={`qm-${i}`}>
+                <circle
+                  cx={sx} cy={sz} r={5}
+                  fill={isCompleted ? "#22c55e" : "#8b5cf6"}
+                  opacity={isCompleted ? 0.7 : 1}
+                  stroke={isCompleted ? "#15803d" : "#6d28d9"}
+                  strokeWidth={1.5}
+                />
+                <text
+                  x={sx} y={sz - 7}
+                  textAnchor="middle"
+                  fontSize="8"
+                  fill={isCompleted ? "#86efac" : "#c4b5fd"}
+                  fontFamily="monospace"
+                >
+                  S{i + 1}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Player position dots */}
+          {playerEntries.map(([id, player], idx) => {
+            const pos = (player as RoomPlayer & { position?: { x: number; z: number } }).position;
+            if (!pos) return null;
+            const sx = worldToSvg(pos.x);
+            const sz = worldToSvg(pos.z);
+            const color = palette[idx % palette.length];
+            const isOnline = player.online !== false;
+            return (
+              <g key={`player-${id}`}>
+                {/* Pulsing ring for online players */}
+                {isOnline && (
+                  <circle
+                    cx={sx} cy={sz} r={9}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={1.5}
+                    opacity={0.5}
+                  />
+                )}
+                <circle
+                  cx={sx} cy={sz} r={6}
+                  fill={color}
+                  opacity={isOnline ? 1 : 0.4}
+                  stroke="#fff"
+                  strokeWidth={1.5}
+                />
+                <text
+                  x={sx} y={sz - 10}
+                  textAnchor="middle"
+                  fontSize="9"
+                  fontWeight="700"
+                  fill={color}
+                  stroke="#0f172a"
+                  strokeWidth={2.5}
+                  paintOrder="stroke"
+                  fontFamily="system-ui, sans-serif"
+                >
+                  {player.name.length > 8 ? player.name.slice(0, 7) + "…" : player.name}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Legend */}
+          <g transform={`translate(8, ${MAP_SIZE - 42})`}>
+            <rect width={120} height={36} fill="rgba(0,0,0,0.5)" rx="4" />
+            <circle cx={10} cy={10} r={4} fill="#8b5cf6" />
+            <text x={18} y={14} fontSize="8" fill="#c4b5fd" fontFamily="system-ui">Soal tersedia</text>
+            <circle cx={10} cy={26} r={4} fill="#22c55e" />
+            <text x={18} y={30} fontSize="8" fill="#86efac" fontFamily="system-ui">Soal selesai</text>
+          </g>
+        </svg>
+      </div>
     </div>
   );
 }

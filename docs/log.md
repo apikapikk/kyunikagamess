@@ -795,3 +795,90 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 - Seluruh tugas di `docs/todo.md` telah diselesaikan dan dicatat lengkap di `docs/log.md`.
 
 
+
+
+## 2026-11-11 — Orbit Kamera Sentuh, Flying Props, Name Tag Pemain, World Monitor SVG, Perluasan Aset Kota
+
+### Temuan
+
+1. **Swipe Kamera Belum Berfungsi**: Implementasi swipe untuk orbit kamera sudah ada di `useEffect` tapi belum ter-tulis ke todo sebagai selesai.
+2. **Flying Props Belum Ada**: Ketika prop kecil (cone, planter, dumpster) ditabrak, belum ada animasi terlempar — hanya ada efek slow-down. Perlu animasi parabola 3D.
+3. **Name Tag Sudah Ada**: `<Html>` name tag dari `@react-three/drei` sudah diimplementasi untuk pemain lokal maupun remote.
+4. **Admin Tanpa Spectator Map**: Panel admin belum punya peta 2D top-down untuk melihat posisi pemain di dunia.
+5. **Aset Suburban Kurang Dimanfaatkan**: Fence variants, driveway tiles, dan path-stones dari Kenney suburban kit belum digunakan.
+
+### Perubahan
+
+#### `components/CityCanvas.tsx`
+
+1. **Flying Prop System**:
+   - Menambah tipe `FlyingPropState` (`id`, `path`, `startX`, `startZ`, `velX`, `velZ`, `spin`, `age`).
+   - Komponen `FlyingPropMesh` menganimasikan prop via `useFrame` dengan fisika parabola (gravitasi 9.8, kecepatan awal ke atas 4 unit/s, spin).
+   - `CityScene` menggunakan `useState<FlyingPropState[]>` untuk mengelola flying props (max 5 sekaligus).
+   - Callback `handlePropHit` (dengan throttle 400ms) di-pass ke `PlayerCarController` via `onPropHit`.
+   - Auto-remove prop setelah 1.5 detik via `setTimeout`.
+   - `KNOCKABLE_PROP_PATHS` = `[conePath, planterPath, dumpsterPath]`.
+
+2. **Perluasan Street Props (Denser, More Variety)**:
+   - Preload semua fence variants: `fence-1x2`, `fence-1x4`, `fence-2x2`, `fence-low`, `driveway-short`, `driveway-long`, `path-stones-long`, `path-stones-short`, `path-stones-messy`, `path-short`.
+   - Densitas props naik dari 45% → 55% slot dengan interval 18 → 14 unit.
+   - Menambah fence rows di suburban block perimeter (outer ring block centers).
+   - Driveway tiles di depan suburban houses.
+   - Path-stone decorations di midtown plazas.
+
+3. **Fix Syntax Error**: Memisahkan comment dan type declaration `NpcRoute` yang tergabung di satu baris.
+
+#### `app/admin/page.tsx`
+
+1. **WorldMonitorMap Component** (SVG 2D Spectator):
+   - `MAP_SIZE = 360px`, `WORLD_RANGE = 110` (untuk kota 220×220).
+   - `worldToSvg()` mapper dari koordinat world ke pixel SVG.
+   - Render: background gelap `#1a2235`, grid avenue (garis abu-abu tebal), titik soal (ungu/hijau + label S1-Sn), dot pemain berwarna (8 warna palette) + nama + ring online indicator.
+   - Legend mini di sudut kiri bawah.
+   - Import `AVENUES` dan `seededPoints` dari `@/components/CityCanvas`.
+   - Menerima props: `seed`, `questionCount`, `players` (dengan `position`), `completedPlayerQuestions`.
+
+2. **RoomPlayer type**: Menambah `position?: { x: number; z: number }` ke `RoomPlayer` agar posisi dari RTDB terbaca.
+
+3. **WorldMonitorMap di RoomMonitor**: Disisipkan antara `monitor-actions` dan `monitor-players` ketika `selectedRoom` ada.
+
+#### `app/globals.css`
+
+- CSS `.world-monitor-map-wrap`, `.world-monitor-map-label`, `.world-monitor-map-container`, `.world-monitor-svg` untuk tampilan panel spectator map yang bersih dan dark.
+
+### Verifikasi
+
+- `npx tsc --noEmit` ✅ Tanpa error TypeScript.
+- `npm run build` ✅ Sukses 100% (5.8s compile, 7/7 static pages).
+
+
+## 2026-11-11 — Pembersihan & Whitelist Aset Git (.gitignore) Hanya untuk File Game Aktif
+
+### Temuan
+
+1. **Asset Bloat pada Git Tracking**: Folder `public/assets/3d-assets/` memiliki 1.521 file di disk, dan 269 file terlanjur di-track di Git index.
+2. **File Tak Terpakai Terbawa**: Banyak model GLB yang tidak pernah digunakan dalam game (seperti traktor, kart, spare part/debris mobil, barrier jalan berlebih, dan kit industrial), serta file dokumentasi HTML, link URL, dan preview PNG beresiko ter-push ke repositori Git.
+3. **Kebutuhan Whitelist Ketat**: Dibutuhkan aturan `.gitignore` yang hanya meloloskan 88 model GLB yang benar-benar di-load oleh kode permainan, dan mengabaikan seluruh sisa aset lainnya.
+
+### Perubahan
+
+1. **Penerapan Pola Whitelist di `.gitignore`**:
+   - Format mentah (`**/Models/FBX format/`, `**/Models/OBJ format/`, `**/Previews/`) diabaikan.
+   - Folder aset `public/assets/3d-assets/**` diabaikan secara default.
+   - Pengecualian navigasi folder: `!public/assets/3d-assets/**/`.
+   - Pengecualian lisensi: `!public/assets/3d-assets/**/License.txt`.
+   - Pengecualian spesifik (unignore) untuk **88 model GLB aktif**:
+     - 10 model mobil (pemain & traffic NPC).
+     - 43 model komersial (pencakar langit, pertokoan ritel, low-detail background, kanopi, payung kafe).
+     - 26 model suburban (tipe rumah A-U, pohon besar/kecil, pagar 1x2/1x3/1x4/2x2/low, driveway short/long, path stones long/short/messy).
+     - 9 model jalanan (lurus, silang, penyeberangan, lampu jalan, lampu lalu lintas, rambu stop, kerucut lalu lintas, tempat sampah kontainer, tiang listrik).
+2. **Pembersihan Cache Git**:
+   - Menjalankan `git rm -r --cached public/assets/3d-assets` untuk melepas file yang terlanjur ter-track.
+   - Menjalankan `git add public/assets/3d-assets` sesuai filter `.gitignore` baru.
+   - Jumlah aset yang di-track turun dari 269 file menjadi tepat **94 file** (88 GLB aktif + 6 License.txt).
+
+### Verifikasi
+
+- `git ls-files public/assets/3d-assets | wc -l` mengonfirmasi tepat 94 file ter-track.
+- `git check-ignore -v --no-index` mengonfirmasi aset yang tidak dipakai (misal `ambulance.glb`, `industrial kit`, `Overview.html`) di-ignore dengan benar.
+- `npm run build` sukses 100% tanpa error dalam 685ms.

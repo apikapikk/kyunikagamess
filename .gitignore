@@ -45,8 +45,102 @@ next-env.d.ts
 /.firebase
 .firebase
 
-# 3D Asset raw models & previews not used in production (only GLB format is used)
+# ─── 3D Asset Raw Files & Non-GLB formats ────────────────────────────────────
 **/Models/FBX format/
 **/Models/OBJ format/
 **/Previews/
-public/assets/3d-assets/kenney_mini-characters/
+
+# ─── Ignore all 3D assets by default, allow only active in-game models ───────
+public/assets/3d-assets/**
+!public/assets/3d-assets/**/
+!public/assets/3d-assets/**/License.txt
+
+# Active GLB models used in game:
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/sedan-sports.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/suv-luxury.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/hatchback-sports.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/race-future.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/taxi.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/sedan.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/suv.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/delivery.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/van.glb
+!public/assets/3d-assets/kenney_car-kit/Models/GLB format/police.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-skyscraper-a.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-skyscraper-b.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-skyscraper-c.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-skyscraper-d.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-skyscraper-e.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-a.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-b.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-c.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-d.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-e.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-f.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-g.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-h.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-i.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-j.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-k.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-l.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-m.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/building-n.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-a.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-b.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-c.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-d.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-e.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-f.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-g.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-h.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-i.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/low-detail-building-j.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/detail-awning.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/detail-awning-wide.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/detail-parasol-a.glb
+!public/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB format/detail-parasol-b.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-a.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-b.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-c.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-d.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-e.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-f.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-g.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-h.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-i.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-j.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-k.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-l.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-m.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-n.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-o.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-p.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-q.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-r.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-s.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-t.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/building-type-u.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/tree-large.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/tree-small.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/fence-1x3.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/planter.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/path-long.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/fence-1x2.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/fence-1x4.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/fence-2x2.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/fence-low.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/driveway-short.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/driveway-long.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/path-stones-long.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/path-stones-short.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/path-stones-messy.glb
+!public/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB format/path-short.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/road-straight.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/road-crossroad.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/road-crossing.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/light-square.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/traffic-light.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/road-sign-stop.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/construction-cone.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/dumpster.glb
+!public/assets/3d-assets/kenney_city-kit-roads/Models/GLB format/electricity-pole-single.glb

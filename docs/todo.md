@@ -106,3 +106,65 @@ Dokumen rencana kerja dan daftar tugas terperinci untuk menyelesaikan laporan bu
 - [x] **5.6. Pengujian, Uji Build & Pembaruan Log**
   - Menjalankan `npm run lint` dan `npm run build` hingga lolos 100%.
   - Memperbarui `docs/log.md` dengan dokumentasi teknis menyeluruh.
+
+---
+
+## 6. Orbit Kamera Sentuh, Fisika Prop, Name Tag Pemain, Sebaran Soal Jauh, & Monitor Spectator Admin
+
+- [x] **6.1. Swipe Layar → Rotasi Kamera Orbit (Pitch + Yaw)**
+  - Memperbarui logika swipe pointer di `components/CityCanvas.tsx` agar sentuhan di area non-joystick merotasi kamera secara orbit mengelilingi mobil pemain.
+  - Menyimpan `swipeYaw` dan `swipePitch` via `useRef`; `swipePitch` di-clamp antara 10°–65°.
+  - Pivot kamera selalu ke posisi mobil pemain dengan offset `camYaw` + `swipeYaw` dan ketinggian berdasarkan pitch.
+  - Membedakan sentuhan joystick (kuadran kanan bawah layar) vs sentuhan kamera agar tidak bertabrakan.
+
+- [x] **6.2. Fisika Benturan Prop Kecil (Terlempar) vs Bangunan (Memantul)**
+  - Menambahkan kategori collider: `ColliderBox & { kind: 'building' | 'prop' }`.
+  - Prop kecil (planter, cone, bollard): saat ditabrak, benda terlempar (animasi `FlyingPropMesh` ~1.5 detik) dengan parabola fisika nyata (gravitasi, spin).
+  - Bangunan: tetap rigid; saat tabrakan mobil memantul kecil (`speedRef *= -0.3`).
+  - Implementasi `FlyingPropState` + `FlyingPropMesh` dengan animasi parabola per frame.
+  - `handlePropHit` callback dari `PlayerCarController` → `CityScene` spawn flying prop.
+  - Throttle spawn 400ms agar tidak spam, max 5 flying props sekaligus, auto-remove setelah 1.6 detik.
+
+- [x] **6.3. Tag Nama Pemain Melayang di Atas Mobil**
+  - Menggunakan `<Html>` dari `@react-three/drei` di atas group mobil pemain lokal dan avatar remote.
+  - Menambahkan prop `playerName` ke `CityCanvasProps` → `CityScene` → `PlayerCarController`.
+  - CSS `.player-nametag` di `app/globals.css`: pill gelap semi-transparan, teks putih kecil, backdrop-filter blur.
+  - Versi diri sendiri pakai `.player-nametag--self` (biru muda).
+
+- [x] **6.4. Sebaran Soal Tersebar Jauh (Minimum Gap 30 Unit)**
+  - `seededPoints()` menerapkan seleksi greedy dengan jarak minimum 30 unit antar soal.
+  - Soal tidak menumpuk di area tengah; prioritas sebaran ke seluruh penjuru grid 220×220.
+
+- [x] **6.5. Admin Spectator / World Monitor Real-Time**
+  - Menambahkan `WorldMonitorMap` di `app/admin/page.tsx` di dalam `RoomMonitor`.
+  - SVG top-down 360×360px: grid jalan abu-abu sesuai koordinat avenue, titik soal (ungu/hijau), dot pemain berwarna + label nama.
+  - Posisi pemain real-time dari RTDB `rooms/{code}/players/{id}/position`.
+  - Mengimpor `AVENUES` & `seededPoints` dari `components/CityCanvas.tsx`.
+  - CSS `.world-monitor-map-wrap` di globals.css.
+
+- [x] **6.6. Perluasan Kota & Pemanfaatan Semua Aset**
+  - Memanfaatkan fence variants (fence-1x2, fence-1x4, fence-2x2, fence-low), driveway-short, driveway-long, path-stones tiles dari `public/assets/`.
+  - Meningkatkan kepadatan prop dari 45% → 55% slot dengan interval lebih rapat (18 → 14 unit).
+  - Menambahkan `StreetProps` yang menempatkan pagar di suburban block perimeter, driveway di depan rumah, path-stone di plaza midtown.
+  - Preload semua extra suburban assets.
+
+- [x] **6.7. Pengujian Build & Pembaruan Log**
+  - `npx tsc --noEmit` berhasil tanpa error TypeScript.
+  - `npm run build` sukses 100% (5.8s compile, 7/7 static pages).
+  - Memperbarui `docs/log.md` dengan ringkasan teknis semua perubahan di section 6.
+
+---
+
+## 7. Pembersihan & Whitelist Aset Git (.gitignore)
+
+- [x] **7.1. Audit & Ekstraksi Model 3D Aktif**
+  - Mengidentifikasi 88 model GLB yang aktif digunakan dalam runtime 3D game (kendaraan, gedung komersial, perumahan, infrastruktur jalan, prop jalan).
+  - Mengidentifikasi 1.400+ file aset mentah yang tidak digunakan (FBX, OBJ, Previews, HTML, URL, textur cadangan, kit industrial yang tidak aktif, dan mini-characters).
+- [x] **7.2. Konfigurasi Whitelist di `.gitignore`**
+  - Menerapkan aturan default ignore untuk `public/assets/3d-assets/**`.
+  - Memberikan pengecualian unignore (`!`) secara ketat hanya untuk file `License.txt` dan 88 file GLB aktif.
+- [x] **7.3. Pembersihan Git Cache (Untrack File Tidak Terpakai)**
+  - Menjalankan `git rm -r --cached public/assets/3d-assets` untuk menghapus 138+ file aset tidak terpakai dari indeks Git.
+  - Menambahkan kembali aset dengan `git add public/assets/3d-assets` sehingga hanya 88 model GLB aktif dan lisensi yang ter-track (total 94 file).
+- [x] **7.4. Verifikasi Build & Status Git**
+  - Menjalankan `npm run build` untuk memastikan tidak ada aset penting yang hilang (hasil kompilasi sukses 100%).

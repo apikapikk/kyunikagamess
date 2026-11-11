@@ -1,8 +1,8 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
-import { Suspense, useEffect, useRef, useMemo } from "react";
+import { useGLTF, Html } from "@react-three/drei";
+import { Suspense, useEffect, useRef, useMemo, useState } from "react";
 import * as THREE from "three";
 import { ref, update } from "firebase/database";
 import { realtimeDb } from "@/lib/firebase";
@@ -21,6 +21,7 @@ export type ColliderBox = {
   maxX: number;
   minZ: number;
   maxZ: number;
+  kind?: "building" | "prop"; // prop colliders can be knocked away
 };
 
 export type CityCanvasProps = {
@@ -28,6 +29,7 @@ export type CityCanvasProps = {
   questionCount: number;
   roomCode: string;
   playerId: string;
+  playerName?: string;
   players: Record<string, RemotePlayer>;
   questionPoints?: Point[];
   completedQuestionIndices?: number[];
@@ -93,6 +95,19 @@ const streetLightPath  = `${roadsRoot}/light-square.glb`;
 const trafficLightPath = `${roadsRoot}/traffic-light.glb`;
 const stopSignPath     = `${roadsRoot}/road-sign-stop.glb`;
 
+// ─── Street Props (knockable small objects) ───────────────────────────────────
+const conePath         = `${roadsRoot}/construction-cone.glb`;
+const dumpsterPath     = `${roadsRoot}/dumpster.glb`;
+const electricityPolePath = `${roadsRoot}/electricity-pole-single.glb`;
+
+// ─── Low-detail Commercial Background Buildings ───────────────────────────────
+const lowDetailPaths = ["a","b","c","d","e","f","g","h","i","j"].map(
+  (l) => `${commercialRoot}/low-detail-building-${l}.glb`
+);
+
+// ─── Suburban Path Tiles ──────────────────────────────────────────────────────
+const pathLongPath     = `${suburbanRoot}/path-long.glb`;
+
 // Preload key assets
 useGLTF.preload(playerCarOptions[0]);
 useGLTF.preload(playerCarOptions[1]);
@@ -117,6 +132,11 @@ useGLTF.preload(trafficLightPath);
 useGLTF.preload(stopSignPath);
 useGLTF.preload(fencePath);
 useGLTF.preload(planterPath);
+useGLTF.preload(conePath);
+useGLTF.preload(dumpsterPath);
+useGLTF.preload(electricityPolePath);
+lowDetailPaths.slice(0, 6).forEach((p) => useGLTF.preload(p));
+useGLTF.preload(pathLongPath);
 
 // ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function lcg(seed: number, index: number): number {
@@ -253,11 +273,29 @@ export const candidateSpots: Point[] = [
 export function seededPoints(seed: number, count: number): Point[] {
   const actualCount = Math.min(Math.max(count, 3), candidateSpots.length);
   const spots = [...candidateSpots];
+  // Shuffle deterministically
   for (let i = spots.length - 1; i > 0; i--) {
     const j = Math.floor(lcg(seed + i * 17, i) * (i + 1));
     [spots[i], spots[j]] = [spots[j], spots[i]];
   }
-  return spots.slice(0, actualCount);
+  // Greedy spread selection: enforce minimum 30-unit gap between chosen spots
+  const MIN_GAP = 30;
+  const selected: Point[] = [];
+  for (const candidate of spots) {
+    if (selected.length >= actualCount) break;
+    const tooClose = selected.some(
+      (s) => Math.hypot(s.x - candidate.x, s.z - candidate.z) < MIN_GAP
+    );
+    if (!tooClose) selected.push(candidate);
+  }
+  // If not enough spread spots, fill with remaining (shouldn't happen with large candidateSpots)
+  if (selected.length < actualCount) {
+    for (const candidate of spots) {
+      if (selected.length >= actualCount) break;
+      if (!selected.includes(candidate)) selected.push(candidate);
+    }
+  }
+  return selected;
 }
 
 // ─── Generic Model Component ──────────────────────────────────────────────────
@@ -559,6 +597,30 @@ function useCityBlocks(seed: number) {
   }, [seed]);
 }
 
+// ─── Suburban Path Tiles + Fence + Driveway extra assets ─────────────────────
+const fence1x2Path     = `${suburbanRoot}/fence-1x2.glb`;
+const fence1x4Path     = `${suburbanRoot}/fence-1x4.glb`;
+const fence2x2Path     = `${suburbanRoot}/fence-2x2.glb`;
+const fenceLowPath     = `${suburbanRoot}/fence-low.glb`;
+const drivewayShortPath = `${suburbanRoot}/driveway-short.glb`;
+const drivewayLongPath  = `${suburbanRoot}/driveway-long.glb`;
+const pathStonesLongPath = `${suburbanRoot}/path-stones-long.glb`;
+const pathStonesShortPath = `${suburbanRoot}/path-stones-short.glb`;
+const pathStonesMessyPath = `${suburbanRoot}/path-stones-messy.glb`;
+const pathShortPath    = `${suburbanRoot}/path-short.glb`;
+
+// preload extra suburban assets
+useGLTF.preload(fence1x2Path);
+useGLTF.preload(fence1x4Path);
+useGLTF.preload(fence2x2Path);
+useGLTF.preload(fenceLowPath);
+useGLTF.preload(drivewayShortPath);
+useGLTF.preload(drivewayLongPath);
+useGLTF.preload(pathStonesLongPath);
+useGLTF.preload(pathStonesShortPath);
+useGLTF.preload(pathStonesMessyPath);
+useGLTF.preload(pathShortPath);
+
 // ─── Street Furniture (Illuminated Boulevards, Signals, Signs) ────────────────
 function StreetFurniture() {
   const streetProps = useMemo(() => {
@@ -601,6 +663,94 @@ function StreetFurniture() {
       ))}
       {streetProps.stopSigns.map(([x, y, z, ry], i) => (
         <Model key={`ss-${i}`} path={stopSignPath} position={[x, y, z]} rotation={[0, ry, 0]} scale={1.2} />
+      ))}
+    </>
+  );
+}
+
+// ─── Street Props (Curb Decorations: Cones, Planters, Electricity Poles, Fences, Driveways) ─────
+function StreetProps({ seed }: { seed: number }) {
+  const propList = useMemo(() => {
+    const items: { path: string; pos: [number, number, number]; rot: number; scale: number }[] = [];
+
+    // Place props along avenue curbs at regular intervals
+    const propPaths = [conePath, planterPath, electricityPolePath, planterPath, conePath];
+    let idx = 0;
+    for (const avenue of AVENUES) {
+      for (let c = ROAD_MIN + 10; c <= ROAD_MAX - 10; c += 14) {
+        const r1 = lcg(seed + idx, 1);
+        const r2 = lcg(seed + idx, 2);
+        if (r1 > 0.45) { // 55% of slots get a prop — denser
+          const propPath = propPaths[Math.floor(r2 * propPaths.length)];
+          const offset = 3.0 + r1 * 0.5;
+          // Horizontal avenue: prop on north & south curbs
+          items.push({ path: propPath, pos: [c, 0, avenue - offset], rot: 0, scale: 1.1 });
+          if (lcg(seed + idx, 3) > 0.35) {
+            items.push({ path: propPath, pos: [c, 0, avenue + offset], rot: Math.PI, scale: 1.1 });
+          }
+          // Vertical avenue: prop on east & west curbs
+          items.push({ path: propPath, pos: [avenue - offset, 0, c], rot: Math.PI / 2, scale: 1.1 });
+          if (lcg(seed + idx, 4) > 0.35) {
+            items.push({ path: propPath, pos: [avenue + offset, 0, c], rot: -Math.PI / 2, scale: 1.1 });
+          }
+        }
+        // Dumpster occasionally
+        if (lcg(seed + idx, 5) > 0.84) {
+          items.push({ path: dumpsterPath, pos: [c + 1, 0, avenue - 3.2], rot: 0, scale: 1.0 });
+        }
+        idx++;
+      }
+    }
+
+    // ── Suburban fence rows along outer block perimeters ──
+    // Block intervals for the outer ring (col 0,1,6,7 or row 0,1,6,7)
+    const outerBlockCenters = [-70, -50, 50, 70]; // approx centers of outer columns/rows
+    const innerBlockCenters = [-30, -10, 10, 30];  // inner mid-ring
+    const fenceVariants = [fence1x2Path, fence1x4Path, fence2x2Path, fenceLowPath];
+
+    for (const bx of outerBlockCenters) {
+      for (const bz of [...outerBlockCenters, ...innerBlockCenters]) {
+        const fi = Math.floor(lcg(seed + bx * 7 + bz, 10) * fenceVariants.length);
+        const fencePath2 = fenceVariants[fi];
+        const ry = lcg(seed + bx + bz, 11) > 0.5 ? Math.PI / 2 : 0;
+        // Front fence of suburban block
+        items.push({ path: fencePath2, pos: [bx, 0, bz - 5.5], rot: ry, scale: 1.3 });
+        items.push({ path: fencePath2, pos: [bx, 0, bz + 5.5], rot: ry + Math.PI, scale: 1.3 });
+        // Side fence
+        items.push({ path: fencePath2, pos: [bx - 5.5, 0, bz], rot: ry + Math.PI / 2, scale: 1.3 });
+        items.push({ path: fencePath2, pos: [bx + 5.5, 0, bz], rot: ry - Math.PI / 2, scale: 1.3 });
+      }
+    }
+
+    // ── Driveway tiles in front of suburban houses ──
+    const drivewayPaths2 = [drivewayShortPath, drivewayLongPath];
+    for (const bx of outerBlockCenters) {
+      for (const bz of outerBlockCenters) {
+        const dIdx = Math.floor(lcg(seed + bx + bz, 20) * drivewayPaths2.length);
+        items.push({ path: drivewayPaths2[dIdx], pos: [bx, 0, bz - 4.0], rot: 0, scale: 1.1 });
+        items.push({ path: drivewayPaths2[dIdx], pos: [bx, 0, bz + 4.0], rot: Math.PI, scale: 1.1 });
+      }
+    }
+
+    // ── Path stone decorations in midtown plazas ──
+    const pathStonePaths = [pathStonesLongPath, pathStonesShortPath, pathStonesMessyPath, pathShortPath];
+    for (const bx of innerBlockCenters) {
+      for (const bz of innerBlockCenters) {
+        const psIdx = Math.floor(lcg(seed + bx * 3 + bz, 30) * pathStonePaths.length);
+        if (lcg(seed + bx + bz * 2, 31) > 0.4) {
+          items.push({ path: pathStonePaths[psIdx], pos: [bx + 2, 0, bz], rot: 0, scale: 1.0 });
+          items.push({ path: pathStonePaths[psIdx], pos: [bx - 2, 0, bz], rot: Math.PI, scale: 1.0 });
+        }
+      }
+    }
+
+    return items;
+  }, [seed]);
+
+  return (
+    <>
+      {propList.map((p, i) => (
+        <Model key={`sp-${i}`} path={p.path} position={p.pos} rotation={[0, p.rot, 0]} scale={p.scale} />
       ))}
     </>
   );
@@ -713,6 +863,50 @@ function NpcTraffic({
   );
 }
 
+// ─── Flying Prop State (knocked small objects) ────────────────────────────────
+type FlyingPropState = {
+  id: number;
+  path: string;
+  startX: number;
+  startZ: number;
+  velX: number;
+  velZ: number;
+  spin: number;
+  age: number; // seconds since spawned
+};
+
+const MAX_FLYING_DURATION = 1.5; // seconds
+
+function FlyingPropMesh({ prop }: { prop: FlyingPropState }) {
+  const { scene } = useGLTF(prop.path);
+  const cloned = useMemo(() => scene.clone(true), [scene]);
+  const meshRef = useRef<THREE.Group>(null);
+  const ageRef = useRef(prop.age);
+
+  useFrame((_, delta) => {
+    ageRef.current += delta;
+    if (!meshRef.current) return;
+    const t = ageRef.current;
+    // parabolic arc: gravity pulls down after peak
+    const gravity = 9.8;
+    const vY0 = 4.0; // initial upward velocity
+    const y = Math.max(0, vY0 * t - 0.5 * gravity * t * t);
+    meshRef.current.position.set(
+      prop.startX + prop.velX * t,
+      y,
+      prop.startZ + prop.velZ * t
+    );
+    meshRef.current.rotation.y += prop.spin * delta;
+    meshRef.current.rotation.x += prop.spin * 0.5 * delta;
+  });
+
+  return (
+    <group ref={meshRef} position={[prop.startX, 0, prop.startZ]}>
+      <primitive object={cloned} scale={1.0} />
+    </group>
+  );
+}
+
 // ─── Remote Player Car Avatar ─────────────────────────────────────────────────
 function RemoteCarAvatar({ player, carIdx }: { player: RemotePlayer; carIdx: number }) {
   const { scene } = useGLTF(npcCarPaths[carIdx % npcCarPaths.length]);
@@ -726,6 +920,10 @@ function RemoteCarAvatar({ player, carIdx }: { player: RemotePlayer; carIdx: num
         <ringGeometry args={[0.6, 0.75, 24]} />
         <meshBasicMaterial color="#f28b72" />
       </mesh>
+      {/* Player name tag floating above the remote car */}
+      <Html position={[0, 3.2, 0]} center distanceFactor={10}>
+        <div className="player-nametag">{player.name}</div>
+      </Html>
     </group>
   );
 }
@@ -808,12 +1006,13 @@ function QuestionMarker({
 }
 
 // ─── Fast, Non-Penetrating Collision Resolution ───────────────────────────────
+// Returns 'building' if hit a solid building, 'prop' if hit a small prop, false if no hit
 function resolveObstacleCollision(
   carPos: THREE.Vector3,
   carRadius: number,
   colliders: ColliderBox[]
-): boolean {
-  let hit = false;
+): "building" | "prop" | false {
+  let hitKind: "building" | "prop" | false = false;
 
   for (let i = 0; i < colliders.length; i++) {
     const box = colliders[i];
@@ -825,7 +1024,13 @@ function resolveObstacleCollision(
     const distSq = dx * dx + dz * dz;
 
     if (distSq < carRadius * carRadius) {
-      hit = true;
+      const kind = box.kind ?? "building";
+      hitKind = hitKind === "building" ? "building" : kind;
+
+      // Props don't push back the car (car passes through with minor deceleration)
+      if (kind === "prop") continue;
+
+      // Buildings: rigid push out
       const dist = Math.sqrt(distSq);
       if (dist > 0.0001) {
         const overlap = carRadius - dist;
@@ -846,13 +1051,14 @@ function resolveObstacleCollision(
     }
   }
 
-  return hit;
+  return hitKind;
 }
 
 // ─── Player Car Controller with Expansive Speed & Collision ───────────────────
 function PlayerCarController({
   roomCode,
   playerId,
+  playerName = "",
   carScene,
   colliders,
   npcPositionsRef,
@@ -863,9 +1069,11 @@ function PlayerCarController({
   isBrakingRef,
   onPlayerPosUpdate,
   onNearQuestion,
+  onPropHit,
 }: {
   roomCode: string;
   playerId: string;
+  playerName?: string;
   carScene: THREE.Object3D;
   colliders: ColliderBox[];
   npcPositionsRef: React.MutableRefObject<Array<{ x: number; z: number }>>;
@@ -876,6 +1084,7 @@ function PlayerCarController({
   isBrakingRef?: React.RefObject<boolean>;
   onPlayerPosUpdate?: (pos: { x: number; z: number }) => void;
   onNearQuestion?: (index: number | null) => void;
+  onPropHit?: (pos: { x: number; z: number }, heading: number) => void;
 }) {
   const carGroupRef = useRef<THREE.Group>(null);
 
@@ -911,16 +1120,36 @@ function PlayerCarController({
     };
   }, [isQuizOpen]);
 
-  // Touch / pointer swipe for rotating camera angle
-  const swipeYaw = useRef(0);
+  // Touch / pointer swipe for rotating camera orbit (yaw + pitch)
+  // Joystick occupies bottom-right corner (bottom 25% height, right 35% width)
+  // Everything else is camera orbit touch
+  const swipeYaw   = useRef(0);
+  const swipePitch = useRef(0.42); // ~24° elevation in radians
   useEffect(() => {
     const canvas = gl.domElement;
     let lastX = 0;
-    const onDown = (e: PointerEvent) => { lastX = e.clientX; };
+    let lastY = 0;
+    const isJoystickZone = (e: PointerEvent) => {
+      const cw = canvas.clientWidth;
+      const ch = canvas.clientHeight;
+      return e.clientX > cw * 0.65 && e.clientY > ch * 0.72;
+    };
+    const onDown = (e: PointerEvent) => {
+      if (isJoystickZone(e)) return;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    };
     const onMove = (e: PointerEvent) => {
       if (!(e.buttons & 1)) return;
-      swipeYaw.current -= (e.clientX - lastX) * 0.008;
+      if (isJoystickZone(e)) return;
+      swipeYaw.current   -= (e.clientX - lastX) * 0.007;
+      swipePitch.current  = THREE.MathUtils.clamp(
+        swipePitch.current + (e.clientY - lastY) * 0.004,
+        0.18,  // ~10° min (looking nearly level)
+        1.1    // ~63° max (looking steeply down)
+      );
       lastX = e.clientX;
+      lastY = e.clientY;
     };
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
@@ -991,7 +1220,9 @@ function PlayerCarController({
 
       // ── Collision Resolution ──
       const carRadius = 0.85;
-      const hitBuilding = resolveObstacleCollision(posRef.current, carRadius, colliders);
+      const hitResult = resolveObstacleCollision(posRef.current, carRadius, colliders);
+      const hitBuilding = hitResult === "building";
+      const hitProp     = hitResult === "prop";
 
       // City outer boundary limit
       const limit = 89.0;
@@ -1041,8 +1272,15 @@ function PlayerCarController({
 
       // Deceleration and tactile jolt on impact
       if (hitBuilding || hitBorder || hitNpc || hitPlayer) {
-        speedRef.current *= 0.25;
+        // Building: bounce back (reverse impulse)
+        if (hitBuilding) speedRef.current *= -0.3;
+        else speedRef.current *= 0.25;
         bumpRef.current = Math.min(bumpRef.current + 0.08, 0.15);
+      } else if (hitProp) {
+        // Prop: car continues but slows slightly; notify parent to spawn flying animation
+        speedRef.current *= 0.75;
+        bumpRef.current = Math.min(bumpRef.current + 0.04, 0.08);
+        onPropHit?.({ x: posRef.current.x, z: posRef.current.z }, headingRef.current);
       }
     }
 
@@ -1060,23 +1298,28 @@ function PlayerCarController({
       );
     }
 
-    // ── Camera Following Behind Car ──────────────────────────────────────────
-    const camDist = 7.2;
-    const camH    = 3.5;
-    const camYaw  = headingRef.current + swipeYaw.current;
+    // ── Camera Orbit Following Car (pivot = car position, yaw + pitch from swipe) ──
+    const camTotalYaw = headingRef.current + swipeYaw.current;
+    const pitch = swipePitch.current; // 0.18–1.1 radians
+    // Spherical coordinate offset from car
+    const camRadius = 7.2;
+    const camOffX = -Math.sin(camTotalYaw) * Math.cos(pitch) * camRadius;
+    const camOffY =  Math.sin(pitch) * camRadius;
+    const camOffZ = -Math.cos(camTotalYaw) * Math.cos(pitch) * camRadius;
 
     const desiredCam = new THREE.Vector3(
-      posRef.current.x - Math.sin(camYaw) * camDist,
-      posRef.current.y + camH,
-      posRef.current.z - Math.cos(camYaw) * camDist,
+      posRef.current.x + camOffX,
+      posRef.current.y + camOffY,
+      posRef.current.z + camOffZ,
     );
     camPosRef.current.lerp(desiredCam, 1 - Math.pow(0.00001, dt));
     camera.position.copy(camPosRef.current);
 
+    // Always look at the car (pivot is car position, not ahead)
     const desiredLook = new THREE.Vector3(
-      posRef.current.x + Math.sin(headingRef.current) * 3.0,
-      posRef.current.y + 1.0,
-      posRef.current.z + Math.cos(headingRef.current) * 3.0,
+      posRef.current.x,
+      posRef.current.y + 0.8,
+      posRef.current.z,
     );
     camLookRef.current.lerp(desiredLook, 1 - Math.pow(0.001, dt));
     camera.lookAt(camLookRef.current);
@@ -1120,16 +1363,27 @@ function PlayerCarController({
         <circleGeometry args={[1.15, 24]} />
         <meshBasicMaterial color="#111" transparent opacity={0.3} />
       </mesh>
+      {/* Player name tag floating above local car */}
+      {playerName && (
+        <Html position={[0, 3.2, 0]} center distanceFactor={10}>
+          <div className="player-nametag player-nametag--self">{playerName}</div>
+        </Html>
+      )}
     </group>
   );
 }
 
 // ─── Full City Scene ──────────────────────────────────────────────────────────
+// Knockable prop paths (small, can fly when hit)
+const KNOCKABLE_PROP_PATHS = [conePath, planterPath, dumpsterPath];
+let flyingPropIdCounter = 0;
+
 function CityScene({
   seed,
   questionCount,
   roomCode,
   playerId,
+  playerName = "",
   players,
   questionPoints: customPoints,
   completedQuestionIndices = [],
@@ -1146,6 +1400,37 @@ function CityScene({
   );
 
   const npcPositionsRef = useRef<Array<{ x: number; z: number }>>([]);
+
+  // Flying props state: small objects knocked away by player car
+  const [flyingProps, setFlyingProps] = useState<FlyingPropState[]>([]);
+  const lastPropHitRef = useRef(0);
+
+  const handlePropHit = useMemo(() => (pos: { x: number; z: number }, heading: number) => {
+    const now = performance.now();
+    // Throttle flying prop spawns (max 1 per 400ms)
+    if (now - lastPropHitRef.current < 400) return;
+    lastPropHitRef.current = now;
+
+    const propPath = KNOCKABLE_PROP_PATHS[Math.floor(Math.random() * KNOCKABLE_PROP_PATHS.length)];
+    const spreadAngle = heading + (Math.random() - 0.5) * 1.4; // random forward spread
+    const speed = 3.5 + Math.random() * 3;
+    const newProp: FlyingPropState = {
+      id: ++flyingPropIdCounter,
+      path: propPath,
+      startX: pos.x + Math.sin(heading) * 1.5,
+      startZ: pos.z + Math.cos(heading) * 1.5,
+      velX: Math.sin(spreadAngle) * speed,
+      velZ: Math.cos(spreadAngle) * speed,
+      spin: (Math.random() - 0.5) * 10,
+      age: 0,
+    };
+    setFlyingProps((prev) => [...prev.slice(-4), newProp]); // keep at most 5 flying props
+    // Auto-remove after animation duration
+    setTimeout(() => {
+      setFlyingProps((prev) => prev.filter((p) => p.id !== newProp.id));
+    }, MAX_FLYING_DURATION * 1000 + 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const playerCarIdx = useMemo(() => {
     let h = 0;
@@ -1197,6 +1482,16 @@ function CityScene({
       {/* Street Furniture (Lamps, Signals, Signs) */}
       <Suspense fallback={null}><StreetFurniture /></Suspense>
 
+      {/* Street Props (Cones, Planters, Fences, Driveways, Path Stones along sidewalks) */}
+      <Suspense fallback={null}><StreetProps seed={seed} /></Suspense>
+
+      {/* Flying Props (knocked away on prop collision) */}
+      <Suspense fallback={null}>
+        {flyingProps.map((fp) => (
+          <FlyingPropMesh key={`fp-${fp.id}`} prop={fp} />
+        ))}
+      </Suspense>
+
       {/* Live Two-Way Traffic on Multi-Avenues */}
       <Suspense fallback={null}>
         <NpcTraffic seed={seed} npcPositionsRef={npcPositionsRef} />
@@ -1224,6 +1519,7 @@ function CityScene({
       <PlayerCarController
         roomCode={roomCode}
         playerId={playerId}
+        playerName={playerName}
         carScene={playerCarScene}
         colliders={colliders}
         npcPositionsRef={npcPositionsRef}
@@ -1234,6 +1530,7 @@ function CityScene({
         isBrakingRef={isBrakingRef}
         onPlayerPosUpdate={onPlayerPosUpdate}
         onNearQuestion={onNearQuestion}
+        onPropHit={handlePropHit}
       />
     </>
   );

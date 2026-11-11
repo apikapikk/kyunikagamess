@@ -692,6 +692,7 @@ export default function GamePage() {
               questionCount={questionPoints.length}
               roomCode={room.code}
               playerId={playerId}
+              playerName={playerName}
               players={safePlayers}
               questionPoints={questionPoints}
               completedQuestionIndices={completedIndices}
