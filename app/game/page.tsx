@@ -106,6 +106,8 @@ export default function GamePage() {
   const [shortInput, setShortInput] = useState("");
   const [quizFeedback, setQuizFeedback] = useState<{ correct: boolean; message: string } | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [navToast, setNavToast] = useState<string | null>(null);
+  const [pinnedTargetIndex, setPinnedTargetIndex] = useState<number | null>(null);
 
   // Initial load: room, player id, and player name from storage / query
   useEffect(() => {
@@ -373,7 +375,16 @@ export default function GamePage() {
     return [...uncompleted].sort((a, b) => a.dist - b.dist)[0];
   }, [targetStats]);
 
-  // Open Quiz Modal
+  // Active navigation destination target (pinned by clicking radar chip, or nearest uncompleted)
+  const activeNavTarget = useMemo(() => {
+    if (pinnedTargetIndex !== null) {
+      const pinned = targetStats.find((t) => t.index === pinnedTargetIndex && !t.isCompleted);
+      if (pinned) return pinned;
+    }
+    return nearestTarget;
+  }, [pinnedTargetIndex, targetStats, nearestTarget]);
+
+  // Open Quiz Modal (only called when car is within proximity or via Space)
   const openQuiz = useCallback(
     (index: number) => {
       const currentQ = questions[index] ?? defaultQuestions[index % defaultQuestions.length];
@@ -395,6 +406,27 @@ export default function GamePage() {
       }
     },
     [questions, completedIds]
+  );
+
+  // Radar chip click: Set GPS target & show exploration guidance (never opens quiz directly unless close)
+  const handleRadarClick = useCallback(
+    (target: (typeof targetStats)[0]) => {
+      if (nearQuestionIndex === target.index && !target.isCompleted) {
+        openQuiz(target.index);
+        return;
+      }
+
+      setPinnedTargetIndex(target.index);
+      if (target.isCompleted) {
+        setNavToast(`✓ Soal #${target.index + 1} sudah kamu selesaikan!`);
+      } else {
+        setNavToast(
+          `🚗 Jelajahi kota & dekati pilar soal #${target.index + 1} (±${Math.round(target.dist)}m) untuk membukanya!`
+        );
+      }
+      window.setTimeout(() => setNavToast(null), 3500);
+    },
+    [nearQuestionIndex, openQuiz]
   );
 
   // Close Quiz Modal
@@ -619,13 +651,14 @@ export default function GamePage() {
 
           {/* Target Radar & Navigation HUD */}
           <div className="target-radar-hud">
-            {nearestTarget && (
+            {activeNavTarget && (
               <div className="nearest-target-card">
                 <span className="target-icon">🎯</span>
                 <span>
-                  Target Terdekat: <strong>Soal #{nearestTarget.index + 1}</strong>
+                  {pinnedTargetIndex === activeNavTarget.index ? "Navigasi Target" : "Target Terdekat"}:{" "}
+                  <strong>Soal #{activeNavTarget.index + 1}</strong>
                 </span>
-                <span className="dist-badge">{Math.round(nearestTarget.dist)}m</span>
+                <span className="dist-badge">{Math.round(activeNavTarget.dist)}m</span>
               </div>
             )}
 
@@ -633,9 +666,10 @@ export default function GamePage() {
               {targetStats.map((t) => (
                 <button
                   key={t.index}
-                  className={`radar-chip ${t.isCompleted ? "completed" : nearestTarget?.index === t.index ? "active" : ""}`}
-                  onClick={() => openQuiz(t.index)}
-                  title={`Klik untuk lihat soal #${t.index + 1}`}
+                  type="button"
+                  className={`radar-chip ${t.isCompleted ? "completed" : activeNavTarget?.index === t.index ? "active" : ""}`}
+                  onClick={() => handleRadarClick(t)}
+                  title={`Klik untuk navigasi GPS ke soal #${t.index + 1}`}
                 >
                   <span>{t.isCompleted ? "✓" : "📍"}</span>
                   <span>#{t.index + 1}</span>
@@ -643,6 +677,12 @@ export default function GamePage() {
                 </button>
               ))}
             </div>
+
+            {navToast && (
+              <div className="nav-toast-banner">
+                <span>{navToast}</span>
+              </div>
+            )}
           </div>
 
           {/* 3D WebGL Canvas */}
@@ -655,16 +695,16 @@ export default function GamePage() {
               players={safePlayers}
               questionPoints={questionPoints}
               completedQuestionIndices={completedIndices}
-              nearestQuestionIndex={nearestTarget?.index ?? null}
+              nearestQuestionIndex={activeNavTarget?.index ?? null}
               isQuizOpen={activeQuizIndex !== null}
               joystickRef={joystickRef}
               isBrakingRef={isBrakingRef}
               onPlayerPosUpdate={setPlayerPos}
               onNearQuestion={setNearQuestionIndex}
             />
-            <div className="map-label">CITY KIT 3D · SEED {room.seed}</div>
+            <div className="map-label">METROPOLIS 3D · SEED {room.seed}</div>
 
-            {/* Mobile virtual touch Analog Joystick + Brake */}
+            {/* Mobile virtual touch Analog Joystick (positioned on right, brake removed) */}
             <div className="mobile-controls-layer">
               <div className="analog-stick-wrap">
                 <VirtualJoystick
@@ -676,30 +716,6 @@ export default function GamePage() {
                   }}
                 />
               </div>
-
-              <button
-                type="button"
-                className="mobile-brake-btn"
-                onPointerDown={(e) => {
-                  e.preventDefault();
-                  isBrakingRef.current = true;
-                }}
-                onPointerUp={(e) => {
-                  e.preventDefault();
-                  isBrakingRef.current = false;
-                }}
-                onPointerLeave={() => {
-                  isBrakingRef.current = false;
-                }}
-                onPointerCancel={() => {
-                  isBrakingRef.current = false;
-                }}
-                onContextMenu={(e) => e.preventDefault()}
-                aria-label="Rem mobil"
-              >
-                <span className="brake-icon">🛑</span>
-                <span className="brake-text">REM</span>
-              </button>
             </div>
           </div>
 

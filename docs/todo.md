@@ -80,3 +80,29 @@ Dokumen rencana kerja dan daftar tugas terperinci untuk menyelesaikan laporan bu
 - [x] Verifikasi pengerjaan soal: jawaban tercatat butir per butir dan dapat diinspeksi secara detail di admin.
 - [x] Build check: `npm run build` berhasil 100% tanpa error TypeScript maupun linting.
 - [x] Dokumentasi: `docs/log.md` diperbarui dengan ringkasan perubahan teknis.
+
+---
+
+## 5. Perbaikan Gameplay & Eksplorasi Soal, Kontrol Mobile, Keamanan Admin, & Ekspansi Kota
+
+- [x] **5.1. Kunci Pembukaan Kuis dari Radar HUD (Eksplorasi Wajib)**
+  - Menghapus pembukaan instan modal kuis saat chip radar soal di kanan atas di-klik (`openQuiz` dinonaktifkan dari klik radar).
+  - Mengarahkan klik chip sebagai navigasi target GPS (menampilkan petunjuk arah dan jarak ke lokasi soal).
+  - Memastikan modal kuis hanya dapat dibuka jika kendaraan pemain benar-benar berada dalam jarak dekat pilar soal (< 3.4 unit) via tombol proximity prompt atau keyboard `Space`.
+- [x] **5.2. Penyesuaian Kontrol Mobile (Analog di Kanan, Hapus Rem)**
+  - Memindahkan posisi Virtual Joystick analog ke sisi kanan bawah layar (`bottom-right`).
+  - Menghapus tombol rem sentuh (`mobile-brake-btn`) dari tampilan antarmuka game.
+  - Memperbarui gaya CSS `.mobile-controls-layer` agar nyaman dikendalikan dengan jempol kanan.
+- [x] **5.3. Sistem Autentikasi / Kredensial Halaman Admin (`/admin`)**
+  - Membuat antarmuka Login Guard di `app/admin/page.tsx` sebelum panel admin dapat diakses.
+  - Menerapkan verifikasi kredensial admin (username & password) dengan penyimpanan sesi (`sessionStorage`).
+  - Menambahkan tombol Logout / Keluar di sidebar admin untuk mengakhiri sesi.
+- [x] **5.4. Pengurangan Kepadatan NPC Traffic**
+  - Mengurangi kepadatan mobil NPC lalu lintas di `components/CityCanvas.tsx` agar tidak memadati jalan raya dan memudahkan pemain mengemudi.
+- [x] **5.5. Perluasan Tata Kota Metropolitan**
+  - Memperluas grid jaringan jalan menjadi 9 avenue utama (`[-80, -60, -40, -20, 0, 20, 40, 60, 80]`) dengan rentang jalan dari `-92` hingga `+92`.
+  - Memperluas bidang tanah ground plane menjadi 220x220 unit dan batas tabrakan kota ke `limit = 89.0`.
+  - Menambahkan titik sebaran kandidat soal dan sebaran blok perkotaan outer ring.
+- [x] **5.6. Pengujian, Uji Build & Pembaruan Log**
+  - Menjalankan `npm run lint` dan `npm run build` hingga lolos 100%.
+  - Memperbarui `docs/log.md` dengan dokumentasi teknis menyeluruh.

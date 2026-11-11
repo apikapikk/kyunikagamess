@@ -124,12 +124,12 @@ function lcg(seed: number, index: number): number {
 }
 
 // ─── Expansive City Grid Constants ────────────────────────────────────────────
-// Major avenues at -60, -40, -20, 0, 20, 40, 60 (Spans -72 to +72 across a 180x180 map)
-export const AVENUES = [-60, -40, -20, 0, 20, 40, 60];
+// Major avenues at -80, -60, -40, -20, 0, 20, 40, 60, 80 (Spans -92 to +92 across a 220x220 map)
+export const AVENUES = [-80, -60, -40, -20, 0, 20, 40, 60, 80];
 export const ROAD_TILE_SCALE = 4.0; // Tile bounds are exactly 4x4 units
 export const ROAD_STEP = 4.0;
-export const ROAD_MIN = -72;
-export const ROAD_MAX = 72;
+export const ROAD_MIN = -92;
+export const ROAD_MAX = 92;
 
 // ─── Road-Aligned Candidate Spots for Questions ───────────────────────────────
 export const candidateSpots: Point[] = [
@@ -211,6 +211,43 @@ export const candidateSpots: Point[] = [
   { x: 60, z: -60 },
   { x: -60, z: 60 },
   { x: 60, z: 60 },
+  // Expanded Perimeter Avenues (Ring at ±80)
+  { x: 0, z: -70 },
+  { x: 0, z: 70 },
+  { x: -70, z: 0 },
+  { x: 70, z: 0 },
+  { x: -80, z: 0 },
+  { x: 80, z: 0 },
+  { x: 0, z: -80 },
+  { x: 0, z: 80 },
+  { x: -80, z: -20 },
+  { x: -80, z: 20 },
+  { x: 80, z: -20 },
+  { x: 80, z: 20 },
+  { x: -20, z: -80 },
+  { x: 20, z: -80 },
+  { x: -20, z: 80 },
+  { x: 20, z: 80 },
+  { x: -80, z: -40 },
+  { x: -80, z: 40 },
+  { x: 80, z: -40 },
+  { x: 80, z: 40 },
+  { x: -40, z: -80 },
+  { x: 40, z: -80 },
+  { x: -40, z: 80 },
+  { x: 40, z: 80 },
+  { x: -80, z: -60 },
+  { x: 80, z: -60 },
+  { x: -80, z: 60 },
+  { x: 80, z: 60 },
+  { x: -60, z: -80 },
+  { x: 60, z: -80 },
+  { x: -60, z: 80 },
+  { x: 60, z: 80 },
+  { x: -80, z: -80 },
+  { x: 80, z: -80 },
+  { x: -80, z: 80 },
+  { x: 80, z: 80 },
 ];
 
 export function seededPoints(seed: number, count: number): Point[] {
@@ -309,15 +346,17 @@ function useCityBlocks(seed: number) {
     const trees: { path: string; pos: [number, number, number]; scale: number }[] = [];
     const colliders: ColliderBox[] = [];
 
-    // The city is composed of 36 blocks (6x6) between the 7 avenues
+    // The city is composed of 64 blocks (8x8) between the 9 avenues
     // Block bounds between avenue pairs:
     const blockIntervals = [
-      { min: -57.5, max: -42.5 }, // col 0: -50
-      { min: -37.5, max: -22.5 }, // col 1: -30
-      { min: -17.5, max: -2.5 },  // col 2: -10
-      { min: 2.5, max: 17.5 },    // col 3: 10
-      { min: 22.5, max: 37.5 },   // col 4: 30
-      { min: 42.5, max: 57.5 },   // col 5: 50
+      { min: -77.5, max: -62.5 }, // col 0: -70
+      { min: -57.5, max: -42.5 }, // col 1: -50
+      { min: -37.5, max: -22.5 }, // col 2: -30
+      { min: -17.5, max: -2.5 },  // col 3: -10
+      { min: 2.5, max: 17.5 },    // col 4: 10
+      { min: 22.5, max: 37.5 },   // col 5: 30
+      { min: 42.5, max: 57.5 },   // col 6: 50
+      { min: 62.5, max: 77.5 },   // col 7: 70
     ];
 
     let itemIdx = 0;
@@ -325,9 +364,9 @@ function useCityBlocks(seed: number) {
     blockIntervals.forEach((xBlock, col) => {
       blockIntervals.forEach((zBlock, row) => {
         // District classification:
-        // Central 4 blocks (col: 2,3; row: 2,3) = Downtown Skyscraper Core + Plaza
-        // Intermediate blocks (col: 1-4; row: 1-4) = Commercial & Shopping Boulevard
-        // Outer ring (col: 0 or 5; row: 0 or 5) = Suburban Residential Neighborhoods
+        // Central 4 blocks (col: 3,4; row: 3,4) = Downtown Skyscraper Core + Plaza
+        // Intermediate blocks (col: 2-5; row: 2-5) = Commercial & Shopping Boulevard
+        // Outer ring (col: 0,1,6,7; row: 0,1,6,7) = Suburban Residential Neighborhoods
 
         const p1 = { x: xBlock.min + 3.2, z: zBlock.min + 3.2 };
         const p2 = { x: xBlock.max - 3.2, z: zBlock.min + 3.2 };
@@ -335,7 +374,7 @@ function useCityBlocks(seed: number) {
         const p4 = { x: xBlock.max - 3.2, z: zBlock.max - 3.2 };
         const centerP = { x: (xBlock.min + xBlock.max) / 2, z: (zBlock.min + zBlock.max) / 2 };
 
-        if (col === 2 && row === 2) {
+        if (col === 3 && row === 3) {
           // ── District 1: Downtown Financial Core (Tall Skyscrapers) ──
           [p1, p2, p3, p4].forEach((p, idx) => {
             const sc = 2.8;
@@ -361,7 +400,7 @@ function useCityBlocks(seed: number) {
             minZ: centerP.z - 0.7,
             maxZ: centerP.z + 0.7,
           });
-        } else if (col === 3 && row === 2) {
+        } else if (col === 4 && row === 3) {
           // ── District 2: Shopping Boulevard & Cafe Terraces ──
           const stores = [
             { p: p1, detail: awningPath, dPos: [p1.x, 1.6, p1.z + 2.0] as [number, number, number] },
@@ -388,7 +427,7 @@ function useCityBlocks(seed: number) {
               maxZ: p.z + 1.6,
             });
           });
-        } else if (col === 2 && row === 3) {
+        } else if (col === 3 && row === 4) {
           // ── District 3: Corporate Tech Hub ──
           [p1, p2, p3, p4].forEach((p, idx) => {
             const isSkyscraper = idx === 0 || idx === 3;
@@ -411,7 +450,7 @@ function useCityBlocks(seed: number) {
             });
           });
           trees.push({ path: planterPath, pos: [centerP.x, 0, centerP.z], scale: 1.5 });
-        } else if (col === 3 && row === 3) {
+        } else if (col === 4 && row === 4) {
           // ── District 4: Central Civic Park & Plaza ──
           // Landmark cultural building at center
           buildings.push({
@@ -437,7 +476,7 @@ function useCityBlocks(seed: number) {
               maxZ: p.z + 0.7,
             });
           });
-        } else if (col >= 1 && col <= 4 && row >= 1 && row <= 4) {
+        } else if (col >= 2 && col <= 5 && row >= 2 && row <= 5) {
           // ── Intermediate Zone: Commercial Retail, Restaurants & Plaza Blocks ──
           [p1, p2, p3, p4].forEach((p, idx) => {
             const sc = 2.4;
@@ -527,9 +566,9 @@ function StreetFurniture() {
     const trafficLights: [number, number, number, number][] = [];
     const stopSigns: [number, number, number, number][] = [];
 
-    // Street lights along all 5 avenues on both curbs
+    // Street lights along avenues on curbs
     for (const avenue of AVENUES) {
-      for (let c = ROAD_MIN + 6; c <= ROAD_MAX - 6; c += 16) {
+      for (let c = ROAD_MIN + 6; c <= ROAD_MAX - 6; c += 24) {
         // Horizontal avenue curbs
         lights.push([c, 0, avenue - 2.4, 0]);
         lights.push([c, 0, avenue + 2.4, Math.PI]);
@@ -539,12 +578,13 @@ function StreetFurniture() {
       }
     }
 
-    // Traffic signals and stop signs at major intersections
+    // Traffic signals and stop signs at selected intersections
     for (const ax of AVENUES) {
       for (const az of AVENUES) {
-        trafficLights.push([ax + 2.5, 0, az + 2.5, Math.PI]);
-        trafficLights.push([ax - 2.5, 0, az - 2.5, 0]);
-        stopSigns.push([ax + 2.5, 0, az - 2.5, -Math.PI / 2]);
+        if ((ax + az) % 40 === 0) {
+          trafficLights.push([ax + 2.5, 0, az + 2.5, Math.PI]);
+          stopSigns.push([ax + 2.5, 0, az - 2.5, -Math.PI / 2]);
+        }
       }
     }
 
@@ -619,14 +659,17 @@ function NpcTraffic({
   const routes = useMemo<NpcRoute[]>(() => {
     const list: NpcRoute[] = [];
 
-    // Horizontal avenues: 2-way traffic
-    AVENUES.forEach((z, li) => {
+    // Select only 4 main avenue corridors for NPC traffic so roads are comfortable to drive
+    const npcHAvenues = [-40, 20]; // 2 horizontal corridors
+    const npcVAvenues = [-20, 40]; // 2 vertical corridors
+
+    npcHAvenues.forEach((z, li) => {
       // Eastbound lane
       list.push({
         carPath: npcCarPaths[(seed + li * 2) % npcCarPaths.length],
         sx: ROAD_MIN, sz: z + 0.9,
         ex: ROAD_MAX, ez: z + 0.9,
-        speed: 5.5 + lcg(seed + li, 1) * 3,
+        speed: 6.0 + lcg(seed + li, 1) * 3,
         offset: lcg(seed + li, 2),
       });
       // Westbound lane
@@ -634,19 +677,18 @@ function NpcTraffic({
         carPath: npcCarPaths[(seed + li * 2 + 1) % npcCarPaths.length],
         sx: ROAD_MAX, sz: z - 0.9,
         ex: ROAD_MIN, ez: z - 0.9,
-        speed: 5.5 + lcg(seed + li, 3) * 3,
+        speed: 6.0 + lcg(seed + li, 3) * 3,
         offset: lcg(seed + li, 4),
       });
     });
 
-    // Vertical avenues: 2-way traffic
-    AVENUES.forEach((x, li) => {
+    npcVAvenues.forEach((x, li) => {
       // Southbound lane
       list.push({
         carPath: npcCarPaths[(seed + li * 2 + 2) % npcCarPaths.length],
         sx: x + 0.9, sz: ROAD_MIN,
         ex: x + 0.9, ez: ROAD_MAX,
-        speed: 5.5 + lcg(seed + li, 5) * 3,
+        speed: 6.0 + lcg(seed + li, 5) * 3,
         offset: lcg(seed + li, 6),
       });
       // Northbound lane
@@ -654,7 +696,7 @@ function NpcTraffic({
         carPath: npcCarPaths[(seed + li * 2 + 3) % npcCarPaths.length],
         sx: x - 0.9, sz: ROAD_MAX,
         ex: x - 0.9, ez: ROAD_MIN,
-        speed: 5.5 + lcg(seed + li, 7) * 3,
+        speed: 6.0 + lcg(seed + li, 7) * 3,
         offset: lcg(seed + li, 8),
       });
     });
@@ -913,9 +955,9 @@ function PlayerCarController({
       else if (keyRight) steerInput = -1;
       else if (Math.abs(joyX) > 0.04) steerInput = -joyX;
 
-      // Faster cruise speed for the expansive 180x180 city
-      const maxFwd = 15.5;
-      const maxRev = 5.5;
+      // Faster cruise speed for the expansive 220x220 city
+      const maxFwd = 16.5;
+      const maxRev = 6.0;
       const acc    = 22;
       const drag   = 8.5;
 
@@ -952,7 +994,7 @@ function PlayerCarController({
       const hitBuilding = resolveObstacleCollision(posRef.current, carRadius, colliders);
 
       // City outer boundary limit
-      const limit = 69.0;
+      const limit = 89.0;
       let hitBorder = false;
       if (posRef.current.x < -limit) { posRef.current.x = -limit; hitBorder = true; }
       if (posRef.current.x > limit)  { posRef.current.x = limit; hitBorder = true; }
@@ -1123,9 +1165,9 @@ function CityScene({
       <directionalLight position={[20, 30, 15]} intensity={2.2} />
       <directionalLight position={[-20, 15, -15]} intensity={0.6} color="#c8d8ff" />
 
-      {/* Expansive Ground Plane (180x180) */}
+      {/* Expansive Ground Plane (220x220) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[180, 180]} />
+        <planeGeometry args={[220, 220]} />
         <meshStandardMaterial color="#88b58d" />
       </mesh>
 

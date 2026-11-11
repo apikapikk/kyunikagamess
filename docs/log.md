@@ -750,4 +750,48 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 - `npm run build`: Kompilasi Turbopack dan pemeriksaan TypeScript berhasil 100% (7/7 route statis sukses ter-generate).
 - Seluruh tugas di `docs/todo.md` dan dokumentasi di `docs/log.md` terverifikasi tuntas.
 
+## 2026-11-11 — Gameplay Eksplorasi Soal Wajib, Kontrol Joystick Kanan, Proteksi Login Admin, Reduksi Traffic NPC & Ekspansi Kota 220x220
+
+### Latar Belakang & Kebutuhan Baru
+
+1. **Eksploitasi Pembukaan Soal via Chip Radar**:
+   - Pemain sebelumnya dapat membuka modal kuis secara instan hanya dengan mengeklik chip nomor soal di kanan atas layar tanpa perlu mengemudikan mobil ke lokasi pilar soal. Hal ini bertentangan dengan konsep utama permainan (eksplorasi perkotaan).
+2. **Kenyamanan Kontrol Mobile**:
+   - Pemain smartphone lebih terbiasa mengendalikan arah kemudi dengan jempol kanan. Tombol rem fisik sentuh dinilai tidak diperlukan dan memenuhi layar.
+3. **Keamanan Panel Admin Tanpa Kredensial**:
+   - Rute `/admin` sebelumnya dapat diakses langsung oleh siapa pun tanpa autentikasi, membuka risiko modifikasi bank soal dan room oleh siswa.
+4. **Kepadatan NPC & Kebutuhan Kota Lebih Luas**:
+   - Jumlah mobil NPC lalu lintas sebelumnya terlalu padat (28 mobil pada seluruh avenue), sering menghalangi laju pemain.
+   - Dunia permainan kota perlu diperluas agar arena jelajah berkendara terasa lebih megah dan tidak cepat habis.
+
+### Perubahan & Implementasi
+
+1. **Kunci Pembukaan Kuis Wajib Berbasis Proximity (`app/game/page.tsx`)**:
+   - Klik pada radar chip soal di kanan atas kini berfungsi sebagai **Penanda Target Navigasi GPS**, bukan pembuka kuis instan.
+   - Jika pemain mengeklik chip soal saat masih jauh, sistem menampilkan petunjuk eksplorasi mengambang (*Floating Nav Toast*): `🚗 Jelajahi kota & dekati pilar soal #X (±Ym) untuk membukanya!`.
+   - Modal kuis **hanya dapat dibuka** apabila mobil pemain berada dalam radius interaksi dekat pilar cahaya (< 3.4 unit) via Proximity Prompt Banner atau tombol keyboard `Space`.
+2. **Reposisi Kontrol Mobile & Penghapusan Tombol Rem (`app/game/page.tsx` & `app/globals.css`)**:
+   - Komponen Virtual Joystick Analog dipindahkan ke sisi **kanan bawah layar** (`justify-content: flex-end`) agar nyaman digerakkan dengan jempol kanan pemain.
+   - Tombol rem sentuh (`🛑 REM`) resmi dihapus dari antarmuka permainan mobile.
+3. **Sistem Login Guard & Proteksi Kredensial Admin (`app/admin/page.tsx` & `app/globals.css`)**:
+   - Ditambahkan layar login terproteksi sebelum dashboard admin dapat diakses.
+   - Mendukung kredensial aman (default: `admin` / `kyunika2026` atau via environment variable `NEXT_PUBLIC_ADMIN_USERNAME` / `NEXT_PUBLIC_ADMIN_PASSWORD`).
+   - Sesi login disimpan pada `sessionStorage` (`kyunika-admin-auth`) sehingga sesi otomatis berakhir saat tab/browser ditutup.
+   - Ditambahkan tombol **Keluar / Logout** di panel mini profile sidebar untuk mengakhiri sesi admin.
+4. **Reduksi Kepadatan NPC Traffic (`components/CityCanvas.tsx`)**:
+   - Mobil NPC dipangkas dari 28 mobil menjadi hanya **8 mobil terarah** pada koridor avenue utama tertentu (`npcHAvenues = [-40, 20]`, `npcVAvenues = [-20, 40]`).
+   - Jalan raya kini jauh lebih leluasa dan bebas dari kemacetan/tabrakan beruntun dengan mobil NPC.
+5. **Ekspansi Kota Menjadi 220x220 Unit (9 Avenue, 64 Blok Kota)**:
+   - Jaringan jalan diperluas menjadi 9 avenue utama: `[-80, -60, -40, -20, 0, 20, 40, 60, 80]` dengan bentang jalan dari `-92` hingga `+92`.
+   - Bidang tanah diperlebar menjadi 220x220 unit dengan batas tabrakan kota dinaikkan ke `limit = 89.0`.
+   - Tata kota berkembang menjadi **64 blok perkotaan (8x8)** dengan Downtown Financial Skyscraper Core di pusat (cols 3-4, rows 3-4), cincin komersial perbelanjaan (cols 2-5, rows 2-5), dan 48 blok perumahan suburban di perimeter luar.
+   - Titik kandidat sebaran pilar soal kuis diperbanyak hingga koridor terluar ring ±80.
+   - Kecepatan jelajah mobil disesuaikan ke 16.5 unit/detik agar seimbang dengan skala kota baru.
+
+### Verifikasi & Pengujian Mutu
+
+- `npm run lint`: 100% lolos tanpa error dan tanpa warning (`eslint` clean).
+- `npm run build`: Kompilasi Turbopack dan pemeriksaan tipe TypeScript 100% sukses (7/7 route statis sukses ter-generate).
+- Seluruh tugas di `docs/todo.md` telah diselesaikan dan dicatat lengkap di `docs/log.md`.
+
 

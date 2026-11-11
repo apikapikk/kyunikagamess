@@ -109,6 +109,12 @@ export default function AdminPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "questions" | "rooms">("overview");
 
+  // Admin authentication state
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   // Bank Soal management state
   const [selectedBankId, setSelectedBankId] = useState<string>("all");
   const [isCreatingBank, setIsCreatingBank] = useState(false);
@@ -137,9 +143,13 @@ export default function AdminPage() {
   const [roomPlayers, setRoomPlayers] = useState<Record<string, RoomPlayer>>({});
   const [roomQuestions, setRoomQuestions] = useState<Question[]>([]);
 
-  // 1. Initial hydration from LocalStorage
+  // 1. Initial hydration from LocalStorage & SessionStorage
   useEffect(() => {
     queueMicrotask(() => {
+      const storedAuth = window.sessionStorage.getItem("kyunika-admin-auth");
+      if (storedAuth === "true") {
+        setIsAdminAuthenticated(true);
+      }
       setBanks(loadStored("kyunika-banks", starterBanks));
       const loadedQ = loadStored("kyunika-questions", starterQuestions).map((q: Question) => ({
         ...q,
@@ -441,6 +451,81 @@ export default function AdminPage() {
     }
   }
 
+  function handleAdminLogin(e: FormEvent) {
+    e.preventDefault();
+    const correctUser = process.env.NEXT_PUBLIC_ADMIN_USERNAME || "admin";
+    const correctPass = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "kyunika2026";
+    if (adminUsername.trim() === correctUser && adminPassword === correctPass) {
+      setIsAdminAuthenticated(true);
+      window.sessionStorage.setItem("kyunika-admin-auth", "true");
+      setLoginError("");
+    } else {
+      setLoginError("Username atau password salah. Coba lagi.");
+    }
+  }
+
+  function handleAdminLogout() {
+    setIsAdminAuthenticated(false);
+    window.sessionStorage.removeItem("kyunika-admin-auth");
+  }
+
+  if (!hydrated) {
+    return <div className="admin-loading" style={{ padding: "40px", textAlign: "center" }}>Memuat panel admin…</div>;
+  }
+
+  if (!isAdminAuthenticated) {
+    return (
+      <main className="admin-login-shell">
+        <div className="admin-login-card">
+          <div className="brand">
+            <span className="brand-mark">K</span>
+            <span>
+              Kyunika<span className="brand-soft"> Games</span>
+            </span>
+          </div>
+          <div className="eyebrow">RESTRICTED ACCESS • ADMIN ONLY</div>
+          <h2>Masuk Panel Admin</h2>
+          <p>Masukkan kredensial admin untuk mengelola bank soal, membuat room, dan memantau siswa.</p>
+
+          <form onSubmit={handleAdminLogin} className="admin-login-form">
+            <label>
+              Username
+              <input
+                type="text"
+                required
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                placeholder="Username admin"
+                autoFocus
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                required
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </label>
+            {loginError && <div className="login-error-msg">{loginError}</div>}
+            <button type="submit" className="primary-button full-button">
+              Masuk Dashboard <span>↗</span>
+            </button>
+          </form>
+
+          <div className="admin-login-footer">
+            <a href="/play" className="back-link">
+              ← Kembali ke Beranda Pemain
+            </a>
+            <small>Default: admin / kyunika2026</small>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="admin-shell">
       <aside className="sidebar">
@@ -478,7 +563,14 @@ export default function AdminPage() {
               <strong>Admin Kuis</strong>
               <small>Workspace owner</small>
             </div>
-            <span>•••</span>
+            <button
+              type="button"
+              className="logout-btn"
+              onClick={handleAdminLogout}
+              title="Keluar dari sesi admin"
+            >
+              Keluar
+            </button>
           </div>
           <div className="version">
             Kyunika admin <span>v0.2</span>

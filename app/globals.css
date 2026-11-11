@@ -495,12 +495,12 @@
   /* ── Mobile Virtual Analog Joystick Controls ── */
   .mobile-controls-layer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-end;
     position: absolute;
-    bottom: 20px;
+    bottom: 24px;
     left: 16px;
-    right: 16px;
+    right: 24px;
     z-index: 16;
     pointer-events: none;
   }
@@ -631,9 +631,9 @@
     max-width: calc(100% - 175px);
   }
   .mobile-controls-layer {
-    bottom: 16px;
-    left: 12px;
-    right: 12px;
+    bottom: 20px;
+    right: 16px;
+    left: auto;
   }
   .proximity-prompt-banner {
     bottom: 98px;
@@ -1156,4 +1156,127 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* ─── Navigation Toast Banner ─── */
+.nav-toast-banner {
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(8px);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-top: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: quiz-fade 0.2s ease-out;
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+}
+
+/* ─── Admin Login Guard Shell ─── */
+.admin-login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at top left, #ede9fe 0%, #f1f5f9 45%, #e2e8f0 100%);
+  padding: 20px;
+}
+.admin-login-card {
+  max-width: 420px;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+  padding: 36px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.admin-login-card h2 {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+}
+.admin-login-card p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+.admin-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 8px;
+}
+.admin-login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+.admin-login-form input {
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.admin-login-form input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+.login-error-msg {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+.admin-login-footer .back-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6d28d9;
+  text-decoration: none;
+}
+.admin-login-footer .back-link:hover {
+  text-decoration: underline;
+}
+.admin-login-footer small {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.logout-btn {
+  border: 0;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 800;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.logout-btn:hover {
+  background: #fecaca;
 }
