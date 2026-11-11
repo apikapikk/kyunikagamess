@@ -904,3 +904,40 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 
 - `git status` mengonfirmasi seluruh texture `colormap.png` dan model GLB telah staged kembali.
 - `npm run build` sukses 100% tanpa kendala dalam 1072ms.
+
+
+## 2026-11-11 — Fitur Import Bank Soal dari Markdown (.md / .txt)
+
+### Temuan
+
+1. **Kebutuhan Input Soal Massal**: Menambahkan butir soal satu per satu lewat formulir admin memakan waktu lama jika guru/pembuat soal sudah memiliki daftar kuis yang disusun di dokumen teks atau catatan Markdown.
+2. **Kebutuhan Parser Cerdas**: Format penulisan soal di Markdown bervariasi: ada yang menggunakan huruf opsi (`A.`, `B.`), task list (`- [x]` dan `- [ ]`), penanda inline `(kunci)`, atau soal bertipe isian singkat.
+
+### Perubahan
+
+1. **Parser Markdown Cerdas (`parseMarkdownQuestions`) di `app/admin/page.tsx`**:
+   - Menerima teks Markdown mentah dan mengekstrak pertanyaan, tipe, opsi, kunci jawaban, dan poin.
+   - Deteksi judul kategori bank soal dari header level 1 (`# Judul Bank Soal`).
+   - Penomoran soal otomatis terdeteksi dari pola `1.`, `2.`, `## 1.`, atau `Soal 1:`.
+   - Deteksi opsi pilihan ganda dari `A.`, `- A.`, `A)`, `(A)` atau `- [ ]` / `- [x]`.
+   - Deteksi kunci jawaban fleksibel: baris `Kunci: B`, `Jawaban: ...`, `Answer: ...`, opsi bertanda `- [x]`, atau suffix `(kunci)`, `(benar)`, `*`.
+   - Deteksi otomatis soal isian singkat (`short-answer`) jika tidak ada opsi atau ada `Tipe: isian`.
+   - Deteksi poin kustom dari baris `Poin: 120`, `Points: 100`, atau `Nilai: ...` (default 100 poin).
+2. **Antarmuka Modal Import Markdown**:
+   - Ditambahkan tombol chip `📥 Import Markdown` di tab Kelola Bank Soal.
+   - Textarea input monospaced dengan panduan penulisan.
+   - Tombol **📋 Muat Contoh Format** untuk memuat template kuis siap coba.
+   - Dukungan **📄 Upload File .md / .txt** langsung lewat input file lokal.
+   - **Pratinjau Live (Live Preview)**: Panel ringkasan yang menampilkan daftar kartu soal hasil ekstraksi secara real-time, lengkap dengan badge tipe, total poin, dan highlight kunci jawaban.
+   - Dropdown target Bank Soal dengan opsi otomatis membuat bank baru dari judul Markdown.
+   - Banner notifikasi hijau tosca setelah impor berhasil.
+3. **Penyimpanan Batch**:
+   - Menyimpan seluruh soal hasil parse ke state aplikasi dan Firestore (`questions` collection).
+   - Jika memilih opsi buat bank baru, dokumen bank juga otomatis tersimpan di `questionBanks`.
+4. **Styling di `app/globals.css`**:
+   - Ditambahkan styling modal `.markdown-import-modal`, toolbar, textarea monospace, summary bar, kartu preview `.parsed-card`, dan banner notifikasi.
+
+### Verifikasi
+
+- `npx tsc --noEmit` ✅ Lolos 100% tanpa error TypeScript.
+- `npm run build` ✅ Sukses 100% (7/7 static pages terkompilasi dalam 3.0s).

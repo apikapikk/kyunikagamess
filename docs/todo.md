@@ -168,3 +168,33 @@ Dokumen rencana kerja dan daftar tugas terperinci untuk menyelesaikan laporan bu
   - Menjalankan `git add public/assets/3d-assets` untuk memastikan seluruh texture dan model siap di-push ke Git repository tanpa ada texture yang hilang/rusak.
 - [x] **7.4. Verifikasi Build & Status Git**
   - Menjalankan `npm run build` untuk memastikan tidak ada aset penting yang hilang (hasil kompilasi sukses 100%).
+
+---
+
+## 8. Fitur Import Bank Soal dari Markdown (.md)
+
+- [x] **8.1. Parser Soal Markdown Fleksibel (`parseMarkdownQuestions`)**
+  - Mendeteksi judul kategori bank baru dari header `# Judul Bank Soal`.
+  - Mendukung format Pilihan Ganda:
+    - Huruf pilihan `A.`, `- A.`, `A)`, `(A)`.
+    - Task list `- [x]` (otomatis kunci) dan `- [ ]`.
+    - Penanda inline pada opsi `(kunci)`, `(benar)`, `(correct)`, `*`.
+    - Baris kunci eksplisit `Kunci: B`, `Jawaban: B`, `Answer: B`.
+  - Mendukung format Isian Singkat:
+    - Deteksi otomatis jika tidak ada pilihan ganda atau baris `Tipe: isian` / `Type: short-answer`.
+    - Kunci jawaban dari baris `Jawaban: ...` / `Kunci: ...`.
+  - Mendukung nilai poin kustom: `Poin: 150`, `Points: 100`, `Nilai: 80` (default 100 pts).
+- [x] **8.2. Antarmuka Modal Import Markdown di Admin (`app/admin/page.tsx`)**
+  - Tombol aksi `📥 Import Markdown` pada bar pilihan Bank Soal.
+  - Textarea input markdown luas dengan font monospace dan placeholder panduan format.
+  - Tombol `📋 Muat Contoh Format` yang langsung mengisi template contoh kuis siap coba.
+  - Dukungan upload file langsung dari komputer (`.md` dan `.txt`).
+  - Kolom Live Preview interaktif: menampilkan jumlah soal valid, total akumulasi poin, tipe soal (badge warna), butir pertanyaan, opsi jawaban, dan kunci jawaban ter-highlight.
+  - Pilihan penyimpanan ke Bank Soal yang sudah ada atau otomatis membuat Bank Soal baru berdasarkan judul markdown.
+- [x] **8.3. Persistensi & Notifikasi**
+  - Menyimpan batch soal baru ke state dan Firestore (`questions` dan `questionBanks`).
+  - Banner konfirmasi sukses hijau tosca setelah soal berhasil tersimpan.
+  - Auto-switch tampilan ke Bank Soal tujuan.
+- [x] **8.4. Verifikasi & Build**
+  - `npx tsc --noEmit` lolos 100% tanpa error TypeScript.
+  - `npm run build` sukses 100% (7/7 static pages terkompilasi).

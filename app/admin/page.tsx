@@ -105,6 +105,214 @@ function loadStored<T>(key: string, fallback: T): T {
   return stored ? (JSON.parse(stored) as T) : fallback;
 }
 
+// ─── Markdown Question Parser & Template ─────────────────────────────────────
+export const DEFAULT_MARKDOWN_SAMPLE = `# Bank Soal Geografi & Sains
+
+1. Planet terbesar dalam tata surya kita adalah?
+- A. Saturnus
+- B. Jupiter
+- C. Neptunus
+- D. Uranus
+Kunci: B
+Poin: 100
+
+2. Benua terkecil di dunia berdasarkan luas daratan adalah?
+- [ ] Eropa
+- [ ] Antartika
+- [x] Australia
+- [ ] Amerika Selatan
+Poin: 100
+
+3. Siapakah ilmuwan yang menemukan hukum gravitasi universal?
+A. Albert Einstein
+B. Isaac Newton (kunci)
+C. Galileo Galilei
+D. Nikola Tesla
+Poin: 110
+
+4. Sebutkan nama zat hijau daun yang berperan dalam proses fotosintesis!
+Tipe: isian
+Kunci: klorofil
+Poin: 120
+`;
+
+export type ParsedMarkdownResult = {
+  detectedBankTitle?: string;
+  questions: Question[];
+};
+
+export function parseMarkdownQuestions(
+  mdText: string,
+  targetBankId: string = "bank-umum"
+): ParsedMarkdownResult {
+  const raw = mdText.replace(/\r\n/g, "\n").trim();
+  if (!raw) return { questions: [] };
+
+  let detectedBankTitle: string | undefined;
+
+  // Deteksi header level-1 "# Judul ..."
+  const firstHeaderMatch = raw.match(/^#\s+([^\n\r]+)/);
+  if (firstHeaderMatch && !/\d+[\.\)]/.test(firstHeaderMatch[1])) {
+    detectedBankTitle = firstHeaderMatch[1].trim();
+  }
+
+  const lines = raw.split("\n");
+  const blocks: string[] = [];
+  let currentBlock: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+
+    const isNumberedStart = /^(?:#{1,4}\s*)?(?:Soal\s*)?(?:\d+[\.\)]|\[\d+\])\s+\S+/i.test(trimmed);
+    const isHr = /^---{3,}$/.test(trimmed);
+
+    if (isHr) {
+      if (currentBlock.length > 0) {
+        blocks.push(currentBlock.join("\n"));
+        currentBlock = [];
+      }
+      continue;
+    }
+
+    if (isNumberedStart && currentBlock.length > 0) {
+      blocks.push(currentBlock.join("\n"));
+      currentBlock = [line];
+    } else {
+      currentBlock.push(line);
+    }
+  }
+  if (currentBlock.length > 0) {
+    blocks.push(currentBlock.join("\n"));
+  }
+
+  const parsedQuestions: Question[] = [];
+
+  for (let b = 0; b < blocks.length; b++) {
+    const blockText = blocks[b].trim();
+    if (!blockText) continue;
+
+    const bLines = blockText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (bLines.length === 0) continue;
+
+    let qText = "";
+    const options: string[] = [];
+    let explicitKey = "";
+    let points = 100;
+    let forcedType: QuestionType | null = null;
+    let checkedIndex = -1;
+
+    for (let j = 0; j < bLines.length; j++) {
+      const line = bLines[j];
+
+      // Abaikan header judul di awal
+      if (/^#\s+[^0-9]/.test(line) && j === 0 && bLines.length > 1 && !/\d+[\.\)]/.test(line)) {
+        continue;
+      }
+
+      // Check points: "Poin: 150", "Points: 100", "Nilai: 50"
+      const ptMatch = line.match(/^(?:poin|points|nilai|score)\s*:\s*(\d+)/i);
+      if (ptMatch) {
+        points = Math.max(10, parseInt(ptMatch[1], 10));
+        continue;
+      }
+
+      // Check type: "Tipe: isian", "Type: short-answer"
+      const typeMatch = line.match(/^(?:tipe|type)\s*:\s*(isian|short|essay|pilihan|multiple)/i);
+      if (typeMatch) {
+        const tVal = typeMatch[1].toLowerCase();
+        forcedType =
+          tVal.includes("isian") || tVal.includes("short") || tVal.includes("essay")
+            ? "short-answer"
+            : "multiple-choice";
+        continue;
+      }
+
+      // Check explicit answer: "Kunci: B", "Jawaban: Paris", "Answer: A"
+      const keyMatch = line.match(/^(?:kunci|jawaban|kunci\s*jawaban|answer|key)\s*:\s*(.+)$/i);
+      if (keyMatch) {
+        explicitKey = keyMatch[1].trim();
+        continue;
+      }
+
+      // Check task list option: "- [x] Opsi", "- [ ] Opsi", "* [x] Opsi"
+      const taskMatch = line.match(/^[-*]\s*\[([ xX])\]\s*(.+)$/);
+      if (taskMatch) {
+        const isChecked = taskMatch[1].toLowerCase() === "x";
+        const optText = taskMatch[2].trim();
+        if (isChecked) checkedIndex = options.length;
+        options.push(optText);
+        continue;
+      }
+
+      // Check lettered option: "A. Opsi", "- A. Opsi", "A) Opsi", "(A) Opsi"
+      const optMatch = line.match(/^(?:[-*]\s*)?(?:\(?([A-Da-d])\)|\b([A-Da-d])[\.\)])\s*(.+)$/);
+      if (optMatch) {
+        let optText = optMatch[3].trim();
+        if (/\((?:kunci|benar|correct)\)|\*$/i.test(optText)) {
+          checkedIndex = options.length;
+          optText = optText.replace(/\((?:kunci|benar|correct)\)|\*$/i, "").trim();
+        }
+        options.push(optText);
+        continue;
+      }
+
+      // Teks pertanyaan
+      if (!qText) {
+        qText = line.replace(/^(?:#{1,4}\s*)?(?:Soal\s*)?(?:\d+[\.\:]|\[\d+\])\s*/i, "").trim();
+      } else {
+        if (options.length === 0 && !explicitKey) {
+          qText += " " + line;
+        }
+      }
+    }
+
+    if (!qText) continue;
+
+    let finalType = forcedType;
+    if (!finalType) {
+      finalType = options.length >= 2 ? "multiple-choice" : "short-answer";
+    }
+
+    let finalAnswer = "";
+    if (finalType === "multiple-choice") {
+      if (checkedIndex >= 0 && checkedIndex < options.length) {
+        finalAnswer = options[checkedIndex];
+      } else if (explicitKey) {
+        const letterIdx = explicitKey.toUpperCase().charCodeAt(0) - 65;
+        if (explicitKey.length === 1 && letterIdx >= 0 && letterIdx < options.length) {
+          finalAnswer = options[letterIdx];
+        } else {
+          const foundOpt = options.find(
+            (o) =>
+              o.toLowerCase() === explicitKey.toLowerCase() ||
+              o.toLowerCase().includes(explicitKey.toLowerCase())
+          );
+          finalAnswer = foundOpt || explicitKey;
+        }
+      } else if (options.length > 0) {
+        finalAnswer = options[0];
+      }
+    } else {
+      finalAnswer = explicitKey;
+    }
+
+    if (finalAnswer) {
+      parsedQuestions.push({
+        id: createId("q"),
+        bankId: targetBankId,
+        type: finalType,
+        text: qText,
+        options: finalType === "multiple-choice" ? options : [],
+        answer: finalAnswer,
+        points: points,
+      });
+    }
+  }
+
+  return { detectedBankTitle, questions: parsedQuestions };
+}
+
 export default function AdminPage() {
   const [banks, setBanks] = useState<QuestionBank[]>(starterBanks);
   const [questions, setQuestions] = useState<Question[]>(starterQuestions);
@@ -130,6 +338,14 @@ export default function AdminPage() {
   const [options, setOptions] = useState(["", "", "", ""]);
   const [answer, setAnswer] = useState("");
   const [points, setPoints] = useState("100");
+
+  // Markdown Import state
+  const [isImportingMd, setIsImportingMd] = useState(false);
+  const [mdInputText, setMdInputText] = useState("");
+  const [mdTargetBankId, setMdTargetBankId] = useState<string>("bank-umum");
+  const [mdDetectedTitle, setMdDetectedTitle] = useState<string | null>(null);
+  const [mdParsedQuestions, setMdParsedQuestions] = useState<Question[]>([]);
+  const [importNotification, setImportNotification] = useState<string | null>(null);
 
   // Room builder state
   const [roomTitle, setRoomTitle] = useState("Kuis Seru Hari Ini");
@@ -350,6 +566,92 @@ export default function AdminPage() {
       }).catch((error) => console.error("Firebase question save failed", error));
     }
     resetQuestionForm();
+  }
+
+  // ─── Markdown Import Handlers ──────────────────────────────────────────────
+  function handleMdTextChange(text: string, bankIdOverride?: string) {
+    setMdInputText(text);
+    const targetB = bankIdOverride || mdTargetBankId;
+    const { detectedBankTitle, questions: parsed } = parseMarkdownQuestions(text, targetB);
+    setMdDetectedTitle(detectedBankTitle || null);
+    setMdParsedQuestions(parsed);
+  }
+
+  function handleLoadMdSample() {
+    handleMdTextChange(DEFAULT_MARKDOWN_SAMPLE);
+  }
+
+  function handleMdFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = (e.target?.result as string) || "";
+      handleMdTextChange(text);
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  function handleImportMdSubmit() {
+    if (mdParsedQuestions.length === 0) return;
+
+    let finalBankId = mdTargetBankId;
+
+    // Jika membuat bank baru dari judul yang terdeteksi
+    if (mdTargetBankId === "new-detected" && mdDetectedTitle) {
+      const newBank: QuestionBank = {
+        id: createId("bank"),
+        title: mdDetectedTitle,
+        description: "Diimpor dari file Markdown",
+        createdAt: new Date().toISOString(),
+      };
+      setBanks((current) => [...current, newBank]);
+      if (firestore) {
+        void setDoc(doc(firestore, "questionBanks", newBank.id), newBank).catch((err) =>
+          console.error("Firebase bank save failed", err)
+        );
+      }
+      finalBankId = newBank.id;
+    }
+
+    const assignedQuestions = mdParsedQuestions.map((q) => ({
+      ...q,
+      bankId: finalBankId === "new-detected" ? banks[0]?.id || "bank-umum" : finalBankId,
+    }));
+
+    setQuestions((current) => [...assignedQuestions, ...current]);
+
+    const db = firestore;
+    if (db) {
+      assignedQuestions.forEach((q) => {
+        void setDoc(doc(db, "questions", q.id), {
+          ...q,
+          createdAt: new Date().toISOString(),
+        }).catch((err) => console.error("Firebase imported question save failed", err));
+      });
+    }
+
+    const targetBankName =
+      mdTargetBankId === "new-detected" && mdDetectedTitle
+        ? mdDetectedTitle
+        : banks.find((b) => b.id === finalBankId)?.title || "Bank Soal";
+
+    setImportNotification(
+      `✓ Berhasil mengimpor ${assignedQuestions.length} pertanyaan ke "${targetBankName}"!`
+    );
+    setIsImportingMd(false);
+    setMdInputText("");
+    setMdParsedQuestions([]);
+    setMdDetectedTitle(null);
+
+    if (finalBankId) {
+      setSelectedBankId(finalBankId);
+    }
+
+    setTimeout(() => {
+      setImportNotification(null);
+    }, 4500);
   }
 
   // ─── Room Creation with Bank Soal Import ────────────────────────────────────
@@ -748,7 +1050,202 @@ export default function AdminPage() {
               >
                 ＋ Buat Bank Baru
               </button>
+              <button
+                type="button"
+                className="bank-chip-import"
+                onClick={() => {
+                  setIsImportingMd((prev) => !prev);
+                  if (selectedBankId !== "all") {
+                    setMdTargetBankId(selectedBankId);
+                  }
+                }}
+              >
+                📥 Import Markdown
+              </button>
             </div>
+
+            {/* Banner Notifikasi Import Berhasil */}
+            {importNotification && (
+              <div className="import-notice-banner">
+                <span>{importNotification}</span>
+              </div>
+            )}
+
+            {/* Modal / Panel Import Markdown */}
+            {isImportingMd && (
+              <div className="markdown-import-modal">
+                <div className="markdown-import-header">
+                  <div>
+                    <h4>📥 Import Bank Soal dari Markdown</h4>
+                    <p>
+                      Ketik atau tempel teks kuis berformat Markdown (.md), atau upload file langsung dari perangkatmu.
+                      Mendukung format pilihan ganda (A/B/C/D atau task list <code>- [x]</code>), kunci jawaban, dan isian singkat.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="text-button"
+                    onClick={() => setIsImportingMd(false)}
+                    style={{ fontSize: "18px", padding: "4px 8px" }}
+                    title="Tutup"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="markdown-import-grid">
+                  {/* Kolom Kiri: Input Markdown */}
+                  <div className="markdown-input-col">
+                    <div className="markdown-toolbar">
+                      <div className="markdown-toolbar-tools">
+                        <button
+                          type="button"
+                          className="mini-action-btn"
+                          onClick={handleLoadMdSample}
+                        >
+                          📋 Muat Contoh Format
+                        </button>
+                        <label className="mini-action-btn file-upload-label">
+                          📄 Upload File .md
+                          <input
+                            type="file"
+                            accept=".md,.txt"
+                            onChange={handleMdFileUpload}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+                      </div>
+                      {mdInputText && (
+                        <button
+                          type="button"
+                          className="text-button"
+                          onClick={() => {
+                            setMdInputText("");
+                            setMdParsedQuestions([]);
+                            setMdDetectedTitle(null);
+                          }}
+                          style={{ fontSize: "11px", color: "#ef4444" }}
+                        >
+                          Bersihkan
+                        </button>
+                      )}
+                    </div>
+
+                    <textarea
+                      className="markdown-textarea"
+                      placeholder={`# Judul Bank Soal (Opsional)\n\n1. Pertanyaan pertama?\n- A. Pilihan A\n- B. Pilihan B\n- C. Pilihan C\n- D. Pilihan D\nKunci: B\nPoin: 100\n\n2. Pertanyaan kedua?\n- [ ] Opsi 1\n- [x] Opsi Benar\n- [ ] Opsi 3\n\n3. Pertanyaan isian?\nTipe: isian\nJawaban: KunciJawaban`}
+                      value={mdInputText}
+                      onChange={(e) => handleMdTextChange(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Kolom Kanan: Live Preview Hasil Parse */}
+                  <div className="markdown-preview-col">
+                    <div className="preview-summary-bar">
+                      <strong>
+                        Pratinjau Hasil ({mdParsedQuestions.length} Soal)
+                      </strong>
+                      <span>
+                        Total: {mdParsedQuestions.reduce((s, q) => s + q.points, 0)} pts
+                      </span>
+                    </div>
+
+                    {mdParsedQuestions.length === 0 ? (
+                      <div className="empty-state" style={{ padding: "40px 10px" }}>
+                        <span>✎</span>
+                        <p>
+                          {mdInputText.trim()
+                            ? "Format soal belum terdeteksi. Gunakan penomoran (1., 2.) dan pilihan (A, B, C atau - [x])."
+                            : "Ketik kuis di sebelah kiri atau klik 'Muat Contoh Format' untuk melihat struktur penulisan."}
+                        </p>
+                      </div>
+                    ) : (
+                      mdParsedQuestions.map((q, idx) => (
+                        <div key={q.id || idx} className="parsed-card">
+                          <div className="parsed-card-top">
+                            <span
+                              className={`parsed-type-badge ${
+                                q.type === "short-answer" ? "short" : ""
+                              }`}
+                            >
+                              {q.type === "multiple-choice" ? "Pilihan Ganda" : "Isian Singkat"}
+                            </span>
+                            <span style={{ fontSize: "11px", fontWeight: "700", color: "#4f46e5" }}>
+                              {q.points} pts
+                            </span>
+                          </div>
+                          <p className="parsed-card-question">
+                            {idx + 1}. {q.text}
+                          </p>
+                          {q.type === "multiple-choice" ? (
+                            <div className="parsed-card-options">
+                              {q.options.map((opt, oIdx) => {
+                                const isCorrect = opt === q.answer;
+                                return (
+                                  <span
+                                    key={oIdx}
+                                    className={`parsed-opt-item ${isCorrect ? "is-correct" : ""}`}
+                                  >
+                                    {String.fromCharCode(65 + oIdx)}. {opt} {isCorrect ? "✓ (Kunci)" : ""}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="parsed-short-answer">
+                              Kunci: <strong>{q.answer}</strong>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="markdown-import-footer">
+                  <div className="target-bank-selector">
+                    <span>Simpan ke Bank:</span>
+                    <select
+                      value={mdTargetBankId}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setMdTargetBankId(val);
+                        handleMdTextChange(mdInputText, val);
+                      }}
+                    >
+                      {mdDetectedTitle && (
+                        <option value="new-detected">
+                          ✨ Buat Bank Baru: &quot;{mdDetectedTitle}&quot;
+                        </option>
+                      )}
+                      {banks.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() => setIsImportingMd(false)}
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      className="primary-button small-button"
+                      disabled={mdParsedQuestions.length === 0}
+                      onClick={handleImportMdSubmit}
+                    >
+                      Impor {mdParsedQuestions.length} Soal Sekarang 📥
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Form Inline Buat Bank Soal Baru */}
             {isCreatingBank && (
