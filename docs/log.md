@@ -882,3 +882,25 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 - `git ls-files public/assets/3d-assets | wc -l` mengonfirmasi tepat 94 file ter-track.
 - `git check-ignore -v --no-index` mengonfirmasi aset yang tidak dipakai (misal `ambulance.glb`, `industrial kit`, `Overview.html`) di-ignore dengan benar.
 - `npm run build` sukses 100% tanpa error dalam 685ms.
+
+
+## 2026-11-11 — Pemulihan Tracking Seluruh Model GLB & Texture Aset
+
+### Temuan
+
+1. **Texture Missing Setelah Ignore**: Ketika aturan ignore sebelumnya membatasi hanya file `.glb`, file texture pendukung seperti `colormap.png` dan variasi texture di folder `Models/GLB format/Textures/` ikut terabaikan dan tidak ter-track, menyebabkan model di game kehilangan texture-nya.
+2. **Kebutuhan Push Lengkap**: User menginstruksikan untuk mengembalikan ignore agar seluruh model GLB beserta texture pendukungnya tetap ter-track dan siap di-push dengan utuh.
+
+### Perubahan
+
+1. **Pembaruan `.gitignore`**:
+   - Menghapus aturan whitelist ketat pada `public/assets/3d-assets/**`.
+   - Tetap mengabaikan format mentah yang tidak digunakan browser (`FBX format/`, `OBJ format/`, `Previews/`, dan `kenney_mini-characters/`).
+   - Mengizinkan seluruh model GLB dan file texture (`colormap.png`, textures) di dalam kit.
+2. **Re-staging Aset**:
+   - Menjalankan `git add public/assets/3d-assets` untuk memasukkan kembali seluruh file GLB dan texture yang diperlukan ke dalam Git index.
+
+### Verifikasi
+
+- `git status` mengonfirmasi seluruh texture `colormap.png` dan model GLB telah staged kembali.
+- `npm run build` sukses 100% tanpa kendala dalam 1072ms.

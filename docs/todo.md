@@ -163,8 +163,8 @@ Dokumen rencana kerja dan daftar tugas terperinci untuk menyelesaikan laporan bu
 - [x] **7.2. Konfigurasi Whitelist di `.gitignore`**
   - Menerapkan aturan default ignore untuk `public/assets/3d-assets/**`.
   - Memberikan pengecualian unignore (`!`) secara ketat hanya untuk file `License.txt` dan 88 file GLB aktif.
-- [x] **7.3. Pembersihan Git Cache (Untrack File Tidak Terpakai)**
-  - Menjalankan `git rm -r --cached public/assets/3d-assets` untuk menghapus 138+ file aset tidak terpakai dari indeks Git.
-  - Menambahkan kembali aset dengan `git add public/assets/3d-assets` sehingga hanya 88 model GLB aktif dan lisensi yang ter-track (total 94 file).
+- [x] **7.3. Pemulihan Tracking Seluruh Model & Texture Aset**
+  - Mengembalikan file `.gitignore` agar tidak memblokir texture (`colormap.png`, variations) dan model GLB.
+  - Menjalankan `git add public/assets/3d-assets` untuk memastikan seluruh texture dan model siap di-push ke Git repository tanpa ada texture yang hilang/rusak.
 - [x] **7.4. Verifikasi Build & Status Git**
   - Menjalankan `npm run build` untuk memastikan tidak ada aset penting yang hilang (hasil kompilasi sukses 100%).
