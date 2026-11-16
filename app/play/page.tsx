@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { get, onValue, onDisconnect, ref, set, update } from "firebase/database";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { firestore, realtimeDb } from "@/lib/firebase";
+import { playerPetNames } from "@/lib/player-characters";
 
-type Player = { name: string; joinedAt: number; score?: number; online?: boolean; position?: { x: number; z: number } };
+type Player = { name: string; joinedAt: number; score?: number; online?: boolean; position?: { x: number; z: number }; petIndex?: number };
 
 export default function PlayPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
+  const [petIndex, setPetIndex] = useState(0);
   const [joined, setJoined] = useState(false);
   const [players, setPlayers] = useState<Record<string, Player>>({});
   const [error, setError] = useState("");
@@ -21,10 +23,14 @@ export default function PlayPage() {
       const queryRoom = new URLSearchParams(window.location.search).get("room");
       const savedName = window.localStorage.getItem("kyunika-player-name");
       const savedRoom = window.localStorage.getItem("kyunika-active-room");
+      const savedPetIndex = Number(window.localStorage.getItem("kyunika-player-pet-index"));
       const targetRoom = (queryRoom || savedRoom || "").toUpperCase();
 
       if (savedName) setName(savedName);
       if (targetRoom) setRoomCode(targetRoom);
+      if (Number.isInteger(savedPetIndex) && savedPetIndex >= 0 && savedPetIndex < playerPetNames.length) {
+        setPetIndex(savedPetIndex);
+      }
       if (savedName && targetRoom && !queryRoom) {
         setJoined(true);
       }
@@ -41,7 +47,7 @@ export default function PlayPage() {
     const playerRef = ref(realtimeDb, `rooms/${code}/players/${playerId}`);
     const onlineRef = ref(realtimeDb, `rooms/${code}/players/${playerId}/online`);
     const lastActiveRef = ref(realtimeDb, `rooms/${code}/players/${playerId}/lastActive`);
-    const player = { name: name.trim(), joinedAt: Date.now(), score: 0, online: true, position: { x: 0, z: 0 } };
+    const player = { name: name.trim(), joinedAt: Date.now(), score: 0, online: true, petIndex, position: { x: 0, z: 0 } };
     let cleanup = () => {};
     let cancelled = false;
     async function connectToRoom() {
@@ -64,6 +70,7 @@ export default function PlayPage() {
         if (playerSnapshot.exists()) {
           await update(playerRef, {
             name: name.trim(),
+            petIndex,
             online: true,
             lastActive: Date.now(),
           });
@@ -78,6 +85,7 @@ export default function PlayPage() {
           const nextStatus = snapshot.val()?.status;
           if (nextStatus === "running") {
             window.localStorage.setItem("kyunika-player-name", name.trim());
+        window.localStorage.setItem("kyunika-player-pet-index", String(petIndex));
             window.localStorage.setItem("kyunika-active-room", code);
             router.push(`/game?room=${code}`);
             return;
@@ -112,7 +120,7 @@ export default function PlayPage() {
     }
     void connectToRoom();
     return () => { cancelled = true; cleanup(); };
-  }, [joined, name, roomCode, router]);
+  }, [joined, name, petIndex, roomCode, router]);
 
   async function joinRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -127,6 +135,7 @@ export default function PlayPage() {
       if (!snapshot.exists() || (firestore && (!firestoreSnapshot || !firestoreSnapshot.exists()))) throw new Error("Room tidak ditemukan atau sudah dihapus.");
       if (snapshot.val()?.status === "finished") throw new Error("Room ini sudah dihentikan oleh admin.");
       window.localStorage.setItem("kyunika-player-name", name.trim());
+      window.localStorage.setItem("kyunika-player-pet-index", String(petIndex));
       window.localStorage.setItem("kyunika-active-room", code);
       setError(""); setJoined(true);
     } catch (joinError) {
@@ -136,5 +145,5 @@ export default function PlayPage() {
 
   if (joined) { const validPlayers = Object.entries(players).filter(([, player]) => typeof player?.name === "string" && player.name.trim().length > 0); return <main className="play-shell"><div className="play-card lobby-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="lobby-top"><div><div className="eyebrow">ROOM LOBBY</div><h1>{roomCode.toUpperCase()}</h1><p>Tunggu pemain lain masuk. Kota akan dimulai saat host membuka pertandingan.</p></div><span className="lobby-status">● LIVE</span></div><div className="player-count"><strong>{validPlayers.length}</strong><span>pemain sudah bergabung</span></div><div className="player-grid">{validPlayers.map(([id, player]) => <div className="player-chip" key={id}><span className="player-avatar">{player.name.slice(0, 1).toUpperCase()}</span><strong>{player.name}</strong>{id === window.localStorage.getItem("kyunika-player-id") && <small>Kamu</small>}</div>)}</div><button className="play-back" onClick={() => { const playerId = window.localStorage.getItem("kyunika-player-id"); if (realtimeDb && playerId) void update(ref(realtimeDb, `rooms/${roomCode.toUpperCase()}/players/${playerId}`), { online: false }); setJoined(false); setPlayers({}); window.localStorage.removeItem("kyunika-active-room"); }}>Keluar dari lobby</button></div></main>; }
 
-  return <main className="play-shell"><div className="play-card join-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="eyebrow">MULTIPLAYER QUIZ RACE</div><h1>Masuk ke<br /><em>kota permainan.</em></h1><p>Masukkan kode room dari admin, pilih nama, lalu bersiap menjelajah dan menjawab paling cepat.</p><form onSubmit={joinRoom}><label>Nama pemain<input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Contoh: Budi" /></label><label>Kode room<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={8} placeholder="ABC123" /></label>{error && <div className="play-error">{error}</div>}<button className="primary-button full-button" type="submit">Masuk room <span>↗</span></button></form><small className="data-note">Terhubung real-time dengan Firebase</small><a href="/admin" className="host-admin-link">Host / Buat Room di Admin Dashboard ➔</a></div></main>;
+  return <main className="play-shell"><div className="play-card join-card"><div className="play-brand"><span className="brand-mark">K</span> Kyunika Games</div><div className="eyebrow">MULTIPLAYER QUIZ RACE</div><h1>Masuk ke<br /><em>kota permainan.</em></h1><p>Masukkan kode room dari admin, pilih nama dan karakter, lalu bersiap menjelajah.</p><form onSubmit={joinRoom}><label>Nama pemain<input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Contoh: Budi" /></label><label>Kode room<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={8} placeholder="ABC123" /></label><label>Karakter pemain<select value={petIndex} onChange={(event) => setPetIndex(Number(event.target.value))}>{playerPetNames.map((petName, index) => <option key={petName} value={index}>{petName}</option>)}</select></label>{error && <div className="play-error">{error}</div>}<button className="primary-button full-button" type="submit">Masuk room <span>↗</span></button></form><small className="data-note">Terhubung real-time dengan Firebase</small><a href="/admin" className="host-admin-link">Host / Buat Room di Admin Dashboard ➔</a></div></main>;
 }

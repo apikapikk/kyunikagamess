@@ -6,10 +6,11 @@ import { Suspense, useEffect, useRef, useMemo, useState } from "react";
 import * as THREE from "three";
 import { ref, update } from "firebase/database";
 import { realtimeDb } from "@/lib/firebase";
+import { playerPetOptions } from "@/lib/player-characters";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type Point = { x: number; z: number };
-export type RemotePlayer = { name: string; position?: { x: number; z: number } };
+export type RemotePlayer = { name: string; position?: { x: number; z: number }; petIndex?: number };
 
 export type MapThemeId =
   | "mega-world"
@@ -140,34 +141,11 @@ const roadsRoot      = "/assets/3d-assets/kenney_city-kit-roads/Models/GLB%20for
 const carRoot        = "/assets/3d-assets/kenney_car-kit/Models/GLB%20format";
 const natureRoot     = "/assets/3d-assets/kenney_nature-kit/Models/GLTF%20format";
 const industrialRoot = "/assets/3d-assets/kenney_city-kit-industrial_2.0/Models/GLB%20format";
-const petRoot        = "/assets/3d-assets/kenney_cube-pets_1.0/Models/GLB%20format";
 
 // Keep the pet avatars visually comparable to the traffic cars. The Kenney
 // pet models are slightly taller than the car models at their native scale.
 const PLAYER_MODEL_SCALE = 0.65;
 const PLAYER_NAMETAG_Y = 1.25;
-
-// Player character choices: Adorable Kenney Cube Pets!
-export const playerPetOptions = [
-  `${petRoot}/animal-dog.glb`,
-  `${petRoot}/animal-cat.glb`,
-  `${petRoot}/animal-bunny.glb`,
-  `${petRoot}/animal-panda.glb`,
-  `${petRoot}/animal-fox.glb`,
-  `${petRoot}/animal-chick.glb`,
-  `${petRoot}/animal-pig.glb`,
-  `${petRoot}/animal-cow.glb`,
-  `${petRoot}/animal-deer.glb`,
-  `${petRoot}/animal-lion.glb`,
-  `${petRoot}/animal-tiger.glb`,
-  `${petRoot}/animal-koala.glb`,
-  `${petRoot}/animal-monkey.glb`,
-  `${petRoot}/animal-penguin.glb`,
-  `${petRoot}/animal-elephant.glb`,
-  `${petRoot}/animal-giraffe.glb`,
-  `${petRoot}/animal-polar.glb`,
-  `${petRoot}/animal-beaver.glb`,
-];
 
 // NPC traffic cars (vehicles in the city streets)
 const npcCarPaths = [
@@ -1667,10 +1645,14 @@ function CityScene({
   }, []);
 
   const playerPetIdx = useMemo(() => {
+    const selectedPetIndex = players[playerId]?.petIndex;
+    if (typeof selectedPetIndex === "number" && selectedPetIndex >= 0) {
+      return selectedPetIndex % playerPetOptions.length;
+    }
     let h = 0;
     for (let i = 0; i < playerId.length; i++) h = (h * 31 + playerId.charCodeAt(i)) & 0xffff;
     return h % playerPetOptions.length;
-  }, [playerId]);
+  }, [playerId, players]);
 
   const { scene: playerPetBase } = useGLTF(playerPetOptions[playerPetIdx]);
   const playerPetScene = useMemo(() => playerPetBase.clone(true), [playerPetBase]);
@@ -1746,7 +1728,7 @@ function CityScene({
       {Object.entries(players)
         .filter(([id, p]) => id !== playerId && typeof p?.name === "string" && p.position !== undefined)
         .map(([id, p], i) => (
-          <RemotePetAvatar key={`remote-${id}`} player={p} petIdx={i + 1} />
+          <RemotePetAvatar key={`remote-${id}`} player={p} petIdx={p.petIndex ?? i + 1} />
         ))}
 
       {/* Local Player Pet with Complete Smooth Physics & Hop System */}

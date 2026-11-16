@@ -44,6 +44,7 @@ type Player = {
   online?: boolean;
   lastActive?: number;
   position?: { x: number; z: number };
+  petIndex?: number;
   completedQuestions?: string[];
   answers?: Record<string, PlayerAnswer>;
 };

@@ -667,6 +667,12 @@ export default function AdminPage() {
   function createRoom(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const durationMinutes = Number(roomDuration);
+    if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 180) {
+      window.alert("Durasi harus berupa angka bulat antara 1 sampai 180 menit.");
+      return;
+    }
+
     // Select questions exclusively from chosen Question Bank
     const importedQuestions =
       selectedBankForRoom === "all"
@@ -695,7 +701,7 @@ export default function AdminPage() {
       mapTheme: themeConfig.id,
       layout: randomItem(layouts),
       seed: Math.floor(Math.random() * 900000) + 100000,
-      duration: Number(roomDuration) || 10,
+      duration: durationMinutes,
       createdAt: new Date().toISOString(),
       bankId: selectedBankForRoom,
       bankTitle: bankName,
@@ -1523,12 +1529,16 @@ export default function AdminPage() {
 
                 <label>
                   Durasi match
-                  <select value={roomDuration} onChange={(event) => setRoomDuration(event.target.value)}>
-                    <option value="5">5 menit</option>
-                    <option value="10">10 menit</option>
-                    <option value="15">15 menit</option>
-                    <option value="20">20 menit</option>
-                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    max="180"
+                    step="1"
+                    value={roomDuration}
+                    onChange={(event) => setRoomDuration(event.target.value)}
+                    placeholder="Contoh: 25"
+                  />
+                  <small className="field-help">Bebas diatur, 1–180 menit.</small>
                 </label>
 
                 {/* Pilihan Tema Map 3D */}

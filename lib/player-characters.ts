@@ -1,0 +1,43 @@
+export const playerPetNames = [
+  "Anjing",
+  "Kucing",
+  "Kelinci",
+  "Panda",
+  "Rubah",
+  "Anak Ayam",
+  "Babi",
+  "Sapi",
+  "Rusa",
+  "Singa",
+  "Harimau",
+  "Koala",
+  "Monyet",
+  "Pinguin",
+  "Gajah",
+  "Jerapah",
+  "Beruang Kutub",
+  "Berang-berang",
+] as const;
+
+const petRoot = "/assets/3d-assets/kenney_cube-pets_1.0/Models/GLB%20format";
+
+export const playerPetOptions = [
+  `${petRoot}/animal-dog.glb`,
+  `${petRoot}/animal-cat.glb`,
+  `${petRoot}/animal-bunny.glb`,
+  `${petRoot}/animal-panda.glb`,
+  `${petRoot}/animal-fox.glb`,
+  `${petRoot}/animal-chick.glb`,
+  `${petRoot}/animal-pig.glb`,
+  `${petRoot}/animal-cow.glb`,
+  `${petRoot}/animal-deer.glb`,
+  `${petRoot}/animal-lion.glb`,
+  `${petRoot}/animal-tiger.glb`,
+  `${petRoot}/animal-koala.glb`,
+  `${petRoot}/animal-monkey.glb`,
+  `${petRoot}/animal-penguin.glb`,
+  `${petRoot}/animal-elephant.glb`,
+  `${petRoot}/animal-giraffe.glb`,
+  `${petRoot}/animal-polar.glb`,
+  `${petRoot}/animal-beaver.glb`,
+] as const;
