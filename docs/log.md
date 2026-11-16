@@ -941,3 +941,120 @@ Catatan: setiap perubahan implementasi wajib memperbarui file ini dan dokumentas
 
 - `npx tsc --noEmit` ✅ Lolos 100% tanpa error TypeScript.
 - `npm run build` ✅ Sukses 100% (7/7 static pages terkompilasi dalam 3.0s).
+
+
+## 2026-11-16 — Sistem Pemilihan Map (Map Selection), Integrasi Aset Nature & Industrial Kit, Ekspansi Dunia 260x260 (100 Blok), & Kendali Mobil Buttery Smooth
+
+### Temuan
+
+1. **Kebutuhan Variasi & Pemilihan Map**:
+   - Pembuat room di panel admin sebelumnya hanya disajikan opsi acak tanpa bisa memilih tema dunia permainan.
+   - Peta yang dimainkan cenderung monoton hanya menyajikan gedung komersial dan perumahan suburban.
+2. **Penambahan Aset 3D Baru**:
+   - Pengguna menambahkan aset 3D baru `public/assets/3d-assets/kenney_nature-kit` (pohon pinus, pohon oak, batuan tebing, tenda kemah, api unggun, jembatan kayu) dan `kenney_city-kit-industrial_2.0` (pabrik, kontainer kargo, menara air, cerobong asap, tangki penyimpanan, solar panel) yang perlu dimanfaatkan dalam tata dunia game.
+3. **Kebutuhan Ekspansi Area Jelajah**:
+   - Skala kota 220×220 (9 avenue, 64 blok) perlu diperluas lagi agar pemain memiliki ruang eksplorasi yang jauh lebih luas dan menantang.
+4. **Masukan Feedback Kendali Mobil yang Kurang Smooth**:
+   - Masukan dari pemain menunjukkan kendali mobil terasa kaku (*jerky/snapping*), terutama saat membelok tajam di mana kamera berputar secara mendadak tanpa redaman (*no camera damping*).
+   - Saat gas dilepas, mobil berhenti terlalu cepat (*excessive drag*), dan transisi tombol mundur langsung membalikkan laju mobil secara mengejutkan (*instant reverse jerk*).
+   - Menyerempet trotoar/bangunan memantulkan mobil secara kasar (*reverse velocity bounce*), menyebabkan getaran (*jittering*).
+
+### Perubahan
+
+1. **Sistem Pemilihan Map di Panel Admin (`app/admin/page.tsx`)**:
+   - Mengganti kotak preview statis pada formulir "ROOM BARU / Atur pertandingan" menjadi **Selector Tema Peta Interaktif**:
+     - 🌐 **Mega Gabungan (4 Distrik)**: Metropolis + Industri + Suburbia + Lembah Alam.
+     - 🏙️ **Metropolis Sentral**: Gedung pencakar langit & commercial boulevard.
+     - 🌲 **Lembah Hijau & Camping**: Hutan pinus, tebing batu, tenda camping & api unggun.
+     - 🏭 **Kawasan Industri & Cargo**: Pabrik modern, kontainer kargo, cerobong & tangki.
+     - 🏡 **Kota Suburbia Asri**: Lingkungan perumahan asri, pagar rapi, taman & jalan setapak.
+     - 🎲 **Acak Otomatis (Surprise Random)**: Sistem memilihkan salah satu tema secara dinamis saat room dibuat.
+   - Kartu pratinjau tema dinamis menampilkan ikon visual, nama tema, dan deskripsi fitur.
+   - Chip ringkasan menampilkan nama tema peta, skala 260×260 (100 blok), seed room, dan nama bank soal target.
+   - Menyimpan `cityTheme` dan `mapTheme` ke Firestore serta Firebase Realtime Database (`rooms/{code}/meta`).
+   - Kartu Room Aktif dan Room Monitor menampilkan badge/ikon tema peta yang dipilih.
+
+2. **Integrasi Aset 3D Baru (`components/CityCanvas.tsx`)**:
+   - **Nature Kit (`kenney_nature-kit`)**:
+     - Berbagai varian pohon pinus & oak (`tree_pineDefaultA`, `tree_pineTallA`, `tree_pineRoundA`, `tree_oak`, `tree_detailed`).
+     - Formasi tebing batu & boulder besar (`cliff_block_rock`, `cliff_block_stone`, `rock_largeA`, `rock_tallA`, `rock_smallA`).
+     - Area kemah asri (`tent_detailedOpen`, `tent_smallClosed`, `campfire_stones`, `log_stack`, `bridge_wood`, `plant_bush`).
+   - **Industrial Kit (`kenney_city-kit-industrial_2.0`)**:
+     - Bangunan pabrik & gudang modular (`building-a` s/d `building-f`).
+     - Tumpukan kontainer kargo pelabuhan (`shipping-container-a/b/c`).
+     - Infrastruktur berat: cerobong asap (`chimney-basic`, `chimney-large`), tangki kimia/air (`detail-tank`, `detail-tank-large`), menara air (`water-tower`), dan ladang panel surya (`solar-panel-portrait`).
+   - Menambahkan konfigurasi preload (`useGLTF.preload`) pada seluruh model baru untuk memastikan rendering instan tanpa jeda muat.
+
+3. **Ekspansi Skala Dunia Menjadi 260×260 Unit (11 Avenue, 100 Blok Kota)**:
+   - Menambah 2 avenue besar sehingga jaringan jalan memiliki 11 avenue utama: `[-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100]` dengan bentang jalan dari `-112` hingga `+112`.
+   - Bidang tanah ground plane diperluas menjadi `260×260` unit dengan batas collision luar `limit = 108.0`.
+   - Tata kota kini terbagi ke dalam **100 blok perkotaan terstruktur (10×10)**:
+     - Pada tema **Mega Gabungan**, kota dibagi menjadi 4 kuadran raksasa: Barat Laut (Metropolis Downtown), Timur Laut (Kawasan Industri), Barat Daya (Kota Suburbia), dan Tenggara (Lembah Alam Nature Reserve).
+     - Pada tema spesifik (Nature, Industri, Metropolis, Suburbia), seluruh 100 blok dibangun konsisten sesuai biomenya dengan variasi sub-blok yang kaya.
+   - Ground plane dan pencahayaan (ambient, directional light, dan warna matahari) otomatis menyesuaikan palet tema peta:
+     - Metropolis: ground hijau segar `#88b58d`, matahari cerah `#ffffff`.
+     - Nature Valley: ground padang rumput alami `#4d945a`, matahari hangat keemasan `#fff7e6`.
+     - Industri: ground aspal industrial `#4b545f`, matahari amber senja `#ffe5cc`.
+     - Suburbia: ground hijau asri `#70a374`.
+     - Mega World: ground hijau seimbang `#6fa379`.
+   - Sebaran titik kandidat soal (`candidateSpots`) ditambah hingga 100+ titik melingkupi ring perbatasan ±100 dengan seleksi greedy minimum gap 30 unit.
+   - `WorldMonitorMap` di admin disinkronkan ke `WORLD_RANGE = WORLD_HALF_SIZE (130)` agar peta spectator top-down 2D menampilkan seluruh 11 avenue secara presisi 1:1.
+
+4. **Perombakan Fisika Kendali Mobil & Damped Follow Camera (Buttery Smooth)**:
+   - **Interpolasi Sudut Setir (`steerAngleRef`)**: Menghilangkan belokan kaku/snap instan keyboard (A/D) dan analog joystick dengan interpolasi lerp sudut kemudi responsif (`steerLerpSpeed = 9.5 rad/s`).
+   - **Kurva Belok Adaptif Kecepatan**: Rasio belok diskalakan secara kontinu berdasarkan kecepatan laju (`speedFactor 0.28 - 1.0`), menjamin stabilitas tinggi saat kecepatan jelajah maksimal (17.5 unit/s) dan kelincahan bermanuver saat berbelok di persimpangan.
+   - **Natural Rolling Coasting (`coastDrag = 2.4`)**: Hambatan udara saat melepas gas diubah menjadi rolling friction halus alami, sehingga mobil meluncur halus (*smooth coasting glide*) tanpa berhenti mendadak.
+   - **Smooth Progressive Braking**: Menekan tombol mundur (S / Down) saat mobil sedang melaju ke depan berfungsi sebagai rem progresif halus hingga kecepatan 0 sebelum bertransisi mundur, mengeliminasi sentakan pembalikan arah seketika.
+   - **Buttery Damped Follow Camera (`smoothCamYawRef`)**: Rotasi kamera di-smooth dengan redaman eksponensial (~6.5 rad/s) dan lead dinamis ke depan arah laju, mengeliminasi sentakan kamera (*camera snapping/jittering*) saat berbelok tajam.
+   - **Smooth Wall-Sliding Collision**: Tabrakan menyerempet trotoar atau bangunan meredam laju secara proporsional (`speed *= 0.65`) tanpa memantul balik secara negatif, memungkinkan mobil meluncur mulus sepanjang dinding pembatas (*smooth wall-slide*).
+
+5. **Sinkronisasi Gameplay HUD di `/game`**:
+   - `CityCanvas` menerima `mapTheme` dan menyesuaikan biome dunia secara dinamis.
+   - Label map HUD di pojok kiri bawah menampilkan nama tema peta secara dinamis (contoh: `LEMBAH HIJAU & CAMPING · SEED 123456`).
+
+### Verifikasi
+
+- `npx tsc --noEmit` ✅ Lolos 100% tanpa error TypeScript.
+- `npm run build` ✅ Sukses 100% terkompilasi dalam 1.6s (7/7 static routes: `/`, `/_not-found`, `/admin`, `/game`, `/play`).
+- Seluruh 11 avenue, aset 3D nature kit, aset industrial kit, selector map modal, serta perbaikan fisika mobil telah teruji dan siap digunakan.
+
+---
+
+## [2026-11-16] Penggantian Mobil Pemain dengan Karakter Hewan Cube Pets (Local & Remote Multiplayer)
+
+### Konteks & Latar Belakang
+Pengguna mengajukan request untuk mengganti kendaraan mobil pemain dengan karakter hewan lucu menggunakan paket aset 3D `kenney_cube-pets_1.0` yang tersedia di direktori proyek (`public/assets/3d-assets/kenney_cube-pets_1.0/Models/GLB format`). Karakter hewan ini menggantikan mobil pemain lokal maupun avatar pemain remote di arena multiplayer 3D, lengkap dengan animasi gerak lompat (*cute running hop bounce*) yang dinamis.
+
+### Perubahan Teknis
+
+1. **Integrasi & Preloading 18 Varian Aset 3D Cube Pets (`components/CityCanvas.tsx`)**:
+   - Memetakan 18 model hewan format GLB:
+     - `alpaca.glb`, `bear.glb`, `cat.glb`, `chicken.glb`, `cow.glb`, `deer.glb`, `dog.glb`, `duck.glb`, `elephant.glb`, `fox.glb`, `giraffe.glb`, `horse.glb`, `llama.glb`, `monkey.glb`, `panda.glb`, `pig.glb`, `sheep.glb`, `zebra.glb`.
+   - Menginisialisasi `playerPetOptions` dan mendaftarkan seluruh model ke `useGLTF.preload(path)` di awal inisialisasi aplikasi untuk menjamin rendering instan tanpa stuttering.
+
+2. **Pengembangan Controller Hewan Lokal (`PlayerPetController`)**:
+   - **Skala & Orientasi**: Model Cube Pets memiliki proporsi kubus ~1.25m lebar, ~1.4m tinggi, ~1.5m panjang dengan arah pandang alami ke +Z. Diberikan skala proporsional `scale={1.15}` sehingga pas di atas trotoar maupun badan jalan.
+   - **Animasi Gerak Berlari (*Cute Hopping Bounce*)**:
+     - Ditambahkan state `hopRef` yang berakumulasi sebanding dengan kecepatan laju karakter (`dt * currentSpeed * 11.5`).
+     - Posisi vertikal hewan dianimasikan secara halus dengan fungsi sinusoidal: `hopY = Math.abs(Math.sin(hopRef)) * 0.16`, menghasilkan efek melompat-lompat ceria saat berlari.
+     - Ditambahkan goyangan miring (*waddle roll*) alami: `waddleZ = Math.sin(hopRef * 0.5) * 0.08` saat bergerak dan berbelok.
+   - **Bayangan Halus & Nametag**:
+     - Ditambahkan disk bayangan lingkaran semi-transparan tepat di bawah kaki hewan (`[0, 0.02, 0]`, radius 0.85, opacity 0.35).
+     - Nametag HTML melayang di atas kepala karakter pada ketinggian `[0, 2.3, 0]` dengan gaya pill badge tosca berlatar belakang gelap, nama pemain tampak kontras dan jelas dari sudut kamera mana pun.
+   - **Preservasi Smooth Physics**: Seluruh sistem kemudi lerp (`steerLerpSpeed = 9.5`), kurva adaptif kecepatan, meluncur alami (*coastDrag*), pengereman progresif halus, dan kamera follow teredam (*damped follow camera*) dipertahankan secara utuh.
+
+3. **Pengembangan Avatar Multiplayer Hewan (`RemotePetAvatar`)**:
+   - Menggantikan kendaraan remote dengan avatar Cube Pets.
+   - Setiap pemain multiplayer lain mendapatkan varian hewan berbeda secara deterministik berdasarkan hash nama/ID pemain (`petIdx % playerPetOptions.length`).
+   - Posisi dan rotasi diinterpolasi secara halus (`lerp` posisi 0.22, `slerp` rotasi kuaternion 0.22).
+   - Dilengkapi nametag melayang dan bayangan lantai untuk setiap remote player.
+
+4. **Pembaruan Scene & Komponen Utama**:
+   - Di dalam `CityScene`, hook `playerCarIdx` / `playerCarScene` digantikan oleh `playerPetIdx` / `playerPetScene`.
+   - Komponen `<RemoteCarAvatar>` dan `<PlayerCarController>` di-wire secara utuh ke `<RemotePetAvatar>` dan `<PlayerPetController>`.
+
+### Verifikasi & Hasil Uji
+
+- `npx tsc --noEmit` ✅ Lolos 100% tanpa error kompilasi TypeScript.
+- `npm run build` ✅ Sukses 100% terkompilasi menggunakan Turbopack (7/7 static routes: `/`, `/_not-found`, `/admin`, `/game`, `/play`).
+- Karakter hewan Cube Pets berhasil berjalan, melompat lucu saat berlari, berbelok halus tanpa patah-patah, dan terintegrasi penuh ke sesi multiplayer maupun map raksasa 260×260.

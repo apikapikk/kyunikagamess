@@ -4,7 +4,14 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase/firestore";
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { firebaseEnabled, firestore, realtimeDb } from "@/lib/firebase";
-import { AVENUES, seededPoints } from "@/components/CityCanvas";
+import {
+  AVENUES,
+  WORLD_HALF_SIZE,
+  seededPoints,
+  MapThemeId,
+  MAP_THEMES,
+  resolveMapThemeConfig,
+} from "@/components/CityCanvas";
 
 export type QuestionType = "multiple-choice" | "short-answer";
 
@@ -50,6 +57,7 @@ export type Room = {
   code: string;
   title: string;
   cityTheme: string;
+  mapTheme?: string;
   layout: string;
   seed: number;
   duration: number;
@@ -351,6 +359,7 @@ export default function AdminPage() {
   const [roomTitle, setRoomTitle] = useState("Kuis Seru Hari Ini");
   const [roomDuration, setRoomDuration] = useState("10");
   const [selectedBankForRoom, setSelectedBankForRoom] = useState<string>("bank-umum");
+  const [selectedMapTheme, setSelectedMapTheme] = useState<MapThemeId | "random">("mega-world");
   const [roomCreated, setRoomCreated] = useState<Room | null>(null);
 
   // Live monitor state
@@ -672,10 +681,18 @@ export default function AdminPage() {
     const bankObj = banks.find((b) => b.id === selectedBankForRoom);
     const bankName = bankObj ? bankObj.title : "Semua Bank Soal";
 
+    let chosenThemeKey = selectedMapTheme;
+    if (chosenThemeKey === "random") {
+      const pool: MapThemeId[] = ["mega-world", "metropolis", "nature-valley", "industrial-zone", "suburban-town"];
+      chosenThemeKey = pool[Math.floor(Math.random() * pool.length)];
+    }
+    const themeConfig = resolveMapThemeConfig(chosenThemeKey);
+
     const room: Room = {
       code: createCode(),
       title: roomTitle.trim() || `Kuis ${bankName}`,
-      cityTheme: randomItem(themes),
+      cityTheme: themeConfig.name,
+      mapTheme: themeConfig.id,
       layout: randomItem(layouts),
       seed: Math.floor(Math.random() * 900000) + 100000,
       duration: Number(roomDuration) || 10,
@@ -1514,20 +1531,50 @@ export default function AdminPage() {
                   </select>
                 </label>
 
-                <div className="random-preview">
-                  <div>
-                    <span className="preview-icon">✣</span>
-                    <div>
-                      <strong>Kota & obstacle</strong>
-                      <small>Random otomatis setiap room</small>
+                {/* Pilihan Tema Map 3D */}
+                <label>
+                  Pilih Tema Peta / Map
+                  <select
+                    value={selectedMapTheme}
+                    onChange={(event) => setSelectedMapTheme(event.target.value as MapThemeId | "random")}
+                  >
+                    <option value="mega-world">🌐 Mega Gabungan (4 Distrik) — Metropolis + Industri + Suburbia + Nature</option>
+                    <option value="metropolis">🏙️ Metropolis Sentral — Pencakar Langit & Komersial</option>
+                    <option value="nature-valley">🌲 Lembah Hijau & Camping — Hutan Pinus, Tebing Batu & Area Kemah</option>
+                    <option value="industrial-zone">🏭 Kawasan Industri & Cargo — Pabrik, Tangki Minyak & Kontainer</option>
+                    <option value="suburban-town">🏡 Kota Suburbia Asri — Lingkungan Perumahan, Pagar & Taman</option>
+                    <option value="random">🎲 Acak Otomatis (Surprise Random) — Dipilih acak tiap room</option>
+                  </select>
+                </label>
+
+                {/* Preview Tema Terpilih */}
+                {(() => {
+                  const previewConfig = selectedMapTheme === "random"
+                    ? { icon: "🎲", name: "Acak Otomatis (Surprise)", tagline: "Dipilih acak antara 5 tema dunia saat room digenerate" }
+                    : resolveMapThemeConfig(selectedMapTheme);
+                  return (
+                    <div className="random-preview map-theme-preview-box">
+                      <div>
+                        <span className="preview-icon">{previewConfig.icon}</span>
+                        <div>
+                          <strong>{previewConfig.name}</strong>
+                          <small>{previewConfig.tagline}</small>
+                        </div>
+                      </div>
+                      <span className="shuffle">✣</span>
                     </div>
-                  </div>
-                  <span className="shuffle">⤨</span>
-                </div>
+                  );
+                })()}
+
                 <div className="city-chips">
+                  <span className="chip-highlight">
+                    {selectedMapTheme === "random"
+                      ? "🎲 Acak Tiap Room"
+                      : `${resolveMapThemeConfig(selectedMapTheme).icon} ${resolveMapThemeConfig(selectedMapTheme).name}`}
+                  </span>
+                  <span>Skala 260×260 (100 Blok)</span>
                   <span>Seed baru</span>
-                  <span>Layout random</span>
-                  <span>Soal dari bank terpilih</span>
+                  <span>{banks.find((b) => b.id === selectedBankForRoom)?.title ?? "Semua Bank Soal"}</span>
                 </div>
                 <button className="primary-button full-button" type="submit">
                   Generate room code <span>↗</span>
@@ -1624,7 +1671,7 @@ function RoomRow({ room, detailed = false }: { room: Room; detailed?: boolean })
         </small>
         {detailed && (
           <small className="seed">
-            seed {room.seed} · {room.cityTheme}
+            seed {room.seed} · {resolveMapThemeConfig(room.mapTheme ?? room.cityTheme).icon} {room.cityTheme}
           </small>
         )}
       </div>
@@ -1907,9 +1954,9 @@ function EmptyState({ text }: { text: string }) {
 }
 
 // ─── World Monitor Map (2D top-down SVG spectator view) ───────────────────────
-// Maps world coords (−110 to +110) → SVG pixels (0 to MAP_SIZE)
+// Maps world coords (−130 to +130) → SVG pixels (0 to MAP_SIZE)
 const MAP_SIZE = 360;
-const WORLD_RANGE = 110; // half-extent of the 220x220 map
+const WORLD_RANGE = WORLD_HALF_SIZE; // half-extent of the expanded 260x260 map
 
 function worldToSvg(wCoord: number): number {
   return ((wCoord + WORLD_RANGE) / (WORLD_RANGE * 2)) * MAP_SIZE;

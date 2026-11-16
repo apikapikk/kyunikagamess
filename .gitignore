@@ -48,5 +48,10 @@ next-env.d.ts
 # ─── 3D Asset raw models & previews not used in production ────────────────────
 **/Models/FBX format/
 **/Models/OBJ format/
+**/Models/DAE format/
+**/Models/STL format/
+**/Isometric/
+**/Side/
 **/Previews/
+*.url
 public/assets/3d-assets/kenney_mini-characters/

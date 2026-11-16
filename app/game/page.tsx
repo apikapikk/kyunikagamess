@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { get, onDisconnect, onValue, ref, set, update } from "firebase/database";
 import { collection, getDocs } from "firebase/firestore";
 import { firestore, realtimeDb } from "@/lib/firebase";
-import { Point, seededPoints } from "../../components/CityCanvas";
+import { Point, seededPoints, resolveMapThemeConfig } from "../../components/CityCanvas";
 import VirtualJoystick, { JoystickVector } from "../../components/VirtualJoystick";
 
 const CityCanvas = dynamic(() => import("../../components/CityCanvas"), {
@@ -19,6 +19,7 @@ type RoomMeta = {
   title: string;
   layout: string;
   cityTheme: string;
+  mapTheme?: string;
   seed: number;
   duration: number;
   questionIds: string[];
@@ -97,6 +98,7 @@ export default function GamePage() {
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [playerPos, setPlayerPos] = useState<Point>({ x: 0, z: 0 });
+  const lastHudPositionUpdateRef = useRef(0);
   const [nearQuestionIndex, setNearQuestionIndex] = useState<number | null>(null);
   const hasRoomQuestionsRef = useRef(false);
 
@@ -347,6 +349,15 @@ export default function GamePage() {
     [room, questionCount]
   );
 
+  const handlePlayerPosUpdate = useCallback((pos: Point) => {
+    // The 3D controller reports frequently for proximity checks. The HUD does
+    // not need to re-render at the same cadence as the render loop.
+    const now = performance.now();
+    if (now - lastHudPositionUpdateRef.current < 200) return;
+    lastHudPositionUpdateRef.current = now;
+    setPlayerPos(pos);
+  }, []);
+
   // Completed indices for 3D marker coloring
   const completedIndices = useMemo(() => {
     return questionPoints
@@ -568,10 +579,13 @@ export default function GamePage() {
     }
   };
 
-  const validPlayers = Object.entries(players).filter(
-    ([, player]) => typeof player?.name === "string" && player.name.trim().length > 0
+  const validPlayers = useMemo(
+    () => Object.entries(players).filter(
+      ([, player]) => typeof player?.name === "string" && player.name.trim().length > 0
+    ),
+    [players]
   );
-  const safePlayers = Object.fromEntries(validPlayers);
+  const safePlayers = useMemo(() => Object.fromEntries(validPlayers), [validPlayers]);
   const leaderboard = validPlayers.sort(([, first], [, second]) => (second.score ?? 0) - (first.score ?? 0));
 
   const myRankIndex = leaderboard.findIndex(([id]) => id === playerId);
@@ -694,16 +708,19 @@ export default function GamePage() {
               playerId={playerId}
               playerName={playerName}
               players={safePlayers}
+              mapTheme={room.mapTheme ?? room.cityTheme}
               questionPoints={questionPoints}
               completedQuestionIndices={completedIndices}
               nearestQuestionIndex={activeNavTarget?.index ?? null}
               isQuizOpen={activeQuizIndex !== null}
               joystickRef={joystickRef}
               isBrakingRef={isBrakingRef}
-              onPlayerPosUpdate={setPlayerPos}
+              onPlayerPosUpdate={handlePlayerPosUpdate}
               onNearQuestion={setNearQuestionIndex}
             />
-            <div className="map-label">METROPOLIS 3D · SEED {room.seed}</div>
+            <div className="map-label">
+              {resolveMapThemeConfig(room.mapTheme ?? room.cityTheme).name.toUpperCase()} · SEED {room.seed}
+            </div>
 
             {/* Mobile virtual touch Analog Joystick (positioned on right, brake removed) */}
             <div className="mobile-controls-layer">

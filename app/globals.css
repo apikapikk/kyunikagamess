@@ -1616,3 +1616,26 @@
   border: 1px solid #cbd5e1;
   font-size: 13px;
 }
+
+/* ─── Map Theme Selector & Preview ─── */
+.map-theme-preview-box {
+  background: #f0f7f1;
+  border: 1px dashed #7eb386;
+  margin: 10px 0 12px;
+}
+.map-theme-preview-box .preview-icon {
+  background: #e1f2e4;
+  color: #3b8253;
+  font-size: 20px;
+}
+.chip-highlight {
+  background: #e7f5ea !important;
+  color: #276738 !important;
+  font-weight: 800 !important;
+  border: 1px solid #b6e2be;
+}
+.map-theme-chip {
+  background: #e7f5ea !important;
+  color: #276738 !important;
+  font-weight: 800 !important;
+}

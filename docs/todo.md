@@ -198,3 +198,81 @@ Dokumen rencana kerja dan daftar tugas terperinci untuk menyelesaikan laporan bu
 - [x] **8.4. Verifikasi & Build**
   - `npx tsc --noEmit` lolos 100% tanpa error TypeScript.
   - `npm run build` sukses 100% (7/7 static pages terkompilasi).
+
+---
+
+## 9. Sistem Pemilihan Map (Map Selection), Integrasi Aset 3D Baru, Ekspansi Dunia 260x260, & Kendali Mobil Buttery Smooth
+
+- [x] **9.1. Antarmuka Pemilihan Map & Tema Dunia di Modal Room Baru (`/admin`)**
+  - Mengganti kotak preview statis dengan selector tema map interaktif:
+    - 🌐 **Mega Gabungan (4 Distrik)**: Metropolis + Industri + Suburbia + Lembah Alam.
+    - 🏙️ **Metropolis Sentral**: Gedung pencakar langit & commercial boulevard.
+    - 🌲 **Lembah Hijau & Camping**: Hutan pinus, tebing batu, tenda camping & api unggun.
+    - 🏭 **Kawasan Industri & Cargo**: Pabrik, kontainer kargo, cerobong & tangki.
+    - 🏡 **Kota Suburbia Asri**: Kompleks hunian rumah, pagar rapi, taman & jalan setapak.
+    - 🎲 **Acak Otomatis (Surprise Random)**: Randomisasi otomatis per room.
+  - Menampilkan kartu pratinjau tema dinamis dengan ikon visual, nama peta, dan ringkasan fitur.
+  - Chip informatif: Nama tema terpilih, Skala 260×260 (100 Blok), Seed baru, dan Nama Bank Soal.
+  - Menyimpan `cityTheme` dan `mapTheme` ke Firestore dan Realtime Database (`rooms/{code}/meta`).
+  - Menampilkan ikon tema map pada kartu Room Aktif dan Room Monitor.
+
+- [x] **9.2. Integrasi Aset 3D Baru (Nature Kit & Industrial Kit)**
+  - Mengintegrasikan aset 3D baru dari `public/assets/3d-assets/kenney_nature-kit`:
+    - Pohon pinus dan oak (`tree_pineDefaultA`, `tree_pineTallA`, `tree_pineRoundA`, `tree_oak`, `tree_detailed`).
+    - Formasi tebing batu & boulder (`cliff_block_rock`, `cliff_block_stone`, `rock_largeA`, `rock_tallA`, `rock_smallA`).
+    - Area perkemahan (`tent_detailedOpen`, `tent_smallClosed`, `campfire_stones`, `log_stack`, `bridge_wood`, `plant_bush`).
+  - Mengintegrasikan aset 3D dari `public/assets/3d-assets/kenney_city-kit-industrial_2.0`:
+    - Bangunan pabrik & gudang (`building-a` s/d `building-f`).
+    - Kontainer kargo pelabuhan (`shipping-container-a/b/c`).
+    - Infrastruktur industri: cerobong (`chimney-basic`, `chimney-large`), tangki kimia/air (`detail-tank`, `detail-tank-large`), menara air (`water-tower`), dan panel surya (`solar-panel-portrait`).
+  - Menambahkan preload seluruh aset baru via `useGLTF.preload` untuk mencegah stuttering.
+
+- [x] **9.3. Ekspansi Skala Dunia Menjadi 260×260 Unit (11 Avenue, 100 Blok)**
+  - Menambah 2 avenue besar sehingga jaringan jalan memiliki 11 avenue utama:
+    `AVENUES = [-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100]` dengan rentang jalan dari `-112` hingga `+112`.
+  - Memperluas bidang tanah ground plane menjadi `260×260` unit dengan palet warna dinamis sesuai tema.
+  - Menambah batas tabrakan dunia menjadi `limit = 108.0`.
+  - Memperluas generator blok kota menjadi 10×10 = **100 blok perkotaan** terstruktur (+56% lebih luas).
+  - Memperbanyak titik kandidat sebaran soal (`candidateSpots`) hingga 100+ titik mencakup ring terluar ±100 dengan seleksi greedy jarak minimum 30 unit.
+  - Memperbarui `WorldMonitorMap` di Admin agar menggunakan `WORLD_RANGE = WORLD_HALF_SIZE (130)` sehingga spectator map 2D mencakup seluruh 11 avenue secara presisi 1:1.
+
+- [x] **9.4. Perombakan Kendali Mobil Menjadi Super Smooth (Fisika & Kamera Damping)**
+  - **Steering Input Smoothing (`steerAngleRef`)**: Menghilangkan belokan kaku/snap instan keyboard & joystick dengan interpolasi sudut kemudi lerp (`steerLerpSpeed = 9.5 rad/s`).
+  - **Dynamic Speed-Adaptive Turning Curve**: Kurva belok adaptif terhadap kecepatan jelajah (`speedFactor 0.28 - 1.0`) sehingga mobil stabil di kecepatan tinggi dan lincah bermanuver di tikungan.
+  - **Natural Rolling Coasting (`coastDrag = 2.4`)**: Menghilangkan pengereman mendadak saat melepas gas, mobil meluncur (*coast/glide*) halus alami.
+  - **Smooth Progressive Braking & Reverse Transition**: Menekan tombol mundur saat melaju ke depan berfungsi sebagai rem progresif halus hingga kecepatan 0 sebelum bertransisi mundur, menghindari sentakan balik mendadak.
+  - **Buttery Damped Follow Camera (`smoothCamYawRef`)**: Rotasi kamera di-smooth dengan lag teredam (~6.5 rad/s) dan lead dinamis ke depan arah laju, mengeliminasi kamera snapping/jittering saat berbelok tajam.
+  - **Smooth Wall-Sliding Collision**: Menghilangkan bouncing kasar negatif saat menyerempet trotoar/bangunan, mobil meluncur mulus sepanjang dinding pembatas.
+
+- [x] **9.5. Sinkronisasi Tema Map ke Gameplay HUD (`/game`)**
+  - Meneruskan `mapTheme` dari meta room ke `CityCanvas`.
+  - Banner HUD game di pojok kiri bawah menampilkan nama tema map aktif (misal: `LEMBAH HIJAU & CAMPING · SEED 123456`).
+  - Pencahayaan (ambient & directional light) dan warna ground otomatis menyesuaikan atmosfer tema map yang dipilih.
+
+---
+
+## 10. Penggantian Mobil Pemain dengan Karakter Hewan Cube Pets (Local & Remote Multiplayer)
+
+- [x] **10.1. Integrasi Koleksi 3D Cube Pets (`kenney_cube-pets_1.0`)**
+  - Menyiapkan daftar 18 varian hewan kubus lucu format GLB dari `public/assets/3d-assets/kenney_cube-pets_1.0/Models/GLB format/`:
+    - `alpaca.glb`, `bear.glb`, `cat.glb`, `chicken.glb`, `cow.glb`, `deer.glb`, `dog.glb`, `duck.glb`, `elephant.glb`, `fox.glb`, `giraffe.glb`, `horse.glb`, `llama.glb`, `monkey.glb`, `panda.glb`, `pig.glb`, `sheep.glb`, `zebra.glb`.
+  - Menjalankan `useGLTF.preload` untuk seluruh varian Cube Pets di awal runtime demi mencegah frame drop.
+- [x] **10.2. Penggantian Controller Pemain Lokal (`PlayerPetController`)**
+  - Menggantikan model mobil lokal dengan model Cube Pets berskala proporsional (`scale = 1.15`) yang pas dengan trotoar dan jalan raya.
+  - Model menghadap natural ke arah depan (+Z) tanpa rotasi offset artifisial.
+  - Implementasi animasi lompat berlari lucu (*cute hopping bounce* via `hopRef` dan fungsi sinusoidal `Math.sin(hopRef) * 0.16`) yang aktif saat hewan bergerak maju/mundur.
+  - Implementasi efek goyang waddle miring (*tilt waddle* `Math.sin(hopRef * 0.5) * 0.08`) saat berlari dan belok.
+  - Menambahkan bayangan dinamis lembut (*soft shadow disk*) di bawah telapak hewan (`[0, 0.02, 0]`).
+  - Menempatkan nametag pemain di atas kepala hewan (`[0, 2.3, 0]`) dengan warna cerah dan keterbacaan tinggi.
+- [x] **10.3. Penggantian Avatar Pemain Lain (`RemotePetAvatar`)**
+  - Menggantikan kendaraan remote multiplayer dengan avatar Cube Pets.
+  - Setiap remote player mendapatkan varian hewan unik berdasarkan hash ID pemain secara konsisten.
+  - Interpolasi posisi (`lerp`) dan rotasi (`slerp`) halus dengan nametag melayang di atas kepala.
+- [x] **10.4. Pengujian Build & Verifikasi Kompilasi**
+  - `npx tsc --noEmit` bersih tanpa error TypeScript.
+  - `npm run build` sukses 100% (7/7 static routes terkompilasi dengan Turbopack).
+
+- [x] **9.6. Verifikasi, Uji Build & Pembaruan Dokumentasi**
+  - `npx tsc --noEmit` lolos 100% tanpa error TypeScript.
+  - `npm run build` sukses 100% (7/7 static pages terkompilasi dalam 1.6s).
+  - Memperbarui `docs/todo.md` dan `docs/log.md` secara terperinci.
