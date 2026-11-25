@@ -689,7 +689,7 @@ export default function AdminPage() {
 
     let chosenThemeKey = selectedMapTheme;
     if (chosenThemeKey === "random") {
-      const pool: MapThemeId[] = ["mega-world", "metropolis", "nature-valley", "industrial-zone", "suburban-town"];
+      const pool: MapThemeId[] = ["mega-world", "metropolis", "nature-valley", "forest", "industrial-zone", "suburban-town"];
       chosenThemeKey = pool[Math.floor(Math.random() * pool.length)];
     }
     const themeConfig = resolveMapThemeConfig(chosenThemeKey);
@@ -1551,6 +1551,7 @@ export default function AdminPage() {
                     <option value="mega-world">🌐 Mega Gabungan (4 Distrik) — Metropolis + Industri + Suburbia + Nature</option>
                     <option value="metropolis">🏙️ Metropolis Sentral — Pencakar Langit & Komersial</option>
                     <option value="nature-valley">🌲 Lembah Hijau & Camping — Hutan Pinus, Tebing Batu & Area Kemah</option>
+                    <option value="forest">🌳 Hutan Rimba — Hutan Lebat, Pepohonan Tinggi & Jalur Alam</option>
                     <option value="industrial-zone">🏭 Kawasan Industri & Cargo — Pabrik, Tangki Minyak & Kontainer</option>
                     <option value="suburban-town">🏡 Kota Suburbia Asri — Lingkungan Perumahan, Pagar & Taman</option>
                     <option value="random">🎲 Acak Otomatis (Surprise Random) — Dipilih acak tiap room</option>
@@ -1560,7 +1561,7 @@ export default function AdminPage() {
                 {/* Preview Tema Terpilih */}
                 {(() => {
                   const previewConfig = selectedMapTheme === "random"
-                    ? { icon: "🎲", name: "Acak Otomatis (Surprise)", tagline: "Dipilih acak antara 5 tema dunia saat room digenerate" }
+                    ? { icon: "🎲", name: "Acak Otomatis (Surprise)", tagline: "Dipilih acak antara 6 tema dunia saat room digenerate" }
                     : resolveMapThemeConfig(selectedMapTheme);
                   return (
                     <div className="random-preview map-theme-preview-box">

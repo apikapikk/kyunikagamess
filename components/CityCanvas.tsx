@@ -21,6 +21,7 @@ export type MapThemeId =
   | "mega-world"
   | "metropolis"
   | "nature-valley"
+  | "forest"
   | "industrial-zone"
   | "suburban-town"
   | "random";
@@ -67,6 +68,16 @@ export const MAP_THEMES: Record<string, MapThemeConfig> = {
     sunIntensity: 2.4,
     ambientIntensity: 1.8,
   },
+  forest: {
+    id: "forest",
+    name: "Hutan Rimba",
+    tagline: "Hutan lebat, jalur tanah, pepohonan tinggi & semak alami",
+    icon: "🌳",
+    groundColor: "#315f3d",
+    sunColor: "#fff4d6",
+    sunIntensity: 1.9,
+    ambientIntensity: 1.55,
+  },
   "industrial-zone": {
     id: "industrial-zone",
     name: "Kawasan Industri & Cargo",
@@ -92,6 +103,9 @@ export const MAP_THEMES: Record<string, MapThemeConfig> = {
 export function resolveMapThemeConfig(themeKey?: string): MapThemeConfig {
   if (!themeKey) return MAP_THEMES["mega-world"];
   const lower = themeKey.toLowerCase();
+  if (lower.includes("forest") || lower.includes("rimba")) {
+    return MAP_THEMES.forest;
+  }
   if (lower.includes("nature") || lower.includes("lembah") || lower.includes("hutan") || lower.includes("camp")) {
     return MAP_THEMES["nature-valley"];
   }
@@ -457,7 +471,7 @@ function useCityBlocks(seed: number, mapThemeKey?: string) {
 
         let blockType: "metropolis-core" | "metropolis-comm" | "nature" | "industrial" | "suburban" = "suburban";
 
-        if (themeId === "nature-valley") {
+        if (themeId === "nature-valley" || themeId === "forest") {
           blockType = "nature";
         } else if (themeId === "industrial-zone") {
           blockType = "industrial";
@@ -484,7 +498,46 @@ function useCityBlocks(seed: number, mapThemeKey?: string) {
 
         // ── Block Type Implementations ──
         if (blockType === "nature") {
-          // NATURE VALLEY BIOME
+          // NATURE VALLEY / FULL FOREST BIOME
+          if (themeId === "forest") {
+            const forestTreePaths = [
+              naturePineDefaultPath,
+              naturePineTallPath,
+              naturePineRoundPath,
+              natureOakPath,
+              natureTreeDetailedPath,
+            ];
+            const forestPoints = [
+              p1,
+              p2,
+              p3,
+              p4,
+              { x: centerP.x - 2.1, z: centerP.z + 1.8 },
+              { x: centerP.x + 2.0, z: centerP.z - 1.7 },
+            ];
+            forestPoints.forEach((p, idx) => {
+              trees.push({
+                path: forestTreePaths[(itemIdx + idx + col + row) % forestTreePaths.length],
+                pos: [p.x, 0, p.z],
+                scale: idx < 4 ? 1.65 : 1.25,
+              });
+              // Keep only the main trees solid so collision checks remain light.
+              if (idx < 4) {
+                colliders.push({ minX: p.x - 0.75, maxX: p.x + 0.75, minZ: p.z - 0.75, maxZ: p.z + 0.75 });
+              }
+            });
+            buildings.push({
+              path: natureRockSmallPath,
+              x: centerP.x,
+              z: centerP.z,
+              ry: (col + row) * 0.6,
+              scale: 1.1,
+              propPath: natureBushPath,
+              propPos: [centerP.x + 1.1, 0, centerP.z + 1.1],
+              propScale: 1.25,
+            });
+            itemIdx += 6;
+          } else {
           const isCamp = (col + row) % 3 === 0;
           const isRockOutcrop = (col * 3 + row) % 4 === 1;
 
@@ -571,6 +624,7 @@ function useCityBlocks(seed: number, mapThemeKey?: string) {
               propScale: 1.3,
             });
             colliders.push({ minX: centerP.x - 0.8, maxX: centerP.x + 0.8, minZ: centerP.z - 0.8, maxZ: centerP.z + 0.8 });
+          }
           }
           itemIdx += 4;
         } else if (blockType === "industrial") {
