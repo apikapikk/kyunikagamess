@@ -40,10 +40,10 @@ export type MapThemeConfig = {
 export const MAP_THEMES: Record<string, MapThemeConfig> = {
   "mega-world": {
     id: "mega-world",
-    name: "Mega Gabungan (4 Distrik)",
-    tagline: "Metropolis Sentral, Industri, Suburbia & Lembah Alam",
-    icon: "🌐",
-    groundColor: "#6fa379",
+    name: "Nature Mega World",
+    tagline: "Hutan, lembah, jalur tanah & padang rumput alami",
+    icon: "🌿",
+    groundColor: "#5d8d5c",
     sunColor: "#ffffff",
     sunIntensity: 2.2,
     ambientIntensity: 1.7,
@@ -160,6 +160,7 @@ const roadsRoot      = "/assets/3d-assets/kenney_city-kit-roads/Models/GLB%20for
 const carRoot        = "/assets/3d-assets/kenney_car-kit/Models/GLB%20format";
 const natureRoot     = "/assets/3d-assets/kenney_nature-kit/Models/GLTF%20format";
 const industrialRoot = "/assets/3d-assets/kenney_city-kit-industrial_2.0/Models/GLB%20format";
+const stylizedNatureRoot = "/assets/3d-assets/Stylized%20Nature%20MegaKit%5BStandard%5D/glTF";
 const blockyNatureRoot = "/assets/3d-assets/ohmtap-ot39-blocky-nature/models/glb";
 
 // Keep the pet avatars visually comparable to the traffic cars. The Kenney
@@ -229,6 +230,23 @@ const blockyForestDetailPaths = [
   "A10_stump", "A11_fallen_log", "A12_mushrooms", "C01_rock_small", "C02_rock_medium",
 ].map((name) => `${blockyNatureRoot}/${name}.glb`);
 
+const stylizedTreePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/CommonTree_${n}.gltf`);
+const stylizedPinePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/Pine_${n}.gltf`);
+const stylizedTwistedTreePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/TwistedTree_${n}.gltf`);
+const stylizedGroundPaths = [
+  `${stylizedNatureRoot}/Grass_Common_Short.gltf`,
+  `${stylizedNatureRoot}/Grass_Common_Tall.gltf`,
+  `${stylizedNatureRoot}/Fern_1.gltf`,
+  `${stylizedNatureRoot}/Bush_Common.gltf`,
+];
+const stylizedDetailPaths = [
+  `${stylizedNatureRoot}/Rock_Medium_1.gltf`,
+  `${stylizedNatureRoot}/Rock_Medium_2.gltf`,
+  `${stylizedNatureRoot}/Mushroom_Common.gltf`,
+  `${stylizedNatureRoot}/DeadTree_1.gltf`,
+];
+const ohmNaturePathTile = `${blockyNatureRoot}/D03_tile_path.glb`;
+
 // ─── Industrial Kit Assets (New!) ─────────────────────────────────────────────
 const industrialBuildingAPath    = `${industrialRoot}/building-a.glb`;
 const industrialBuildingBPath    = `${industrialRoot}/building-b.glb`;
@@ -270,10 +288,6 @@ const pathLongPath     = `${suburbanRoot}/path-long.glb`;
 
 // Keep the initial request queue small. The rest of the world loads
 // progressively so mobile devices can show the first frame sooner.
-npcCarPaths.forEach((p) => useGLTF.preload(p));
-useGLTF.preload(roadStraightPath);
-useGLTF.preload(roadCrossPath);
-useGLTF.preload(roadCrossingPath);
 
 // ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function lcg(seed: number, index: number): number {
@@ -447,6 +461,70 @@ type PlacedBuilding = {
   propPos?: [number, number, number];
   propScale?: number;
 };
+
+// Nature-only world generator. It deliberately has no roads, buildings,
+// traffic, or Kenney dependencies: the player explores clearings and natural
+// paths through a continuous forest.
+function useNatureWorld(seed: number, mapThemeKey?: string) {
+  return useMemo(() => {
+    const buildings: PlacedBuilding[] = [];
+    const trees: { path: string; pos: [number, number, number]; scale: number }[] = [];
+    const colliders: ColliderBox[] = [];
+    const themeId = resolveMapThemeConfig(mapThemeKey).id;
+    const blocks = [-90, -70, -50, -30, -10, 10, 30, 50, 70, 90];
+    const treeSets = themeId === "forest"
+      ? [...stylizedTreePaths, ...stylizedPinePaths, ...stylizedTwistedTreePaths, ...blockyForestTreePaths]
+      : [...stylizedTreePaths, ...stylizedPinePaths, ...blockyForestTreePaths.slice(0, 5)];
+
+    blocks.forEach((x, col) => {
+      blocks.forEach((z, row) => {
+        const variation = Math.floor(lcg(seed + col * 31 + row * 17, 9) * treeSets.length);
+        const points = [
+          [x - 5.0, z - 5.0], [x + 5.0, z - 4.0],
+          [x - 4.0, z + 5.0], [x + 5.0, z + 5.0],
+          [x + (lcg(seed, col * 10 + row) - 0.5) * 5, z + (lcg(seed, col * 10 + row + 1) - 0.5) * 5],
+        ] as const;
+
+        points.forEach(([px, pz], index) => {
+          const path = treeSets[(variation + index + col + row) % treeSets.length];
+          trees.push({ path, pos: [px, 0, pz], scale: index === 4 ? 0.58 : 0.68 });
+          if (index < 4) {
+            colliders.push({ minX: px - 0.9, maxX: px + 0.9, minZ: pz - 0.9, maxZ: pz + 0.9 });
+          }
+        });
+
+        trees.push({
+          path: stylizedGroundPaths[(variation + row) % stylizedGroundPaths.length],
+          pos: [x - 1.8, 0, z + 1.8],
+          scale: 1.1,
+        });
+        trees.push({
+          path: blockyForestGroundPaths[(variation + col + row) % blockyForestGroundPaths.length],
+          pos: [x + 2.4, 0, z - 1.5],
+          scale: 0.9,
+        });
+
+        if ((col * 3 + row + seed) % 4 === 0) {
+          buildings.push({
+            path: stylizedDetailPaths[(variation + col) % stylizedDetailPaths.length],
+            x: x + 1.5,
+            z: z + 1.2,
+            ry: lcg(seed, col + row) * Math.PI,
+            scale: 0.9,
+          });
+        }
+      });
+    });
+
+    // A few winding OhmTap path tiles create natural clearings without a city grid.
+    for (let i = -24; i <= 24; i += 2) {
+      const z = Math.sin((i + seed % 17) * 0.22) * 5;
+      buildings.push({ path: ohmNaturePathTile, x: i, z, ry: 0, scale: 1 });
+    }
+
+    return { buildings, trees, colliders };
+  }, [seed, mapThemeKey]);
+}
 
 // ─── City Districts Generator (Downtown, Nature, Industrial, Suburban & Mega) ─
 function useCityBlocks(seed: number, mapThemeKey?: string) {
@@ -801,18 +879,6 @@ const pathStonesLongPath = `${suburbanRoot}/path-stones-long.glb`;
 const pathStonesShortPath = `${suburbanRoot}/path-stones-short.glb`;
 const pathStonesMessyPath = `${suburbanRoot}/path-stones-messy.glb`;
 const pathShortPath    = `${suburbanRoot}/path-short.glb`;
-
-// preload extra suburban assets
-useGLTF.preload(fence1x2Path);
-useGLTF.preload(fence1x4Path);
-useGLTF.preload(fence2x2Path);
-useGLTF.preload(fenceLowPath);
-useGLTF.preload(drivewayShortPath);
-useGLTF.preload(drivewayLongPath);
-useGLTF.preload(pathStonesLongPath);
-useGLTF.preload(pathStonesShortPath);
-useGLTF.preload(pathStonesMessyPath);
-useGLTF.preload(pathShortPath);
 
 // ─── Street Furniture (Illuminated Boulevards, Signals, Signs) ────────────────
 function StreetFurniture() {
@@ -1701,7 +1767,7 @@ function CityScene({
     return h % playerPetOptions.length;
   }, [playerId, players]);
 
-  const { buildings, trees, colliders } = useCityBlocks(seed, mapTheme);
+  const { buildings, trees, colliders } = useNatureWorld(seed, mapTheme);
 
   return (
     <>
@@ -1709,6 +1775,7 @@ function CityScene({
       <ambientLight intensity={themeConfig.ambientIntensity} />
       <directionalLight position={[20, 30, 15]} intensity={themeConfig.sunIntensity} color={themeConfig.sunColor} />
       <directionalLight position={[-20, 15, -15]} intensity={0.6} color="#c8d8ff" />
+      <fog attach="fog" args={[themeConfig.groundColor, 48, 175]} />
 
       {/* Expansive Ground Plane (260x260) with Map Theme palette */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
@@ -1716,10 +1783,7 @@ function CityScene({
         <meshStandardMaterial color={themeConfig.groundColor} />
       </mesh>
 
-      {/* Seamless Continuous Road Network */}
-      <Suspense fallback={null}><RoadGrid /></Suspense>
-
-      {/* Thematic Buildings, Nature Kits, Industrial Kits, Houses & Props */}
+      {/* Nature-only scenery from Stylized Nature MegaKit and OhmTap. */}
       <Suspense fallback={null}>
         {buildings.map((b, i) => (
           <group key={`b-${i}`}>
@@ -1739,22 +1803,11 @@ function CityScene({
         ))}
       </Suspense>
 
-      {/* Street Furniture (Lamps, Signals, Signs) */}
-      <Suspense fallback={null}><StreetFurniture /></Suspense>
-
-      {/* Street Props (Cones, Planters, Fences, Driveways, Path Stones along sidewalks) */}
-      <Suspense fallback={null}><StreetProps seed={seed} /></Suspense>
-
       {/* Flying Props (knocked away on prop collision) */}
       <Suspense fallback={null}>
         {flyingProps.map((fp) => (
           <FlyingPropMesh key={`fp-${fp.id}`} prop={fp} />
         ))}
-      </Suspense>
-
-      {/* Live Two-Way Traffic on Multi-Avenues */}
-      <Suspense fallback={null}>
-        <NpcTraffic seed={seed} npcPositionsRef={npcPositionsRef} />
       </Suspense>
 
       {/* 3D Question Markers with Sky Beams */}

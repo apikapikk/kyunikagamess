@@ -689,7 +689,7 @@ export default function AdminPage() {
 
     let chosenThemeKey = selectedMapTheme;
     if (chosenThemeKey === "random") {
-      const pool: MapThemeId[] = ["mega-world", "metropolis", "nature-valley", "forest", "industrial-zone", "suburban-town"];
+      const pool: MapThemeId[] = ["mega-world", "nature-valley", "forest"];
       chosenThemeKey = pool[Math.floor(Math.random() * pool.length)];
     }
     const themeConfig = resolveMapThemeConfig(chosenThemeKey);
@@ -1548,12 +1548,9 @@ export default function AdminPage() {
                     value={selectedMapTheme}
                     onChange={(event) => setSelectedMapTheme(event.target.value as MapThemeId | "random")}
                   >
-                    <option value="mega-world">🌐 Mega Gabungan (4 Distrik) — Metropolis + Industri + Suburbia + Nature</option>
-                    <option value="metropolis">🏙️ Metropolis Sentral — Pencakar Langit & Komersial</option>
-                    <option value="nature-valley">🌲 Lembah Hijau & Camping — Hutan Pinus, Tebing Batu & Area Kemah</option>
+                    <option value="mega-world">🌿 Nature Mega World — Hutan, Lembah, Jalur Tanah & Padang Rumput</option>
+                    <option value="nature-valley">🌲 Lembah Hijau — Hutan Pinus, Batu & Area Terbuka</option>
                     <option value="forest">🌳 Hutan Rimba — Hutan Lebat, Pepohonan Tinggi & Jalur Alam</option>
-                    <option value="industrial-zone">🏭 Kawasan Industri & Cargo — Pabrik, Tangki Minyak & Kontainer</option>
-                    <option value="suburban-town">🏡 Kota Suburbia Asri — Lingkungan Perumahan, Pagar & Taman</option>
                     <option value="random">🎲 Acak Otomatis (Surprise Random) — Dipilih acak tiap room</option>
                   </select>
                 </label>

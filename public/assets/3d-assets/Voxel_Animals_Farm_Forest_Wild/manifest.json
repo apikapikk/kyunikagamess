@@ -1,0 +1,8350 @@
+{
+ "pack": "animals-farm-forest",
+ "title": "Voxel Animals: Farm, Forest & Wild",
+ "version": "1.1.0",
+ "license": {
+  "free": "CC0-1.0",
+  "paid": "standard paid licence"
+ },
+ "tags": [
+  "voxel",
+  "animals",
+  "farm",
+  "forest",
+  "wildlife",
+  "zoo",
+  "safari",
+  "ocean",
+  "jungle",
+  "arctic",
+  "birds",
+  "insects",
+  "baby animals",
+  "rigged",
+  "rig-ready",
+  "low-poly",
+  "cute",
+  "magicavoxel",
+  "game-ready",
+  "cc0",
+  "unity",
+  "godot",
+  "roblox"
+ ],
+ "palette": "palette.json",
+ "voxel_size_m": 0.1,
+ "rig_notes": "Each animal is also split into parts named <animal>__<part> (builders.parts()). offset = min corner of the part grid inside the model grid; pivot = joint position in model voxel coords (x right, y up, z forward); parent = parent part.",
+ "models": [
+  {
+   "name": "cow",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    18,
+    31,
+    40
+   ],
+   "tris_estimate": 1368,
+   "parts": [
+    {
+     "name": "cow__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      12,
+      0,
+      23
+     ],
+     "size": [
+      4,
+      11,
+      4
+     ],
+     "pivot": [
+      14.0,
+      10.0,
+      25.0
+     ]
+    },
+    {
+     "name": "cow__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      23
+     ],
+     "size": [
+      4,
+      11,
+      4
+     ],
+     "pivot": [
+      4.0,
+      10.0,
+      25.0
+     ]
+    },
+    {
+     "name": "cow__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      12,
+      0,
+      5
+     ],
+     "size": [
+      4,
+      11,
+      4
+     ],
+     "pivot": [
+      14.0,
+      10.0,
+      7.0
+     ]
+    },
+    {
+     "name": "cow__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      5
+     ],
+     "size": [
+      4,
+      11,
+      4
+     ],
+     "pivot": [
+      4.0,
+      10.0,
+      7.0
+     ]
+    },
+    {
+     "name": "cow__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      6,
+      2
+     ],
+     "size": [
+      16,
+      16,
+      28
+     ],
+     "pivot": [
+      9.0,
+      15.37,
+      15.62
+     ]
+    },
+    {
+     "name": "cow__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      15,
+      27
+     ],
+     "size": [
+      18,
+      16,
+      13
+     ],
+     "pivot": [
+      9.0,
+      19.0,
+      28.0
+     ]
+    },
+    {
+     "name": "cow__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      8,
+      9,
+      0
+     ],
+     "size": [
+      2,
+      13,
+      2
+     ],
+     "pivot": [
+      9.0,
+      21.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "pig",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    17,
+    28
+   ],
+   "tris_estimate": 896,
+   "parts": [
+    {
+     "name": "pig__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      18
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      10.5,
+      5.0,
+      19.5
+     ]
+    },
+    {
+     "name": "pig__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      18
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      3.5,
+      5.0,
+      19.5
+     ]
+    },
+    {
+     "name": "pig__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      10.5,
+      5.0,
+      5.5
+     ]
+    },
+    {
+     "name": "pig__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      3.5,
+      5.0,
+      5.5
+     ]
+    },
+    {
+     "name": "pig__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      3,
+      1
+     ],
+     "size": [
+      14,
+      13,
+      21
+     ],
+     "pivot": [
+      7.0,
+      9.33,
+      10.54
+     ]
+    },
+    {
+     "name": "pig__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      6,
+      17
+     ],
+     "size": [
+      12,
+      11,
+      11
+     ],
+     "pivot": [
+      7.0,
+      10.06,
+      18.72
+     ]
+    },
+    {
+     "name": "pig__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      12,
+      0
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      12.0,
+      1.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "sheep",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    20,
+    23,
+    27
+   ],
+   "tris_estimate": 1632,
+   "parts": [
+    {
+     "name": "sheep__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      14,
+      0,
+      16
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      15.5,
+      8.0,
+      17.5
+     ]
+    },
+    {
+     "name": "sheep__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      16
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      4.5,
+      8.0,
+      17.5
+     ]
+    },
+    {
+     "name": "sheep__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      14,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      15.5,
+      8.0,
+      5.5
+     ]
+    },
+    {
+     "name": "sheep__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      4.5,
+      8.0,
+      5.5
+     ]
+    },
+    {
+     "name": "sheep__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      6,
+      1
+     ],
+     "size": [
+      19,
+      17,
+      22
+     ],
+     "pivot": [
+      10.06,
+      13.51,
+      11.79
+     ]
+    },
+    {
+     "name": "sheep__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      3,
+      12,
+      20
+     ],
+     "size": [
+      14,
+      9,
+      7
+     ],
+     "pivot": [
+      10.0,
+      15.0,
+      20.0
+     ]
+    },
+    {
+     "name": "sheep__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      8,
+      14,
+      0
+     ],
+     "size": [
+      4,
+      3,
+      3
+     ],
+     "pivot": [
+      10.0,
+      15.5,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "chicken",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    20,
+    15
+   ],
+   "tris_estimate": 570,
+   "parts": [
+    {
+     "name": "chicken__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      7.5,
+      4.0,
+      7.5
+     ]
+    },
+    {
+     "name": "chicken__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      2.5,
+      4.0,
+      7.5
+     ]
+    },
+    {
+     "name": "chicken__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      4,
+      1
+     ],
+     "size": [
+      8,
+      9,
+      11
+     ],
+     "pivot": [
+      5.0,
+      8.31,
+      6.64
+     ]
+    },
+    {
+     "name": "chicken__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      9,
+      0
+     ],
+     "size": [
+      4,
+      6,
+      3
+     ],
+     "pivot": [
+      5.0,
+      10.0,
+      3.0
+     ]
+    },
+    {
+     "name": "chicken__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      8,
+      6,
+      2
+     ],
+     "size": [
+      2,
+      5,
+      8
+     ],
+     "pivot": [
+      9.0,
+      10.0,
+      8.0
+     ]
+    },
+    {
+     "name": "chicken__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      6,
+      2
+     ],
+     "size": [
+      2,
+      5,
+      8
+     ],
+     "pivot": [
+      1.0,
+      10.0,
+      8.0
+     ]
+    },
+    {
+     "name": "chicken__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      11,
+      8
+     ],
+     "size": [
+      6,
+      9,
+      7
+     ],
+     "pivot": [
+      5.0,
+      12.0,
+      10.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "horse",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    37,
+    44
+   ],
+   "tris_estimate": 994,
+   "parts": [
+    {
+     "name": "horse__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      26
+     ],
+     "size": [
+      3,
+      16,
+      4
+     ],
+     "pivot": [
+      9.5,
+      15.0,
+      28.0
+     ]
+    },
+    {
+     "name": "horse__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      26
+     ],
+     "size": [
+      3,
+      16,
+      4
+     ],
+     "pivot": [
+      2.5,
+      15.0,
+      28.0
+     ]
+    },
+    {
+     "name": "horse__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      16,
+      4
+     ],
+     "pivot": [
+      9.5,
+      15.0,
+      8.0
+     ]
+    },
+    {
+     "name": "horse__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      16,
+      4
+     ],
+     "pivot": [
+      2.5,
+      15.0,
+      8.0
+     ]
+    },
+    {
+     "name": "horse__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      14,
+      4
+     ],
+     "size": [
+      12,
+      12,
+      28
+     ],
+     "pivot": [
+      6.0,
+      19.91,
+      17.28
+     ]
+    },
+    {
+     "name": "horse__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      3,
+      18,
+      26
+     ],
+     "size": [
+      6,
+      19,
+      18
+     ],
+     "pivot": [
+      6.0,
+      22.0,
+      27.0
+     ]
+    },
+    {
+     "name": "horse__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      10,
+      0
+     ],
+     "size": [
+      2,
+      14,
+      5
+     ],
+     "pivot": [
+      6.0,
+      23.0,
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "donkey",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    37,
+    39
+   ],
+   "tris_estimate": 856,
+   "parts": [
+    {
+     "name": "donkey__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      21
+     ],
+     "size": [
+      3,
+      12,
+      4
+     ],
+     "pivot": [
+      9.5,
+      11.0,
+      23.0
+     ]
+    },
+    {
+     "name": "donkey__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      21
+     ],
+     "size": [
+      3,
+      12,
+      4
+     ],
+     "pivot": [
+      2.5,
+      11.0,
+      23.0
+     ]
+    },
+    {
+     "name": "donkey__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      1
+     ],
+     "size": [
+      3,
+      12,
+      4
+     ],
+     "pivot": [
+      9.5,
+      11.0,
+      3.0
+     ]
+    },
+    {
+     "name": "donkey__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      1
+     ],
+     "size": [
+      3,
+      12,
+      4
+     ],
+     "pivot": [
+      2.5,
+      11.0,
+      3.0
+     ]
+    },
+    {
+     "name": "donkey__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      10,
+      1
+     ],
+     "size": [
+      12,
+      12,
+      24
+     ],
+     "pivot": [
+      6.0,
+      15.95,
+      12.62
+     ]
+    },
+    {
+     "name": "donkey__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      3,
+      14,
+      21
+     ],
+     "size": [
+      6,
+      23,
+      18
+     ],
+     "pivot": [
+      6.0,
+      18.0,
+      22.0
+     ]
+    },
+    {
+     "name": "donkey__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      12,
+      2
+     ],
+     "pivot": [
+      6.0,
+      18.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "goat",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    28,
+    30
+   ],
+   "tris_estimate": 844,
+   "parts": [
+    {
+     "name": "goat__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      17
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      10.5,
+      10.0,
+      18.5
+     ]
+    },
+    {
+     "name": "goat__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      17
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      3.5,
+      10.0,
+      18.5
+     ]
+    },
+    {
+     "name": "goat__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      10.5,
+      10.0,
+      4.5
+     ]
+    },
+    {
+     "name": "goat__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      3.5,
+      10.0,
+      4.5
+     ]
+    },
+    {
+     "name": "goat__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      9,
+      1
+     ],
+     "size": [
+      10,
+      10,
+      20
+     ],
+     "pivot": [
+      7.0,
+      13.92,
+      10.66
+     ]
+    },
+    {
+     "name": "goat__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      13,
+      18
+     ],
+     "size": [
+      14,
+      15,
+      12
+     ],
+     "pivot": [
+      7.0,
+      16.0,
+      20.0
+     ]
+    },
+    {
+     "name": "goat__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      6,
+      17,
+      0
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      17.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "duck",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    16,
+    20
+   ],
+   "tris_estimate": 512,
+   "parts": [
+    {
+     "name": "duck__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      7.5,
+      2.0,
+      10.5
+     ]
+    },
+    {
+     "name": "duck__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      2.5,
+      2.0,
+      10.5
+     ]
+    },
+    {
+     "name": "duck__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      3,
+      2
+     ],
+     "size": [
+      8,
+      7,
+      14
+     ],
+     "pivot": [
+      5.0,
+      6.38,
+      9.05
+     ]
+    },
+    {
+     "name": "duck__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      7,
+      0
+     ],
+     "size": [
+      4,
+      4,
+      3
+     ],
+     "pivot": [
+      5.0,
+      8.0,
+      3.0
+     ]
+    },
+    {
+     "name": "duck__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      8,
+      5,
+      4
+     ],
+     "size": [
+      2,
+      4,
+      8
+     ],
+     "pivot": [
+      9.0,
+      8.5,
+      11.0
+     ]
+    },
+    {
+     "name": "duck__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      4
+     ],
+     "size": [
+      2,
+      4,
+      8
+     ],
+     "pivot": [
+      1.0,
+      8.5,
+      11.0
+     ]
+    },
+    {
+     "name": "duck__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      8,
+      12
+     ],
+     "size": [
+      6,
+      8,
+      8
+     ],
+     "pivot": [
+      5.0,
+      9.0,
+      14.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "turkey",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    24,
+    24,
+    16
+   ],
+   "tris_estimate": 964,
+   "parts": [
+    {
+     "name": "turkey__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      13,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      14.5,
+      5.0,
+      6.5
+     ]
+    },
+    {
+     "name": "turkey__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      5,
+      3
+     ],
+     "pivot": [
+      9.5,
+      5.0,
+      6.5
+     ]
+    },
+    {
+     "name": "turkey__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      7,
+      5,
+      0
+     ],
+     "size": [
+      10,
+      12,
+      12
+     ],
+     "pivot": [
+      12.0,
+      10.91,
+      6.31
+     ]
+    },
+    {
+     "name": "turkey__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      0
+     ],
+     "size": [
+      24,
+      14,
+      2
+     ],
+     "pivot": [
+      12.0,
+      12.0,
+      2.0
+     ]
+    },
+    {
+     "name": "turkey__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      16,
+      8,
+      2
+     ],
+     "size": [
+      2,
+      6,
+      8
+     ],
+     "pivot": [
+      17.0,
+      13.0,
+      7.0
+     ]
+    },
+    {
+     "name": "turkey__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      6,
+      8,
+      2
+     ],
+     "size": [
+      2,
+      6,
+      8
+     ],
+     "pivot": [
+      7.0,
+      13.0,
+      7.0
+     ]
+    },
+    {
+     "name": "turkey__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      10,
+      14,
+      10
+     ],
+     "size": [
+      4,
+      8,
+      6
+     ],
+     "pivot": [
+      12.0,
+      15.0,
+      11.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "dog",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    22,
+    27
+   ],
+   "tris_estimate": 676,
+   "parts": [
+    {
+     "name": "dog__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      15
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      8.5,
+      8.0,
+      16.5
+     ]
+    },
+    {
+     "name": "dog__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      15
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      1.5,
+      8.0,
+      16.5
+     ]
+    },
+    {
+     "name": "dog__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      8.5,
+      8.0,
+      4.5
+     ]
+    },
+    {
+     "name": "dog__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      1.5,
+      8.0,
+      4.5
+     ]
+    },
+    {
+     "name": "dog__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      6,
+      3
+     ],
+     "size": [
+      8,
+      8,
+      16
+     ],
+     "pivot": [
+      5.0,
+      9.95,
+      10.87
+     ]
+    },
+    {
+     "name": "dog__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      17
+     ],
+     "size": [
+      10,
+      12,
+      10
+     ],
+     "pivot": [
+      5.0,
+      11.0,
+      17.0
+     ]
+    },
+    {
+     "name": "dog__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      11,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      5
+     ],
+     "pivot": [
+      5.0,
+      12.0,
+      5.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "cat",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    19,
+    23
+   ],
+   "tris_estimate": 592,
+   "parts": [
+    {
+     "name": "cat__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      16
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      7.0,
+      5.0,
+      17.0
+     ]
+    },
+    {
+     "name": "cat__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      16
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      3.0,
+      5.0,
+      17.0
+     ]
+    },
+    {
+     "name": "cat__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      6
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      7.0,
+      5.0,
+      7.0
+     ]
+    },
+    {
+     "name": "cat__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      6
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      3.0,
+      5.0,
+      7.0
+     ]
+    },
+    {
+     "name": "cat__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      4,
+      5
+     ],
+     "size": [
+      8,
+      6,
+      14
+     ],
+     "pivot": [
+      5.0,
+      6.88,
+      11.78
+     ]
+    },
+    {
+     "name": "cat__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      8,
+      15
+     ],
+     "size": [
+      10,
+      10,
+      8
+     ],
+     "pivot": [
+      5.0,
+      9.0,
+      17.0
+     ]
+    },
+    {
+     "name": "cat__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      12,
+      6
+     ],
+     "pivot": [
+      5.0,
+      8.0,
+      5.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "piglet",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    12,
+    17
+   ],
+   "tris_estimate": 322,
+   "parts": [
+    {
+     "name": "piglet__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      5.5,
+      4.0,
+      9.5
+     ]
+    },
+    {
+     "name": "piglet__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      2.5,
+      4.0,
+      9.5
+     ]
+    },
+    {
+     "name": "piglet__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      5.5,
+      4.0,
+      5.5
+     ]
+    },
+    {
+     "name": "piglet__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      2.5,
+      4.0,
+      5.5
+     ]
+    },
+    {
+     "name": "piglet__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      2,
+      2
+     ],
+     "size": [
+      8,
+      8,
+      12
+     ],
+     "pivot": [
+      4.0,
+      5.84,
+      7.07
+     ]
+    },
+    {
+     "name": "piglet__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      3,
+      10
+     ],
+     "size": [
+      8,
+      9,
+      7
+     ],
+     "pivot": [
+      4.0,
+      5.96,
+      11.48
+     ]
+    },
+    {
+     "name": "piglet__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      4.0,
+      7.0,
+      1.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "lamb",
+   "category": "farm",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    15,
+    19
+   ],
+   "tris_estimate": 734,
+   "parts": [
+    {
+     "name": "lamb__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      12
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      8.0,
+      6.0,
+      13.0
+     ]
+    },
+    {
+     "name": "lamb__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      12
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      4.0,
+      6.0,
+      13.0
+     ]
+    },
+    {
+     "name": "lamb__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      8.0,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "lamb__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      5,
+      2
+     ],
+     "pivot": [
+      4.0,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "lamb__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      4,
+      2
+     ],
+     "size": [
+      12,
+      11,
+      14
+     ],
+     "pivot": [
+      6.02,
+      9.05,
+      8.91
+     ]
+    },
+    {
+     "name": "lamb__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      8,
+      14
+     ],
+     "size": [
+      10,
+      6,
+      5
+     ],
+     "pivot": [
+      6.0,
+      9.8,
+      13.48
+     ]
+    },
+    {
+     "name": "lamb__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      9,
+      0
+     ],
+     "size": [
+      4,
+      4,
+      4
+     ],
+     "pivot": [
+      6.0,
+      11.1,
+      2.52
+     ]
+    }
+   ]
+  },
+  {
+   "name": "deer",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    40,
+    32
+   ],
+   "tris_estimate": 1174,
+   "parts": [
+    {
+     "name": "deer__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      19
+     ],
+     "size": [
+      3,
+      13,
+      3
+     ],
+     "pivot": [
+      11.5,
+      12.0,
+      20.5
+     ]
+    },
+    {
+     "name": "deer__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      19
+     ],
+     "size": [
+      3,
+      13,
+      3
+     ],
+     "pivot": [
+      4.5,
+      12.0,
+      20.5
+     ]
+    },
+    {
+     "name": "deer__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      13,
+      3
+     ],
+     "pivot": [
+      11.5,
+      12.0,
+      6.5
+     ]
+    },
+    {
+     "name": "deer__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      13,
+      3
+     ],
+     "pivot": [
+      4.5,
+      12.0,
+      6.5
+     ]
+    },
+    {
+     "name": "deer__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      3,
+      11,
+      3
+     ],
+     "size": [
+      10,
+      10,
+      20
+     ],
+     "pivot": [
+      8.0,
+      15.97,
+      12.85
+     ]
+    },
+    {
+     "name": "deer__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      16,
+      21
+     ],
+     "size": [
+      15,
+      24,
+      11
+     ],
+     "pivot": [
+      8.0,
+      17.0,
+      20.0
+     ]
+    },
+    {
+     "name": "deer__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      15,
+      0
+     ],
+     "size": [
+      2,
+      4,
+      3
+     ],
+     "pivot": [
+      8.0,
+      18.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "fawn",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    21,
+    22
+   ],
+   "tris_estimate": 696,
+   "parts": [
+    {
+     "name": "fawn__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      12
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      9.0,
+      8.0,
+      13.0
+     ]
+    },
+    {
+     "name": "fawn__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      12
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      3.0,
+      8.0,
+      13.0
+     ]
+    },
+    {
+     "name": "fawn__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      9.0,
+      8.0,
+      5.0
+     ]
+    },
+    {
+     "name": "fawn__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      3.0,
+      8.0,
+      5.0
+     ]
+    },
+    {
+     "name": "fawn__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      7,
+      2
+     ],
+     "size": [
+      8,
+      7,
+      14
+     ],
+     "pivot": [
+      6.0,
+      10.45,
+      8.83
+     ]
+    },
+    {
+     "name": "fawn__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      14
+     ],
+     "size": [
+      12,
+      11,
+      8
+     ],
+     "pivot": [
+      6.0,
+      11.5,
+      13.9
+     ]
+    },
+    {
+     "name": "fawn__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      9,
+      0
+     ],
+     "size": [
+      2,
+      4,
+      3
+     ],
+     "pivot": [
+      6.0,
+      12.5,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "fox",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    22,
+    30
+   ],
+   "tris_estimate": 660,
+   "parts": [
+    {
+     "name": "fox__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      19
+     ],
+     "size": [
+      2,
+      7,
+      2
+     ],
+     "pivot": [
+      6.0,
+      7.0,
+      20.0
+     ]
+    },
+    {
+     "name": "fox__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      19
+     ],
+     "size": [
+      2,
+      7,
+      2
+     ],
+     "pivot": [
+      2.0,
+      7.0,
+      20.0
+     ]
+    },
+    {
+     "name": "fox__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      9
+     ],
+     "size": [
+      2,
+      7,
+      2
+     ],
+     "pivot": [
+      6.0,
+      7.0,
+      10.0
+     ]
+    },
+    {
+     "name": "fox__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      9
+     ],
+     "size": [
+      2,
+      7,
+      2
+     ],
+     "pivot": [
+      2.0,
+      7.0,
+      10.0
+     ]
+    },
+    {
+     "name": "fox__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      5,
+      8
+     ],
+     "size": [
+      6,
+      7,
+      14
+     ],
+     "pivot": [
+      4.0,
+      8.42,
+      14.84
+     ]
+    },
+    {
+     "name": "fox__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      8,
+      20
+     ],
+     "size": [
+      8,
+      14,
+      10
+     ],
+     "pivot": [
+      4.0,
+      9.5,
+      20.5
+     ]
+    },
+    {
+     "name": "fox__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      2,
+      6,
+      0
+     ],
+     "size": [
+      4,
+      5,
+      10
+     ],
+     "pivot": [
+      4.0,
+      10.25,
+      9.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "rabbit",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    21,
+    15
+   ],
+   "tris_estimate": 608,
+   "parts": [
+    {
+     "name": "rabbit__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      0,
+      2
+     ],
+     "size": [
+      8,
+      10,
+      10
+     ],
+     "pivot": [
+      5.0,
+      5.2,
+      7.02
+     ]
+    },
+    {
+     "name": "rabbit__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      2
+     ],
+     "size": [
+      3,
+      6,
+      10
+     ],
+     "pivot": [
+      8.5,
+      5.0,
+      6.0
+     ]
+    },
+    {
+     "name": "rabbit__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      2
+     ],
+     "size": [
+      3,
+      6,
+      10
+     ],
+     "pivot": [
+      1.5,
+      5.0,
+      6.0
+     ]
+    },
+    {
+     "name": "rabbit__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      11
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      3.5,
+      12.0
+     ]
+    },
+    {
+     "name": "rabbit__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      11
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      3.0,
+      3.5,
+      12.0
+     ]
+    },
+    {
+     "name": "rabbit__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      8,
+      8
+     ],
+     "size": [
+      8,
+      13,
+      7
+     ],
+     "pivot": [
+      5.0,
+      8.0,
+      10.0
+     ]
+    },
+    {
+     "name": "rabbit__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      2,
+      0
+     ],
+     "size": [
+      4,
+      4,
+      3
+     ],
+     "pivot": [
+      5.0,
+      4.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "owl",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    25,
+    10
+   ],
+   "tris_estimate": 730,
+   "parts": [
+    {
+     "name": "owl__perch",
+     "part": "perch",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      2
+     ],
+     "size": [
+      12,
+      3,
+      6
+     ],
+     "pivot": [
+      6.0,
+      0.0,
+      5.0
+     ]
+    },
+    {
+     "name": "owl__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      7,
+      3,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      3
+     ],
+     "pivot": [
+      8.0,
+      4.0,
+      6.5
+     ]
+    },
+    {
+     "name": "owl__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      3,
+      3,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      3
+     ],
+     "pivot": [
+      4.0,
+      4.0,
+      6.5
+     ]
+    },
+    {
+     "name": "owl__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      4,
+      1
+     ],
+     "size": [
+      8,
+      11,
+      8
+     ],
+     "pivot": [
+      6.0,
+      9.67,
+      5.04
+     ]
+    },
+    {
+     "name": "owl__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      9,
+      5,
+      1
+     ],
+     "size": [
+      3,
+      10,
+      7
+     ],
+     "pivot": [
+      10.0,
+      13.0,
+      5.0
+     ]
+    },
+    {
+     "name": "owl__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      1
+     ],
+     "size": [
+      3,
+      10,
+      7
+     ],
+     "pivot": [
+      2.0,
+      13.0,
+      5.0
+     ]
+    },
+    {
+     "name": "owl__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      14,
+      2
+     ],
+     "size": [
+      10,
+      11,
+      8
+     ],
+     "pivot": [
+      6.0,
+      15.0,
+      5.0
+     ]
+    },
+    {
+     "name": "owl__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      4,
+      0
+     ],
+     "size": [
+      2,
+      3,
+      2
+     ],
+     "pivot": [
+      6.0,
+      6.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "bear",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    23,
+    34
+   ],
+   "tris_estimate": 974,
+   "parts": [
+    {
+     "name": "bear__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      20
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      12.5,
+      8.0,
+      22.5
+     ]
+    },
+    {
+     "name": "bear__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      20
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      3.5,
+      8.0,
+      22.5
+     ]
+    },
+    {
+     "name": "bear__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      4
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      12.5,
+      8.0,
+      6.5
+     ]
+    },
+    {
+     "name": "bear__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      4
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      3.5,
+      8.0,
+      6.5
+     ]
+    },
+    {
+     "name": "bear__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      6,
+      1
+     ],
+     "size": [
+      16,
+      15,
+      26
+     ],
+     "pivot": [
+      8.0,
+      13.08,
+      13.63
+     ]
+    },
+    {
+     "name": "bear__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      12,
+      23
+     ],
+     "size": [
+      12,
+      11,
+      11
+     ],
+     "pivot": [
+      8.0,
+      15.0,
+      23.0
+     ]
+    },
+    {
+     "name": "bear__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      14,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      8.0,
+      15.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "wolf",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    28,
+    36
+   ],
+   "tris_estimate": 850,
+   "parts": [
+    {
+     "name": "wolf__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      23
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      8.5,
+      10.0,
+      24.5
+     ]
+    },
+    {
+     "name": "wolf__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      23
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      1.5,
+      10.0,
+      24.5
+     ]
+    },
+    {
+     "name": "wolf__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      8.5,
+      10.0,
+      8.5
+     ]
+    },
+    {
+     "name": "wolf__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      11,
+      3
+     ],
+     "pivot": [
+      1.5,
+      10.0,
+      8.5
+     ]
+    },
+    {
+     "name": "wolf__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      8,
+      7
+     ],
+     "size": [
+      10,
+      12,
+      21
+     ],
+     "pivot": [
+      5.0,
+      13.12,
+      17.95
+     ]
+    },
+    {
+     "name": "wolf__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      13,
+      25
+     ],
+     "size": [
+      8,
+      15,
+      11
+     ],
+     "pivot": [
+      5.0,
+      14.0,
+      25.0
+     ]
+    },
+    {
+     "name": "wolf__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      11,
+      0
+     ],
+     "size": [
+      4,
+      5,
+      9
+     ],
+     "pivot": [
+      5.0,
+      15.5,
+      9.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "boar",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    21,
+    30
+   ],
+   "tris_estimate": 958,
+   "parts": [
+    {
+     "name": "boar__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      18
+     ],
+     "size": [
+      3,
+      8,
+      3
+     ],
+     "pivot": [
+      9.5,
+      7.0,
+      19.5
+     ]
+    },
+    {
+     "name": "boar__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      18
+     ],
+     "size": [
+      3,
+      8,
+      3
+     ],
+     "pivot": [
+      2.5,
+      7.0,
+      19.5
+     ]
+    },
+    {
+     "name": "boar__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      7,
+      3
+     ],
+     "pivot": [
+      9.5,
+      7.0,
+      5.5
+     ]
+    },
+    {
+     "name": "boar__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      7,
+      3
+     ],
+     "pivot": [
+      2.5,
+      7.0,
+      5.5
+     ]
+    },
+    {
+     "name": "boar__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      5,
+      1
+     ],
+     "size": [
+      12,
+      15,
+      21
+     ],
+     "pivot": [
+      6.0,
+      11.48,
+      10.64
+     ]
+    },
+    {
+     "name": "boar__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      8,
+      17
+     ],
+     "size": [
+      10,
+      13,
+      13
+     ],
+     "pivot": [
+      6.0,
+      12.06,
+      18.72
+     ]
+    },
+    {
+     "name": "boar__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      1
+     ],
+     "pivot": [
+      6.0,
+      14.0,
+      1.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "squirrel",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    18,
+    15
+   ],
+   "tris_estimate": 826,
+   "parts": [
+    {
+     "name": "squirrel__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      1,
+      6
+     ],
+     "size": [
+      6,
+      8,
+      6
+     ],
+     "pivot": [
+      4.0,
+      5.1,
+      9.02
+     ]
+    },
+    {
+     "name": "squirrel__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      4,
+      6
+     ],
+     "pivot": [
+      6.5,
+      3.0,
+      8.5
+     ]
+    },
+    {
+     "name": "squirrel__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      4,
+      6
+     ],
+     "pivot": [
+      1.5,
+      3.0,
+      8.5
+     ]
+    },
+    {
+     "name": "squirrel__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      5,
+      5,
+      11
+     ],
+     "size": [
+      1,
+      2,
+      2
+     ],
+     "pivot": [
+      5.5,
+      7.0,
+      11.5
+     ]
+    },
+    {
+     "name": "squirrel__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      5,
+      11
+     ],
+     "size": [
+      1,
+      2,
+      2
+     ],
+     "pivot": [
+      2.5,
+      7.0,
+      11.5
+     ]
+    },
+    {
+     "name": "squirrel__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      8,
+      7
+     ],
+     "size": [
+      8,
+      10,
+      8
+     ],
+     "pivot": [
+      4.0,
+      9.0,
+      9.5
+     ]
+    },
+    {
+     "name": "squirrel__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      0
+     ],
+     "size": [
+      4,
+      18,
+      9
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      6.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "beaver",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    10,
+    26
+   ],
+   "tris_estimate": 548,
+   "parts": [
+    {
+     "name": "beaver__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      17
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      8.5,
+      2.0,
+      18.5
+     ]
+    },
+    {
+     "name": "beaver__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      17
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      1.5,
+      2.0,
+      18.5
+     ]
+    },
+    {
+     "name": "beaver__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      9
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      8.5,
+      2.0,
+      10.5
+     ]
+    },
+    {
+     "name": "beaver__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      9
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      1.5,
+      2.0,
+      10.5
+     ]
+    },
+    {
+     "name": "beaver__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      1,
+      8
+     ],
+     "size": [
+      10,
+      9,
+      13
+     ],
+     "pivot": [
+      5.0,
+      5.47,
+      14.63
+     ]
+    },
+    {
+     "name": "beaver__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      3,
+      20
+     ],
+     "size": [
+      8,
+      7,
+      6
+     ],
+     "pivot": [
+      5.0,
+      5.0,
+      20.0
+     ]
+    },
+    {
+     "name": "beaver__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      2,
+      1,
+      0
+     ],
+     "size": [
+      6,
+      3,
+      9
+     ],
+     "pivot": [
+      5.0,
+      3.0,
+      9.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "hedgehog",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    9,
+    18
+   ],
+   "tris_estimate": 814,
+   "parts": [
+    {
+     "name": "hedgehog__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      11
+     ],
+     "size": [
+      1,
+      1,
+      1
+     ],
+     "pivot": [
+      8.0,
+      1.0,
+      11.0
+     ]
+    },
+    {
+     "name": "hedgehog__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      11
+     ],
+     "size": [
+      1,
+      1,
+      1
+     ],
+     "pivot": [
+      4.0,
+      1.0,
+      11.0
+     ]
+    },
+    {
+     "name": "hedgehog__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "size": [
+      12,
+      9,
+      14
+     ],
+     "pivot": [
+      5.99,
+      4.21,
+      6.9
+     ]
+    },
+    {
+     "name": "hedgehog__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      3,
+      1,
+      10
+     ],
+     "size": [
+      6,
+      6,
+      8
+     ],
+     "pivot": [
+      6.0,
+      3.0,
+      12.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "badger",
+   "category": "forest",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    10,
+    23
+   ],
+   "tris_estimate": 510,
+   "parts": [
+    {
+     "name": "badger__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      14
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      8.5,
+      3.0,
+      15.5
+     ]
+    },
+    {
+     "name": "badger__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      14
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      1.5,
+      3.0,
+      15.5
+     ]
+    },
+    {
+     "name": "badger__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      8.5,
+      3.0,
+      5.5
+     ]
+    },
+    {
+     "name": "badger__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      1.5,
+      3.0,
+      5.5
+     ]
+    },
+    {
+     "name": "badger__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      2,
+      2
+     ],
+     "size": [
+      10,
+      8,
+      14
+     ],
+     "pivot": [
+      5.0,
+      5.99,
+      9.05
+     ]
+    },
+    {
+     "name": "badger__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      3,
+      15
+     ],
+     "size": [
+      8,
+      7,
+      8
+     ],
+     "pivot": [
+      5.0,
+      5.0,
+      16.0
+     ]
+    },
+    {
+     "name": "badger__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      6,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      5.0,
+      7.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "calf",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    22,
+    26
+   ],
+   "tris_estimate": 786,
+   "parts": [
+    {
+     "name": "calf__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      15
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      11.5,
+      8.0,
+      16.5
+     ]
+    },
+    {
+     "name": "calf__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      15
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      4.5,
+      8.0,
+      16.5
+     ]
+    },
+    {
+     "name": "calf__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      11.5,
+      8.0,
+      4.5
+     ]
+    },
+    {
+     "name": "calf__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      9,
+      3
+     ],
+     "pivot": [
+      4.5,
+      8.0,
+      4.5
+     ]
+    },
+    {
+     "name": "calf__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      3,
+      7,
+      2
+     ],
+     "size": [
+      10,
+      9,
+      18
+     ],
+     "pivot": [
+      8.0,
+      11.36,
+      10.46
+     ]
+    },
+    {
+     "name": "calf__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      11,
+      16
+     ],
+     "size": [
+      16,
+      11,
+      10
+     ],
+     "pivot": [
+      8.0,
+      12.5,
+      18.0
+     ]
+    },
+    {
+     "name": "calf__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      6,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      2
+     ],
+     "pivot": [
+      8.0,
+      13.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "foal",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    28,
+    29
+   ],
+   "tris_estimate": 574,
+   "parts": [
+    {
+     "name": "foal__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      16
+     ],
+     "size": [
+      2,
+      14,
+      3
+     ],
+     "pivot": [
+      7.0,
+      13.0,
+      17.5
+     ]
+    },
+    {
+     "name": "foal__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      16
+     ],
+     "size": [
+      2,
+      14,
+      3
+     ],
+     "pivot": [
+      1.0,
+      13.0,
+      17.5
+     ]
+    },
+    {
+     "name": "foal__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      14,
+      3
+     ],
+     "pivot": [
+      7.0,
+      13.0,
+      5.5
+     ]
+    },
+    {
+     "name": "foal__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      14,
+      3
+     ],
+     "pivot": [
+      1.0,
+      13.0,
+      5.5
+     ]
+    },
+    {
+     "name": "foal__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      12,
+      4
+     ],
+     "size": [
+      8,
+      8,
+      16
+     ],
+     "pivot": [
+      4.0,
+      15.84,
+      11.63
+     ]
+    },
+    {
+     "name": "foal__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      12,
+      17
+     ],
+     "size": [
+      6,
+      16,
+      12
+     ],
+     "pivot": [
+      4.0,
+      16.7,
+      18.0
+     ]
+    },
+    {
+     "name": "foal__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      12,
+      0
+     ],
+     "size": [
+      2,
+      7,
+      4
+     ],
+     "pivot": [
+      4.0,
+      17.7,
+      3.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "goat_kid",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    20,
+    22
+   ],
+   "tris_estimate": 550,
+   "parts": [
+    {
+     "name": "goat_kid__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      13
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      10.0,
+      8.0,
+      14.0
+     ]
+    },
+    {
+     "name": "goat_kid__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      13
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      4.0,
+      8.0,
+      14.0
+     ]
+    },
+    {
+     "name": "goat_kid__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      3
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      10.0,
+      8.0,
+      4.0
+     ]
+    },
+    {
+     "name": "goat_kid__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      3
+     ],
+     "size": [
+      2,
+      9,
+      2
+     ],
+     "pivot": [
+      4.0,
+      8.0,
+      4.0
+     ]
+    },
+    {
+     "name": "goat_kid__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      3,
+      7,
+      2
+     ],
+     "size": [
+      8,
+      7,
+      14
+     ],
+     "pivot": [
+      7.0,
+      10.32,
+      8.63
+     ]
+    },
+    {
+     "name": "goat_kid__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      13
+     ],
+     "size": [
+      14,
+      10,
+      9
+     ],
+     "pivot": [
+      7.0,
+      11.3,
+      14.0
+     ]
+    },
+    {
+     "name": "goat_kid__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      6,
+      11,
+      0
+     ],
+     "size": [
+      2,
+      3,
+      2
+     ],
+     "pivot": [
+      7.0,
+      11.3,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "chick",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    13,
+    11
+   ],
+   "tris_estimate": 474,
+   "parts": [
+    {
+     "name": "chick__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      6.5,
+      2.0,
+      5.5
+     ]
+    },
+    {
+     "name": "chick__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      5
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      3.5,
+      2.0,
+      5.5
+     ]
+    },
+    {
+     "name": "chick__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      2,
+      1
+     ],
+     "size": [
+      6,
+      8,
+      8
+     ],
+     "pivot": [
+      5.0,
+      5.42,
+      4.86
+     ]
+    },
+    {
+     "name": "chick__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      7,
+      4
+     ],
+     "size": [
+      6,
+      6,
+      7
+     ],
+     "pivot": [
+      5.0,
+      8.0,
+      6.0
+     ]
+    },
+    {
+     "name": "chick__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      7,
+      4,
+      2
+     ],
+     "size": [
+      3,
+      4,
+      5
+     ],
+     "pivot": [
+      8.4,
+      7.08,
+      5.6
+     ]
+    },
+    {
+     "name": "chick__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      4,
+      2
+     ],
+     "size": [
+      3,
+      4,
+      5
+     ],
+     "pivot": [
+      1.6,
+      7.08,
+      5.6
+     ]
+    },
+    {
+     "name": "chick__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      6,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      5.0,
+      7.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "duckling",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    11,
+    13
+   ],
+   "tris_estimate": 374,
+   "parts": [
+    {
+     "name": "duckling__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      5.5,
+      1.0,
+      6.5
+     ]
+    },
+    {
+     "name": "duckling__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      2,
+      3
+     ],
+     "pivot": [
+      2.5,
+      1.0,
+      6.5
+     ]
+    },
+    {
+     "name": "duckling__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      2,
+      1
+     ],
+     "size": [
+      6,
+      5,
+      9
+     ],
+     "pivot": [
+      4.0,
+      4.35,
+      5.47
+     ]
+    },
+    {
+     "name": "duckling__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      6,
+      6
+     ],
+     "size": [
+      6,
+      5,
+      7
+     ],
+     "pivot": [
+      4.0,
+      6.0,
+      8.0
+     ]
+    },
+    {
+     "name": "duckling__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      6,
+      3,
+      3
+     ],
+     "size": [
+      2,
+      4,
+      4
+     ],
+     "pivot": [
+      7.2,
+      5.96,
+      6.3
+     ]
+    },
+    {
+     "name": "duckling__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      3,
+      3
+     ],
+     "size": [
+      2,
+      4,
+      4
+     ],
+     "pivot": [
+      0.8,
+      5.96,
+      6.3
+     ]
+    },
+    {
+     "name": "duckling__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      5,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      4.0,
+      6.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "puppy",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    16,
+    19
+   ],
+   "tris_estimate": 454,
+   "parts": [
+    {
+     "name": "puppy__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      10
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      5.0,
+      11.0
+     ]
+    },
+    {
+     "name": "puppy__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      10
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      3.0,
+      5.0,
+      11.0
+     ]
+    },
+    {
+     "name": "puppy__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      5.0,
+      5.0
+     ]
+    },
+    {
+     "name": "puppy__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      3.0,
+      5.0,
+      5.0
+     ]
+    },
+    {
+     "name": "puppy__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      3,
+      3
+     ],
+     "size": [
+      6,
+      6,
+      10
+     ],
+     "pivot": [
+      5.0,
+      5.87,
+      7.81
+     ]
+    },
+    {
+     "name": "puppy__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      6,
+      11
+     ],
+     "size": [
+      10,
+      10,
+      8
+     ],
+     "pivot": [
+      5.0,
+      7.0,
+      11.5
+     ]
+    },
+    {
+     "name": "puppy__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      5
+     ],
+     "pivot": [
+      5.0,
+      7.5,
+      4.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "kitten",
+   "category": "baby",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    14,
+    23
+   ],
+   "tris_estimate": 558,
+   "parts": [
+    {
+     "name": "kitten__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      14
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      4.0,
+      15.0
+     ]
+    },
+    {
+     "name": "kitten__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      14
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      3.0,
+      4.0,
+      15.0
+     ]
+    },
+    {
+     "name": "kitten__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      8
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      7.0,
+      4.0,
+      9.0
+     ]
+    },
+    {
+     "name": "kitten__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      8
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      3.0,
+      4.0,
+      9.0
+     ]
+    },
+    {
+     "name": "kitten__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      3,
+      7
+     ],
+     "size": [
+      6,
+      4,
+      10
+     ],
+     "pivot": [
+      5.0,
+      4.84,
+      11.84
+     ]
+    },
+    {
+     "name": "kitten__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      14
+     ],
+     "size": [
+      10,
+      9,
+      9
+     ],
+     "pivot": [
+      5.0,
+      6.0,
+      15.0
+     ]
+    },
+    {
+     "name": "kitten__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      3,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      9
+     ],
+     "pivot": [
+      5.0,
+      6.0,
+      8.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "lion",
+   "category": "savanna",
+   "tier": "free",
+   "size_voxels": [
+    18,
+    27,
+    43
+   ],
+   "tris_estimate": 1406,
+   "parts": [
+    {
+     "name": "lion__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      11,
+      0,
+      32
+     ],
+     "size": [
+      3,
+      10,
+      3
+     ],
+     "pivot": [
+      12.5,
+      9.0,
+      33.5
+     ]
+    },
+    {
+     "name": "lion__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      32
+     ],
+     "size": [
+      3,
+      10,
+      3
+     ],
+     "pivot": [
+      5.5,
+      9.0,
+      33.5
+     ]
+    },
+    {
+     "name": "lion__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      11,
+      0,
+      14
+     ],
+     "size": [
+      3,
+      10,
+      3
+     ],
+     "pivot": [
+      12.5,
+      9.0,
+      15.5
+     ]
+    },
+    {
+     "name": "lion__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      14
+     ],
+     "size": [
+      3,
+      10,
+      3
+     ],
+     "pivot": [
+      5.5,
+      9.0,
+      15.5
+     ]
+    },
+    {
+     "name": "lion__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      4,
+      8,
+      13
+     ],
+     "size": [
+      10,
+      9,
+      22
+     ],
+     "pivot": [
+      9.0,
+      12.4,
+      23.48
+     ]
+    },
+    {
+     "name": "lion__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      31
+     ],
+     "size": [
+      18,
+      17,
+      12
+     ],
+     "pivot": [
+      9.0,
+      13.5,
+      33.0
+     ]
+    },
+    {
+     "name": "lion__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      10,
+      0
+     ],
+     "size": [
+      4,
+      6,
+      15
+     ],
+     "pivot": [
+      9.0,
+      14.5,
+      14.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "cheetah",
+   "category": "savanna",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    21,
+    39
+   ],
+   "tris_estimate": 824,
+   "parts": [
+    {
+     "name": "cheetah__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      30
+     ],
+     "size": [
+      2,
+      12,
+      2
+     ],
+     "pivot": [
+      7.0,
+      11.0,
+      31.0
+     ]
+    },
+    {
+     "name": "cheetah__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      30
+     ],
+     "size": [
+      2,
+      12,
+      2
+     ],
+     "pivot": [
+      3.0,
+      11.0,
+      31.0
+     ]
+    },
+    {
+     "name": "cheetah__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      14
+     ],
+     "size": [
+      2,
+      12,
+      2
+     ],
+     "pivot": [
+      7.0,
+      11.0,
+      15.0
+     ]
+    },
+    {
+     "name": "cheetah__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      14
+     ],
+     "size": [
+      2,
+      12,
+      2
+     ],
+     "pivot": [
+      3.0,
+      11.0,
+      15.0
+     ]
+    },
+    {
+     "name": "cheetah__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      10,
+      13
+     ],
+     "size": [
+      6,
+      6,
+      20
+     ],
+     "pivot": [
+      5.0,
+      12.93,
+      22.73
+     ]
+    },
+    {
+     "name": "cheetah__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      13,
+      30
+     ],
+     "size": [
+      10,
+      8,
+      9
+     ],
+     "pivot": [
+      5.0,
+      14.0,
+      31.0
+     ]
+    },
+    {
+     "name": "cheetah__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      11,
+      0
+     ],
+     "size": [
+      2,
+      5,
+      15
+     ],
+     "pivot": [
+      5.0,
+      14.4,
+      14.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "meerkat",
+   "category": "savanna",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    18,
+    15
+   ],
+   "tris_estimate": 536,
+   "parts": [
+    {
+     "name": "meerkat__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      2,
+      6
+     ],
+     "size": [
+      6,
+      12,
+      6
+     ],
+     "pivot": [
+      4.0,
+      8.34,
+      8.98
+     ]
+    },
+    {
+     "name": "meerkat__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      7
+     ],
+     "size": [
+      2,
+      5,
+      6
+     ],
+     "pivot": [
+      6.0,
+      4.0,
+      9.5
+     ]
+    },
+    {
+     "name": "meerkat__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      7
+     ],
+     "size": [
+      2,
+      5,
+      6
+     ],
+     "pivot": [
+      2.0,
+      4.0,
+      9.5
+     ]
+    },
+    {
+     "name": "meerkat__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      5,
+      8,
+      11
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      6.0,
+      11.0,
+      11.0
+     ]
+    },
+    {
+     "name": "meerkat__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      8,
+      11
+     ],
+     "size": [
+      2,
+      4,
+      2
+     ],
+     "pivot": [
+      2.0,
+      11.0,
+      11.0
+     ]
+    },
+    {
+     "name": "meerkat__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      14,
+      7
+     ],
+     "size": [
+      8,
+      4,
+      8
+     ],
+     "pivot": [
+      4.0,
+      14.0,
+      10.0
+     ]
+    },
+    {
+     "name": "meerkat__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      0
+     ],
+     "size": [
+      1,
+      4,
+      8
+     ],
+     "pivot": [
+      4.0,
+      3.0,
+      7.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "polar_bear",
+   "category": "arctic",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    23,
+    34
+   ],
+   "tris_estimate": 1006,
+   "parts": [
+    {
+     "name": "polar_bear__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      20
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      12.5,
+      8.0,
+      22.5
+     ]
+    },
+    {
+     "name": "polar_bear__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      20
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      3.5,
+      8.0,
+      22.5
+     ]
+    },
+    {
+     "name": "polar_bear__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      10,
+      0,
+      4
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      12.5,
+      8.0,
+      6.5
+     ]
+    },
+    {
+     "name": "polar_bear__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      4
+     ],
+     "size": [
+      5,
+      9,
+      5
+     ],
+     "pivot": [
+      3.5,
+      8.0,
+      6.5
+     ]
+    },
+    {
+     "name": "polar_bear__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      6,
+      1
+     ],
+     "size": [
+      16,
+      15,
+      26
+     ],
+     "pivot": [
+      8.0,
+      13.08,
+      13.63
+     ]
+    },
+    {
+     "name": "polar_bear__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      12,
+      23
+     ],
+     "size": [
+      12,
+      11,
+      11
+     ],
+     "pivot": [
+      8.0,
+      15.0,
+      23.0
+     ]
+    },
+    {
+     "name": "polar_bear__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      7,
+      14,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      8.0,
+      15.0,
+      1.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "penguin",
+   "category": "arctic",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    21,
+    12
+   ],
+   "tris_estimate": 688,
+   "parts": [
+    {
+     "name": "penguin__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      4
+     ],
+     "pivot": [
+      8.0,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "penguin__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      4
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "penguin__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      1,
+      1
+     ],
+     "size": [
+      8,
+      14,
+      8
+     ],
+     "pivot": [
+      6.0,
+      8.34,
+      5.0
+     ]
+    },
+    {
+     "name": "penguin__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      15,
+      2
+     ],
+     "size": [
+      8,
+      6,
+      10
+     ],
+     "pivot": [
+      6.0,
+      15.0,
+      5.0
+     ]
+    },
+    {
+     "name": "penguin__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      10,
+      5,
+      2
+     ],
+     "size": [
+      2,
+      10,
+      5
+     ],
+     "pivot": [
+      10.5,
+      14.0,
+      4.5
+     ]
+    },
+    {
+     "name": "penguin__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      2
+     ],
+     "size": [
+      2,
+      10,
+      5
+     ],
+     "pivot": [
+      1.5,
+      14.0,
+      4.5
+     ]
+    },
+    {
+     "name": "penguin__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      2,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      6.0,
+      3.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "seal",
+   "category": "arctic",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    13,
+    29
+   ],
+   "tris_estimate": 818,
+   "parts": [
+    {
+     "name": "seal__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      3,
+      0,
+      4
+     ],
+     "size": [
+      10,
+      9,
+      20
+     ],
+     "pivot": [
+      8.0,
+      4.5,
+      13.92
+     ]
+    },
+    {
+     "name": "seal__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      4,
+      5,
+      21
+     ],
+     "size": [
+      8,
+      8,
+      8
+     ],
+     "pivot": [
+      8.0,
+      7.0,
+      22.0
+     ]
+    },
+    {
+     "name": "seal__fin_l",
+     "part": "fin_l",
+     "parent": "body",
+     "offset": [
+      11,
+      0,
+      18
+     ],
+     "size": [
+      5,
+      3,
+      5
+     ],
+     "pivot": [
+      12.0,
+      2.0,
+      19.0
+     ]
+    },
+    {
+     "name": "seal__fin_r",
+     "part": "fin_r",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      18
+     ],
+     "size": [
+      5,
+      3,
+      5
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      19.0
+     ]
+    },
+    {
+     "name": "seal__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      0
+     ],
+     "size": [
+      8,
+      3,
+      6
+     ],
+     "pivot": [
+      8.0,
+      2.5,
+      5.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "arctic_fox",
+   "category": "arctic",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    21,
+    29
+   ],
+   "tris_estimate": 636,
+   "parts": [
+    {
+     "name": "arctic_fox__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      19
+     ],
+     "size": [
+      2,
+      6,
+      2
+     ],
+     "pivot": [
+      6.0,
+      7.0,
+      20.0
+     ]
+    },
+    {
+     "name": "arctic_fox__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      19
+     ],
+     "size": [
+      2,
+      6,
+      2
+     ],
+     "pivot": [
+      2.0,
+      7.0,
+      20.0
+     ]
+    },
+    {
+     "name": "arctic_fox__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      9
+     ],
+     "size": [
+      2,
+      6,
+      2
+     ],
+     "pivot": [
+      6.0,
+      7.0,
+      10.0
+     ]
+    },
+    {
+     "name": "arctic_fox__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      9
+     ],
+     "size": [
+      2,
+      6,
+      2
+     ],
+     "pivot": [
+      2.0,
+      7.0,
+      10.0
+     ]
+    },
+    {
+     "name": "arctic_fox__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      5,
+      8
+     ],
+     "size": [
+      6,
+      7,
+      14
+     ],
+     "pivot": [
+      4.0,
+      8.42,
+      14.85
+     ]
+    },
+    {
+     "name": "arctic_fox__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      8,
+      20
+     ],
+     "size": [
+      8,
+      13,
+      9
+     ],
+     "pivot": [
+      4.0,
+      9.5,
+      20.5
+     ]
+    },
+    {
+     "name": "arctic_fox__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      2,
+      6,
+      0
+     ],
+     "size": [
+      4,
+      5,
+      10
+     ],
+     "pivot": [
+      4.0,
+      10.25,
+      9.5
+     ]
+    }
+   ]
+  },
+  {
+   "name": "dolphin",
+   "category": "ocean",
+   "tier": "free",
+   "size_voxels": [
+    18,
+    12,
+    43
+   ],
+   "tris_estimate": 828,
+   "parts": [
+    {
+     "name": "dolphin__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      5,
+      0,
+      10
+     ],
+     "size": [
+      8,
+      12,
+      20
+     ],
+     "pivot": [
+      8.99,
+      4.52,
+      21.94
+     ]
+    },
+    {
+     "name": "dolphin__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      30
+     ],
+     "size": [
+      8,
+      9,
+      13
+     ],
+     "pivot": [
+      9.0,
+      4.5,
+      30.4
+     ]
+    },
+    {
+     "name": "dolphin__fin_l",
+     "part": "fin_l",
+     "parent": "body",
+     "offset": [
+      12,
+      0,
+      25
+     ],
+     "size": [
+      6,
+      4,
+      7
+     ],
+     "pivot": [
+      12.5,
+      2.92,
+      29.5
+     ]
+    },
+    {
+     "name": "dolphin__fin_r",
+     "part": "fin_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      25
+     ],
+     "size": [
+      6,
+      4,
+      7
+     ],
+     "pivot": [
+      5.5,
+      2.92,
+      29.5
+     ]
+    },
+    {
+     "name": "dolphin__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      2,
+      4,
+      0
+     ],
+     "size": [
+      14,
+      6,
+      15
+     ],
+     "pivot": [
+      9.0,
+      4.5,
+      13.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "crab",
+   "category": "ocean",
+   "tier": "free",
+   "size_voxels": [
+    22,
+    12,
+    19
+   ],
+   "tris_estimate": 836,
+   "parts": [
+    {
+     "name": "crab__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      4,
+      2,
+      0
+     ],
+     "size": [
+      14,
+      10,
+      11
+     ],
+     "pivot": [
+      11.04,
+      5.22,
+      5.04
+     ]
+    },
+    {
+     "name": "crab__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      16,
+      0,
+      1
+     ],
+     "size": [
+      6,
+      5,
+      8
+     ],
+     "pivot": [
+      17.0,
+      4.0,
+      5.0
+     ]
+    },
+    {
+     "name": "crab__claw_l",
+     "part": "claw_l",
+     "parent": "body",
+     "offset": [
+      14,
+      3,
+      7
+     ],
+     "size": [
+      7,
+      5,
+      12
+     ],
+     "pivot": [
+      15.0,
+      5.0,
+      8.0
+     ]
+    },
+    {
+     "name": "crab__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      1
+     ],
+     "size": [
+      6,
+      5,
+      8
+     ],
+     "pivot": [
+      5.0,
+      4.0,
+      5.0
+     ]
+    },
+    {
+     "name": "crab__claw_r",
+     "part": "claw_r",
+     "parent": "body",
+     "offset": [
+      1,
+      3,
+      7
+     ],
+     "size": [
+      7,
+      5,
+      12
+     ],
+     "pivot": [
+      7.0,
+      5.0,
+      8.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "octopus",
+   "category": "ocean",
+   "tier": "free",
+   "size_voxels": [
+    24,
+    15,
+    22
+   ],
+   "tris_estimate": 1006,
+   "parts": [
+    {
+     "name": "octopus__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      7,
+      5,
+      5
+     ],
+     "size": [
+      10,
+      10,
+      10
+     ],
+     "pivot": [
+      12.0,
+      10.14,
+      9.88
+     ]
+    },
+    {
+     "name": "octopus__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      7,
+      2,
+      6
+     ],
+     "size": [
+      10,
+      5,
+      11
+     ],
+     "pivot": [
+      12.0,
+      5.0,
+      11.0
+     ]
+    },
+    {
+     "name": "octopus__arm_1",
+     "part": "arm_1",
+     "parent": "head",
+     "offset": [
+      12,
+      0,
+      13
+     ],
+     "size": [
+      4,
+      4,
+      9
+     ],
+     "pivot": [
+      13.34,
+      3.0,
+      14.23
+     ]
+    },
+    {
+     "name": "octopus__arm_2",
+     "part": "arm_2",
+     "parent": "head",
+     "offset": [
+      14,
+      0,
+      11
+     ],
+     "size": [
+      7,
+      4,
+      8
+     ],
+     "pivot": [
+      15.23,
+      3.0,
+      12.34
+     ]
+    },
+    {
+     "name": "octopus__arm_3",
+     "part": "arm_3",
+     "parent": "head",
+     "offset": [
+      14,
+      0,
+      7
+     ],
+     "size": [
+      10,
+      4,
+      4
+     ],
+     "pivot": [
+      15.23,
+      3.0,
+      9.66
+     ]
+    },
+    {
+     "name": "octopus__arm_4",
+     "part": "arm_4",
+     "parent": "head",
+     "offset": [
+      12,
+      0,
+      2
+     ],
+     "size": [
+      9,
+      4,
+      7
+     ],
+     "pivot": [
+      13.34,
+      3.0,
+      7.77
+     ]
+    },
+    {
+     "name": "octopus__arm_5",
+     "part": "arm_5",
+     "parent": "head",
+     "offset": [
+      8,
+      0,
+      0
+     ],
+     "size": [
+      5,
+      4,
+      9
+     ],
+     "pivot": [
+      10.66,
+      3.0,
+      7.77
+     ]
+    },
+    {
+     "name": "octopus__arm_6",
+     "part": "arm_6",
+     "parent": "head",
+     "offset": [
+      3,
+      0,
+      4
+     ],
+     "size": [
+      7,
+      4,
+      7
+     ],
+     "pivot": [
+      8.77,
+      3.0,
+      9.66
+     ]
+    },
+    {
+     "name": "octopus__arm_7",
+     "part": "arm_7",
+     "parent": "head",
+     "offset": [
+      1,
+      0,
+      11
+     ],
+     "size": [
+      9,
+      4,
+      4
+     ],
+     "pivot": [
+      8.77,
+      3.0,
+      12.34
+     ]
+    },
+    {
+     "name": "octopus__arm_8",
+     "part": "arm_8",
+     "parent": "head",
+     "offset": [
+      4,
+      0,
+      13
+     ],
+     "size": [
+      8,
+      4,
+      7
+     ],
+     "pivot": [
+      10.66,
+      3.0,
+      14.23
+     ]
+    }
+   ]
+  },
+  {
+   "name": "seagull",
+   "category": "ocean",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    14,
+    21
+   ],
+   "tris_estimate": 440,
+   "parts": [
+    {
+     "name": "seagull__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      5.5,
+      3.0,
+      10.5
+     ]
+    },
+    {
+     "name": "seagull__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      2.5,
+      3.0,
+      10.5
+     ]
+    },
+    {
+     "name": "seagull__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      4,
+      4
+     ],
+     "size": [
+      6,
+      6,
+      11
+     ],
+     "pivot": [
+      4.0,
+      6.83,
+      9.61
+     ]
+    },
+    {
+     "name": "seagull__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      6,
+      6,
+      3
+     ],
+     "size": [
+      2,
+      4,
+      10
+     ],
+     "pivot": [
+      7.2,
+      9.44,
+      10.75
+     ]
+    },
+    {
+     "name": "seagull__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      6,
+      3
+     ],
+     "size": [
+      2,
+      4,
+      10
+     ],
+     "pivot": [
+      0.8,
+      9.44,
+      10.75
+     ]
+    },
+    {
+     "name": "seagull__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      7,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      4
+     ],
+     "pivot": [
+      4.0,
+      8.0,
+      4.0
+     ]
+    },
+    {
+     "name": "seagull__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      9,
+      12
+     ],
+     "size": [
+      6,
+      5,
+      9
+     ],
+     "pivot": [
+      4.0,
+      9.0,
+      13.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "monkey",
+   "category": "jungle",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    21,
+    17
+   ],
+   "tris_estimate": 770,
+   "parts": [
+    {
+     "name": "monkey__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      10
+     ],
+     "size": [
+      2,
+      10,
+      4
+     ],
+     "pivot": [
+      8.5,
+      9.0,
+      11.0
+     ]
+    },
+    {
+     "name": "monkey__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      4
+     ],
+     "size": [
+      2,
+      7,
+      4
+     ],
+     "pivot": [
+      8.5,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "monkey__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      10
+     ],
+     "size": [
+      2,
+      10,
+      4
+     ],
+     "pivot": [
+      3.5,
+      9.0,
+      11.0
+     ]
+    },
+    {
+     "name": "monkey__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      4
+     ],
+     "size": [
+      3,
+      7,
+      4
+     ],
+     "pivot": [
+      3.5,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "monkey__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      5,
+      3
+     ],
+     "size": [
+      8,
+      6,
+      10
+     ],
+     "pivot": [
+      6.0,
+      7.93,
+      7.97
+     ]
+    },
+    {
+     "name": "monkey__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      0,
+      10,
+      9
+     ],
+     "size": [
+      12,
+      8,
+      8
+     ],
+     "pivot": [
+      6.0,
+      11.0,
+      11.0
+     ]
+    },
+    {
+     "name": "monkey__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      6,
+      9,
+      0
+     ],
+     "size": [
+      1,
+      12,
+      6
+     ],
+     "pivot": [
+      6.0,
+      9.0,
+      4.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "gorilla",
+   "category": "jungle",
+   "tier": "free",
+   "size_voxels": [
+    16,
+    23,
+    22
+   ],
+   "tris_estimate": 914,
+   "parts": [
+    {
+     "name": "gorilla__arm_l",
+     "part": "arm_l",
+     "parent": "body",
+     "offset": [
+      12,
+      0,
+      14
+     ],
+     "size": [
+      4,
+      14,
+      5
+     ],
+     "pivot": [
+      14.0,
+      13.0,
+      16.0
+     ]
+    },
+    {
+     "name": "gorilla__arm_r",
+     "part": "arm_r",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      14
+     ],
+     "size": [
+      4,
+      14,
+      5
+     ],
+     "pivot": [
+      2.0,
+      13.0,
+      16.0
+     ]
+    },
+    {
+     "name": "gorilla__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      11,
+      0,
+      0
+     ],
+     "size": [
+      4,
+      8,
+      6
+     ],
+     "pivot": [
+      13.0,
+      7.0,
+      2.5
+     ]
+    },
+    {
+     "name": "gorilla__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      0
+     ],
+     "size": [
+      4,
+      8,
+      6
+     ],
+     "pivot": [
+      3.0,
+      7.0,
+      2.5
+     ]
+    },
+    {
+     "name": "gorilla__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      6,
+      0
+     ],
+     "size": [
+      14,
+      15,
+      19
+     ],
+     "pivot": [
+      8.0,
+      12.82,
+      9.61
+     ]
+    },
+    {
+     "name": "gorilla__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      4,
+      14,
+      15
+     ],
+     "size": [
+      8,
+      9,
+      7
+     ],
+     "pivot": [
+      8.0,
+      16.0,
+      16.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "panda",
+   "category": "jungle",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    20,
+    27
+   ],
+   "tris_estimate": 864,
+   "parts": [
+    {
+     "name": "panda__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      15
+     ],
+     "size": [
+      4,
+      7,
+      4
+     ],
+     "pivot": [
+      11.0,
+      6.0,
+      17.0
+     ]
+    },
+    {
+     "name": "panda__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      15
+     ],
+     "size": [
+      4,
+      7,
+      4
+     ],
+     "pivot": [
+      3.0,
+      6.0,
+      17.0
+     ]
+    },
+    {
+     "name": "panda__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      3
+     ],
+     "size": [
+      4,
+      7,
+      4
+     ],
+     "pivot": [
+      11.0,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "panda__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      3
+     ],
+     "size": [
+      4,
+      7,
+      4
+     ],
+     "pivot": [
+      3.0,
+      6.0,
+      5.0
+     ]
+    },
+    {
+     "name": "panda__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      0,
+      5,
+      0
+     ],
+     "size": [
+      14,
+      13,
+      22
+     ],
+     "pivot": [
+      7.0,
+      11.09,
+      10.67
+     ]
+    },
+    {
+     "name": "panda__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      10,
+      18
+     ],
+     "size": [
+      10,
+      10,
+      9
+     ],
+     "pivot": [
+      7.0,
+      12.45,
+      18.65
+     ]
+    },
+    {
+     "name": "panda__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      6,
+      12,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      2
+     ],
+     "pivot": [
+      7.0,
+      13.05,
+      0.38
+     ]
+    }
+   ]
+  },
+  {
+   "name": "frog",
+   "category": "jungle",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    10,
+    14
+   ],
+   "tris_estimate": 732,
+   "parts": [
+    {
+     "name": "frog__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      0,
+      1
+     ],
+     "size": [
+      10,
+      8,
+      10
+     ],
+     "pivot": [
+      7.0,
+      3.95,
+      5.45
+     ]
+    },
+    {
+     "name": "frog__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      3,
+      3,
+      8
+     ],
+     "size": [
+      8,
+      7,
+      6
+     ],
+     "pivot": [
+      7.0,
+      4.0,
+      8.0
+     ]
+    },
+    {
+     "name": "frog__leg_bl",
+     "part": "leg_bl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      0
+     ],
+     "size": [
+      5,
+      5,
+      9
+     ],
+     "pivot": [
+      11.0,
+      3.0,
+      5.0
+     ]
+    },
+    {
+     "name": "frog__leg_br",
+     "part": "leg_br",
+     "parent": "body",
+     "offset": [
+      0,
+      0,
+      0
+     ],
+     "size": [
+      5,
+      5,
+      9
+     ],
+     "pivot": [
+      3.0,
+      3.0,
+      5.0
+     ]
+    },
+    {
+     "name": "frog__leg_fl",
+     "part": "leg_fl",
+     "parent": "body",
+     "offset": [
+      9,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      3,
+      4
+     ],
+     "pivot": [
+      10.0,
+      3.0,
+      11.0
+     ]
+    },
+    {
+     "name": "frog__leg_fr",
+     "part": "leg_fr",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      10
+     ],
+     "size": [
+      3,
+      3,
+      4
+     ],
+     "pivot": [
+      4.0,
+      3.0,
+      11.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "snake",
+   "category": "jungle",
+   "tier": "free",
+   "size_voxels": [
+    18,
+    15,
+    21
+   ],
+   "tris_estimate": 600,
+   "parts": [
+    {
+     "name": "snake__tail",
+     "part": "tail",
+     "parent": "seg_3",
+     "offset": [
+      9,
+      0,
+      0
+     ],
+     "size": [
+      9,
+      2,
+      12
+     ],
+     "pivot": [
+      16.74,
+      1.0,
+      11.03
+     ]
+    },
+    {
+     "name": "snake__seg_3",
+     "part": "seg_3",
+     "parent": "seg_2",
+     "offset": [
+      4,
+      0,
+      11
+     ],
+     "size": [
+      13,
+      3,
+      7
+     ],
+     "pivot": [
+      4.99,
+      1.0,
+      14.67
+     ]
+    },
+    {
+     "name": "snake__seg_2",
+     "part": "seg_2",
+     "parent": "seg_1",
+     "offset": [
+      2,
+      0,
+      3
+     ],
+     "size": [
+      5,
+      3,
+      13
+     ],
+     "pivot": [
+      5.69,
+      1.0,
+      4.13
+     ]
+    },
+    {
+     "name": "snake__seg_1",
+     "part": "seg_1",
+     "parent": "body",
+     "offset": [
+      5,
+      0,
+      2
+     ],
+     "size": [
+      11,
+      3,
+      7
+     ],
+     "pivot": [
+      13.7,
+      1.0,
+      7.86
+     ]
+    },
+    {
+     "name": "snake__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      10,
+      0,
+      7
+     ],
+     "size": [
+      6,
+      3,
+      8
+     ],
+     "pivot": [
+      13.14,
+      1.5,
+      11.14
+     ]
+    },
+    {
+     "name": "snake__neck",
+     "part": "neck",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      11
+     ],
+     "size": [
+      4,
+      13,
+      6
+     ],
+     "pivot": [
+      8.55,
+      1.0,
+      12.75
+     ]
+    },
+    {
+     "name": "snake__head",
+     "part": "head",
+     "parent": "neck",
+     "offset": [
+      4,
+      11,
+      14
+     ],
+     "size": [
+      5,
+      4,
+      7
+     ],
+     "pivot": [
+      6.94,
+      12.2,
+      15.33
+     ]
+    }
+   ]
+  },
+  {
+   "name": "parrot",
+   "category": "birds",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    16,
+    14
+   ],
+   "tris_estimate": 570,
+   "parts": [
+    {
+     "name": "parrot__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      5.5,
+      2.0,
+      7.5
+     ]
+    },
+    {
+     "name": "parrot__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      7
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      2.5,
+      2.0,
+      7.5
+     ]
+    },
+    {
+     "name": "parrot__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      3,
+      3
+     ],
+     "size": [
+      6,
+      9,
+      7
+     ],
+     "pivot": [
+      4.0,
+      7.05,
+      6.53
+     ]
+    },
+    {
+     "name": "parrot__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      6,
+      5,
+      2
+     ],
+     "size": [
+      2,
+      6,
+      7
+     ],
+     "pivot": [
+      7.2,
+      10.04,
+      7.3
+     ]
+    },
+    {
+     "name": "parrot__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      2
+     ],
+     "size": [
+      2,
+      6,
+      7
+     ],
+     "pivot": [
+      0.8,
+      10.04,
+      7.3
+     ]
+    },
+    {
+     "name": "parrot__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      0
+     ],
+     "size": [
+      2,
+      8,
+      3
+     ],
+     "pivot": [
+      4.0,
+      7.0,
+      3.0
+     ]
+    },
+    {
+     "name": "parrot__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      10,
+      5
+     ],
+     "size": [
+      6,
+      6,
+      9
+     ],
+     "pivot": [
+      4.0,
+      11.0,
+      7.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "toucan",
+   "category": "birds",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    16,
+    18
+   ],
+   "tris_estimate": 520,
+   "parts": [
+    {
+     "name": "toucan__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      5.5,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "toucan__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      6
+     ],
+     "size": [
+      3,
+      3,
+      3
+     ],
+     "pivot": [
+      2.5,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "toucan__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      3,
+      2
+     ],
+     "size": [
+      6,
+      9,
+      7
+     ],
+     "pivot": [
+      4.0,
+      7.05,
+      5.53
+     ]
+    },
+    {
+     "name": "toucan__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      6,
+      5,
+      1
+     ],
+     "size": [
+      2,
+      6,
+      7
+     ],
+     "pivot": [
+      7.2,
+      10.04,
+      6.2
+     ]
+    },
+    {
+     "name": "toucan__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      1
+     ],
+     "size": [
+      2,
+      6,
+      7
+     ],
+     "pivot": [
+      0.8,
+      10.04,
+      6.2
+     ]
+    },
+    {
+     "name": "toucan__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      2,
+      0
+     ],
+     "size": [
+      2,
+      6,
+      2
+     ],
+     "pivot": [
+      4.0,
+      7.0,
+      2.0
+     ]
+    },
+    {
+     "name": "toucan__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      10,
+      4
+     ],
+     "size": [
+      6,
+      6,
+      14
+     ],
+     "pivot": [
+      4.0,
+      11.0,
+      6.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "eagle",
+   "category": "birds",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    20,
+    15
+   ],
+   "tris_estimate": 770,
+   "parts": [
+    {
+     "name": "eagle__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      6,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      7.5,
+      3.0,
+      8.5
+     ]
+    },
+    {
+     "name": "eagle__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      4,
+      3
+     ],
+     "pivot": [
+      4.5,
+      3.0,
+      8.5
+     ]
+    },
+    {
+     "name": "eagle__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      4,
+      3
+     ],
+     "size": [
+      8,
+      11,
+      9
+     ],
+     "pivot": [
+      6.0,
+      9.25,
+      7.54
+     ]
+    },
+    {
+     "name": "eagle__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      9,
+      5,
+      2
+     ],
+     "size": [
+      3,
+      10,
+      9
+     ],
+     "pivot": [
+      10.3,
+      12.76,
+      8.9
+     ]
+    },
+    {
+     "name": "eagle__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      5,
+      2
+     ],
+     "size": [
+      3,
+      10,
+      9
+     ],
+     "pivot": [
+      1.7,
+      12.76,
+      8.9
+     ]
+    },
+    {
+     "name": "eagle__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      4,
+      4,
+      0
+     ],
+     "size": [
+      4,
+      5,
+      3
+     ],
+     "pivot": [
+      6.0,
+      8.0,
+      3.0
+     ]
+    },
+    {
+     "name": "eagle__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      14,
+      6
+     ],
+     "size": [
+      8,
+      6,
+      9
+     ],
+     "pivot": [
+      6.0,
+      14.0,
+      8.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "flamingo",
+   "category": "birds",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    36,
+    20
+   ],
+   "tris_estimate": 422,
+   "parts": [
+    {
+     "name": "flamingo__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      4,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      15,
+      4
+     ],
+     "pivot": [
+      5.5,
+      14.0,
+      9.5
+     ]
+    },
+    {
+     "name": "flamingo__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      8
+     ],
+     "size": [
+      3,
+      15,
+      4
+     ],
+     "pivot": [
+      2.5,
+      14.0,
+      9.5
+     ]
+    },
+    {
+     "name": "flamingo__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      15,
+      3
+     ],
+     "size": [
+      6,
+      6,
+      10
+     ],
+     "pivot": [
+      4.0,
+      17.87,
+      8.03
+     ]
+    },
+    {
+     "name": "flamingo__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      6,
+      16,
+      3
+     ],
+     "size": [
+      2,
+      5,
+      8
+     ],
+     "pivot": [
+      7.0,
+      19.94,
+      9.2
+     ]
+    },
+    {
+     "name": "flamingo__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      16,
+      3
+     ],
+     "size": [
+      2,
+      5,
+      8
+     ],
+     "pivot": [
+      1.0,
+      19.94,
+      9.2
+     ]
+    },
+    {
+     "name": "flamingo__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      3,
+      18,
+      0
+     ],
+     "size": [
+      2,
+      2,
+      3
+     ],
+     "pivot": [
+      4.0,
+      19.0,
+      3.0
+     ]
+    },
+    {
+     "name": "flamingo__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      19,
+      11
+     ],
+     "size": [
+      4,
+      17,
+      9
+     ],
+     "pivot": [
+      4.0,
+      20.0,
+      12.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "snowy_owl",
+   "category": "birds",
+   "tier": "free",
+   "size_voxels": [
+    12,
+    19,
+    10
+   ],
+   "tris_estimate": 662,
+   "parts": [
+    {
+     "name": "snowy_owl__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      3
+     ],
+     "pivot": [
+      8.0,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "snowy_owl__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      3,
+      0,
+      5
+     ],
+     "size": [
+      2,
+      2,
+      3
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      6.5
+     ]
+    },
+    {
+     "name": "snowy_owl__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      2,
+      2,
+      1
+     ],
+     "size": [
+      8,
+      11,
+      8
+     ],
+     "pivot": [
+      6.0,
+      7.39,
+      5.04
+     ]
+    },
+    {
+     "name": "snowy_owl__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      9,
+      3,
+      1
+     ],
+     "size": [
+      3,
+      10,
+      7
+     ],
+     "pivot": [
+      10.0,
+      11.0,
+      5.0
+     ]
+    },
+    {
+     "name": "snowy_owl__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      3,
+      1
+     ],
+     "size": [
+      3,
+      10,
+      7
+     ],
+     "pivot": [
+      2.0,
+      11.0,
+      5.0
+     ]
+    },
+    {
+     "name": "snowy_owl__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      12,
+      2
+     ],
+     "size": [
+      10,
+      7,
+      8
+     ],
+     "pivot": [
+      6.0,
+      13.0,
+      5.0
+     ]
+    },
+    {
+     "name": "snowy_owl__tail",
+     "part": "tail",
+     "parent": "body",
+     "offset": [
+      5,
+      2,
+      0
+     ],
+     "size": [
+      2,
+      3,
+      2
+     ],
+     "pivot": [
+      6.0,
+      4.0,
+      2.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ladybug",
+   "category": "bugs",
+   "tier": "free",
+   "size_voxels": [
+    14,
+    9,
+    17
+   ],
+   "tris_estimate": 674,
+   "parts": [
+    {
+     "name": "ladybug__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      11,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      3,
+      9
+     ],
+     "pivot": [
+      10.0,
+      2.0,
+      7.0
+     ]
+    },
+    {
+     "name": "ladybug__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      3
+     ],
+     "size": [
+      3,
+      2,
+      9
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      7.0
+     ]
+    },
+    {
+     "name": "ladybug__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      6,
+      0,
+      10
+     ],
+     "size": [
+      2,
+      1,
+      1
+     ],
+     "pivot": [
+      7.0,
+      0.5,
+      10.5
+     ]
+    },
+    {
+     "name": "ladybug__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      7,
+      0,
+      0
+     ],
+     "size": [
+      5,
+      8,
+      12
+     ],
+     "pivot": [
+      8.0,
+      6.0,
+      11.0
+     ]
+    },
+    {
+     "name": "ladybug__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      2,
+      0,
+      0
+     ],
+     "size": [
+      5,
+      8,
+      12
+     ],
+     "pivot": [
+      6.0,
+      6.0,
+      11.0
+     ]
+    },
+    {
+     "name": "ladybug__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      4,
+      1,
+      11
+     ],
+     "size": [
+      6,
+      8,
+      6
+     ],
+     "pivot": [
+      7.0,
+      3.5,
+      11.5
+     ]
+    }
+   ],
+   "voxel_size_m": 0.02
+  },
+  {
+   "name": "bee",
+   "category": "bugs",
+   "tier": "free",
+   "size_voxels": [
+    10,
+    15,
+    18
+   ],
+   "tris_estimate": 782,
+   "parts": [
+    {
+     "name": "bee__leg_l",
+     "part": "leg_l",
+     "parent": "body",
+     "offset": [
+      8,
+      0,
+      6
+     ],
+     "size": [
+      2,
+      4,
+      7
+     ],
+     "pivot": [
+      7.0,
+      3.0,
+      9.0
+     ]
+    },
+    {
+     "name": "bee__leg_r",
+     "part": "leg_r",
+     "parent": "body",
+     "offset": [
+      1,
+      0,
+      6
+     ],
+     "size": [
+      2,
+      3,
+      7
+     ],
+     "pivot": [
+      3.0,
+      3.0,
+      9.0
+     ]
+    },
+    {
+     "name": "bee__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      2,
+      0
+     ],
+     "size": [
+      8,
+      8,
+      13
+     ],
+     "pivot": [
+      5.0,
+      5.92,
+      7.78
+     ]
+    },
+    {
+     "name": "bee__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      2,
+      4,
+      13
+     ],
+     "size": [
+      6,
+      10,
+      5
+     ],
+     "pivot": [
+      5.0,
+      6.0,
+      13.0
+     ]
+    },
+    {
+     "name": "bee__wing_l",
+     "part": "wing_l",
+     "parent": "body",
+     "offset": [
+      5,
+      9,
+      3
+     ],
+     "size": [
+      5,
+      6,
+      8
+     ],
+     "pivot": [
+      6.0,
+      10.0,
+      8.0
+     ]
+    },
+    {
+     "name": "bee__wing_r",
+     "part": "wing_r",
+     "parent": "body",
+     "offset": [
+      0,
+      9,
+      3
+     ],
+     "size": [
+      5,
+      6,
+      8
+     ],
+     "pivot": [
+      4.0,
+      10.0,
+      8.0
+     ]
+    }
+   ],
+   "voxel_size_m": 0.02
+  },
+  {
+   "name": "snail",
+   "category": "bugs",
+   "tier": "free",
+   "size_voxels": [
+    8,
+    17,
+    21
+   ],
+   "tris_estimate": 892,
+   "parts": [
+    {
+     "name": "snail__body",
+     "part": "body",
+     "parent": null,
+     "offset": [
+      1,
+      0,
+      0
+     ],
+     "size": [
+      6,
+      3,
+      20
+     ],
+     "pivot": [
+      4.0,
+      1.08,
+      9.96
+     ]
+    },
+    {
+     "name": "snail__shell",
+     "part": "shell",
+     "parent": "body",
+     "offset": [
+      0,
+      1,
+      0
+     ],
+     "size": [
+      8,
+      16,
+      16
+     ],
+     "pivot": [
+      4.0,
+      2.0,
+      8.0
+     ]
+    },
+    {
+     "name": "snail__head",
+     "part": "head",
+     "parent": "body",
+     "offset": [
+      1,
+      1,
+      16
+     ],
+     "size": [
+      6,
+      11,
+      5
+     ],
+     "pivot": [
+      4.0,
+      3.0,
+      16.0
+     ]
+    }
+   ],
+   "voxel_size_m": 0.02
+  }
+ ]
+}
