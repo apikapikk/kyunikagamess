@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, Html } from "@react-three/drei";
-import { Suspense, useEffect, useRef, useMemo, useState } from "react";
+import { Suspense, useEffect, useRef, useMemo } from "react";
 import * as THREE from "three";
 import { ref, update } from "firebase/database";
 import { realtimeDb } from "@/lib/firebase";
@@ -32,6 +32,7 @@ export type MapThemeConfig = {
   tagline: string;
   icon: string;
   groundColor: string;
+  skyColor: string;
   sunColor: string;
   sunIntensity: number;
   ambientIntensity: number;
@@ -41,62 +42,35 @@ export const MAP_THEMES: Record<string, MapThemeConfig> = {
   "mega-world": {
     id: "mega-world",
     name: "Nature Mega World",
-    tagline: "Hutan, lembah, jalur tanah & padang rumput alami",
+    tagline: "Hutan luas, lembah, danau alami & padang rumput berbunga",
     icon: "🌿",
-    groundColor: "#5d8d5c",
-    sunColor: "#ffffff",
-    sunIntensity: 2.2,
-    ambientIntensity: 1.7,
-  },
-  metropolis: {
-    id: "metropolis",
-    name: "Metropolis Sentral",
-    tagline: "Gedung Pencakar Langit, Pusat Bisnis & Shopping Boulevard",
-    icon: "🏙️",
-    groundColor: "#88b58d",
-    sunColor: "#ffffff",
-    sunIntensity: 2.2,
-    ambientIntensity: 1.7,
+    groundColor: "#5c9649",
+    skyColor: "#bfe3ff",
+    sunColor: "#fff8eb",
+    sunIntensity: 2.1,
+    ambientIntensity: 1.15,
   },
   "nature-valley": {
     id: "nature-valley",
-    name: "Lembah Hijau & Camping",
-    tagline: "Hutan Pinus Asri, Perkemahan, Tebing & Jembatan Alam",
+    name: "Lembah Hijau",
+    tagline: "Hutan pinus asri, tebing batu, danau & padang terbuka",
     icon: "🌲",
-    groundColor: "#4d945a",
-    sunColor: "#fff7e6",
-    sunIntensity: 2.4,
-    ambientIntensity: 1.8,
+    groundColor: "#639c4d",
+    skyColor: "#cdeaff",
+    sunColor: "#fff5df",
+    sunIntensity: 2.25,
+    ambientIntensity: 1.2,
   },
   forest: {
     id: "forest",
     name: "Hutan Rimba",
-    tagline: "Hutan lebat, jalur tanah, pepohonan tinggi & semak alami",
+    tagline: "Hutan lebat, pepohonan tinggi, pakis & jalur tanah alami",
     icon: "🌳",
-    groundColor: "#315f3d",
-    sunColor: "#fff4d6",
-    sunIntensity: 1.9,
-    ambientIntensity: 1.55,
-  },
-  "industrial-zone": {
-    id: "industrial-zone",
-    name: "Kawasan Industri & Cargo",
-    tagline: "Pabrik Modern, Kontainer Kargo, Tangki & Cerobong",
-    icon: "🏭",
-    groundColor: "#4b545f",
-    sunColor: "#ffe5cc",
-    sunIntensity: 2.0,
-    ambientIntensity: 1.6,
-  },
-  "suburban-town": {
-    id: "suburban-town",
-    name: "Kota Suburbia Asri",
-    tagline: "Hunian Perumahan Asri, Pagar Rapi, Taman & Driveway",
-    icon: "🏡",
-    groundColor: "#70a374",
-    sunColor: "#ffffff",
-    sunIntensity: 2.2,
-    ambientIntensity: 1.7,
+    groundColor: "#3f7443",
+    skyColor: "#a8d2c7",
+    sunColor: "#ffefc8",
+    sunIntensity: 1.85,
+    ambientIntensity: 1.05,
   },
 };
 
@@ -106,17 +80,12 @@ export function resolveMapThemeConfig(themeKey?: string): MapThemeConfig {
   if (lower.includes("forest") || lower.includes("rimba")) {
     return MAP_THEMES.forest;
   }
-  if (lower.includes("nature") || lower.includes("lembah") || lower.includes("hutan") || lower.includes("camp")) {
+  if (
+    lower.includes("valley") ||
+    lower.includes("lembah") ||
+    lower.includes("camp")
+  ) {
     return MAP_THEMES["nature-valley"];
-  }
-  if (lower.includes("industr") || lower.includes("cargo") || lower.includes("pabrik")) {
-    return MAP_THEMES["industrial-zone"];
-  }
-  if (lower.includes("suburb") || lower.includes("asri") || lower.includes("perumahan") || lower.includes("warm") || lower.includes("sunny")) {
-    return MAP_THEMES["suburban-town"];
-  }
-  if (lower.includes("metropol") || lower.includes("downtown") || lower.includes("sentral") || lower.includes("city")) {
-    return MAP_THEMES["metropolis"];
   }
   if (MAP_THEMES[themeKey]) return MAP_THEMES[themeKey];
   return MAP_THEMES["mega-world"];
@@ -132,7 +101,7 @@ export type ColliderBox = {
   maxX: number;
   minZ: number;
   maxZ: number;
-  kind?: "building" | "prop"; // prop colliders can be knocked away
+  kind?: "building" | "prop";
 };
 
 export type CityCanvasProps = {
@@ -154,236 +123,267 @@ export type CityCanvasProps = {
 };
 
 // ─── Asset Paths ─────────────────────────────────────────────────────────────
-const suburbanRoot   = "/assets/3d-assets/kenney_city-kit-suburban_20/Models/GLB%20format";
-const commercialRoot = "/assets/3d-assets/kenney_city-kit-commercial_2.1/Models/GLB%20format";
-const roadsRoot      = "/assets/3d-assets/kenney_city-kit-roads/Models/GLB%20format";
-const carRoot        = "/assets/3d-assets/kenney_car-kit/Models/GLB%20format";
-const natureRoot     = "/assets/3d-assets/kenney_nature-kit/Models/GLTF%20format";
-const industrialRoot = "/assets/3d-assets/kenney_city-kit-industrial_2.0/Models/GLB%20format";
-const stylizedNatureRoot = "/assets/3d-assets/Stylized%20Nature%20MegaKit%5BStandard%5D/glTF";
 const blockyNatureRoot = "/assets/3d-assets/ohmtap-ot39-blocky-nature/models/glb";
+const stylizedNatureRoot = "/assets/3d-assets/Stylized%20Nature%20MegaKit%5BStandard%5D/glTF";
+const kaykitForestRoot = "/assets/3d-assets/KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf";
+const voxelRiggedRoot = "/assets/3d-assets/Voxel_Animals_Farm_Forest_Wild/GLB_Rigged";
 
-// Keep the pet avatars visually comparable to the traffic cars. The Kenney
-// pet models are slightly taller than the car models at their native scale.
+type AssetSpec = { path: string; baseScale: number };
+
+const BLOCKY = {
+  spruceSmall: { path: `${blockyNatureRoot}/A01_spruce_small.glb`, baseScale: 1.0 },
+  spruceMedium: { path: `${blockyNatureRoot}/A02_spruce_medium.glb`, baseScale: 1.0 },
+  spruceTall: { path: `${blockyNatureRoot}/A03_spruce_tall.glb`, baseScale: 1.0 },
+  pine: { path: `${blockyNatureRoot}/A04_pine.glb`, baseScale: 1.0 },
+  birchSmall: { path: `${blockyNatureRoot}/A05_birch_small.glb`, baseScale: 1.0 },
+  birchTall: { path: `${blockyNatureRoot}/A06_birch_tall.glb`, baseScale: 1.0 },
+  oak: { path: `${blockyNatureRoot}/A07_oak.glb`, baseScale: 1.0 },
+  oakYoung: { path: `${blockyNatureRoot}/A08_oak_young.glb`, baseScale: 1.0 },
+  deadTree: { path: `${blockyNatureRoot}/A09_dead_tree.glb`, baseScale: 1.0 },
+  stump: { path: `${blockyNatureRoot}/A10_stump.glb`, baseScale: 1.0 },
+  fallenLog: { path: `${blockyNatureRoot}/A11_fallen_log.glb`, baseScale: 1.0 },
+  mushrooms: { path: `${blockyNatureRoot}/A12_mushrooms.glb`, baseScale: 1.0 },
+  grassShort: { path: `${blockyNatureRoot}/B01_grass_short.glb`, baseScale: 1.0 },
+  grassMedium: { path: `${blockyNatureRoot}/B02_grass_medium.glb`, baseScale: 1.0 },
+  grassTall: { path: `${blockyNatureRoot}/B03_grass_tall.glb`, baseScale: 1.0 },
+  flowersYellow: { path: `${blockyNatureRoot}/B04_flowers_yellow.glb`, baseScale: 1.0 },
+  flowersWhite: { path: `${blockyNatureRoot}/B05_flowers_white.glb`, baseScale: 1.0 },
+  flowersViolet: { path: `${blockyNatureRoot}/B06_flowers_violet.glb`, baseScale: 1.0 },
+  flowersRed: { path: `${blockyNatureRoot}/B07_flowers_red.glb`, baseScale: 1.0 },
+  bushRound: { path: `${blockyNatureRoot}/B08_bush_round.glb`, baseScale: 1.0 },
+  bushBerry: { path: `${blockyNatureRoot}/B09_bush_berry.glb`, baseScale: 1.0 },
+  bushFlowering: { path: `${blockyNatureRoot}/B10_bush_flowering.glb`, baseScale: 1.0 },
+  fern: { path: `${blockyNatureRoot}/B11_fern.glb`, baseScale: 1.0 },
+  rockSmall: { path: `${blockyNatureRoot}/C01_rock_small.glb`, baseScale: 1.0 },
+  rockMedium: { path: `${blockyNatureRoot}/C02_rock_medium.glb`, baseScale: 1.0 },
+  rockLarge: { path: `${blockyNatureRoot}/C03_rock_large.glb`, baseScale: 1.0 },
+  cliff: { path: `${blockyNatureRoot}/C04_cliff.glb`, baseScale: 1.0 },
+  pebbles: { path: `${blockyNatureRoot}/C05_pebbles.glb`, baseScale: 1.0 },
+  reeds: { path: `${blockyNatureRoot}/C06_reeds.glb`, baseScale: 1.0 },
+  lilyPad: { path: `${blockyNatureRoot}/C07_lily_pad.glb`, baseScale: 1.0 },
+  lilyPadFlower: { path: `${blockyNatureRoot}/C08_lily_pad_flower.glb`, baseScale: 1.0 },
+  pier: { path: `${blockyNatureRoot}/C09_pier.glb`, baseScale: 1.0 },
+} satisfies Record<string, AssetSpec>;
+
+const STYLIZED = {
+  commonTree1: { path: `${stylizedNatureRoot}/CommonTree_1.gltf`, baseScale: 0.9 },
+  commonTree2: { path: `${stylizedNatureRoot}/CommonTree_2.gltf`, baseScale: 0.88 },
+  commonTree3: { path: `${stylizedNatureRoot}/CommonTree_3.gltf`, baseScale: 0.78 },
+  pine1: { path: `${stylizedNatureRoot}/Pine_1.gltf`, baseScale: 0.92 },
+  pine2: { path: `${stylizedNatureRoot}/Pine_2.gltf`, baseScale: 0.9 },
+  pine3: { path: `${stylizedNatureRoot}/Pine_3.gltf`, baseScale: 0.9 },
+  twistedTree1: { path: `${stylizedNatureRoot}/TwistedTree_1.gltf`, baseScale: 0.48 },
+  twistedTree2: { path: `${stylizedNatureRoot}/TwistedTree_2.gltf`, baseScale: 0.45 },
+  deadTree1: { path: `${stylizedNatureRoot}/DeadTree_1.gltf`, baseScale: 0.68 },
+  bushCommon: { path: `${stylizedNatureRoot}/Bush_Common.gltf`, baseScale: 0.92 },
+  bushFlowers: { path: `${stylizedNatureRoot}/Bush_Common_Flowers.gltf`, baseScale: 0.92 },
+  fern1: { path: `${stylizedNatureRoot}/Fern_1.gltf`, baseScale: 0.22 },
+  flower3Group: { path: `${stylizedNatureRoot}/Flower_3_Group.gltf`, baseScale: 0.42 },
+  flower4Group: { path: `${stylizedNatureRoot}/Flower_4_Group.gltf`, baseScale: 0.4 },
+  grassShort: { path: `${stylizedNatureRoot}/Grass_Common_Short.gltf`, baseScale: 0.55 },
+  grassTall: { path: `${stylizedNatureRoot}/Grass_Common_Tall.gltf`, baseScale: 0.52 },
+  grassWispy: { path: `${stylizedNatureRoot}/Grass_Wispy_Tall.gltf`, baseScale: 0.52 },
+  clover1: { path: `${stylizedNatureRoot}/Clover_1.gltf`, baseScale: 0.75 },
+  mushroomCommon: { path: `${stylizedNatureRoot}/Mushroom_Common.gltf`, baseScale: 0.95 },
+  mushroomLaetiporus: { path: `${stylizedNatureRoot}/Mushroom_Laetiporus.gltf`, baseScale: 0.78 },
+  rockMedium1: { path: `${stylizedNatureRoot}/Rock_Medium_1.gltf`, baseScale: 0.85 },
+  rockMedium2: { path: `${stylizedNatureRoot}/Rock_Medium_2.gltf`, baseScale: 0.85 },
+  rockPath1: { path: `${stylizedNatureRoot}/RockPath_Round_Small_1.gltf`, baseScale: 0.85 },
+  rockPath2: { path: `${stylizedNatureRoot}/RockPath_Round_Small_2.gltf`, baseScale: 0.85 },
+} satisfies Record<string, AssetSpec>;
+
+const KAYKIT = {
+  tree1A: { path: `${kaykitForestRoot}/Tree_1_A_Color1.gltf`, baseScale: 1.45 },
+  tree2A: { path: `${kaykitForestRoot}/Tree_2_A_Color1.gltf`, baseScale: 1.45 },
+  tree3A: { path: `${kaykitForestRoot}/Tree_3_A_Color1.gltf`, baseScale: 1.5 },
+  tree4A: { path: `${kaykitForestRoot}/Tree_4_A_Color1.gltf`, baseScale: 1.4 },
+  treeBare1A: { path: `${kaykitForestRoot}/Tree_Bare_1_A_Color1.gltf`, baseScale: 1.45 },
+  bush1A: { path: `${kaykitForestRoot}/Bush_1_A_Color1.gltf`, baseScale: 4.5 },
+  bush3A: { path: `${kaykitForestRoot}/Bush_3_A_Color1.gltf`, baseScale: 1.5 },
+  grass1A: { path: `${kaykitForestRoot}/Grass_1_A_Color1.gltf`, baseScale: 1.4 },
+  grass2A: { path: `${kaykitForestRoot}/Grass_2_A_Color1.gltf`, baseScale: 1.4 },
+  rock1A: { path: `${kaykitForestRoot}/Rock_1_A_Color1.gltf`, baseScale: 2.2 },
+  rock1C: { path: `${kaykitForestRoot}/Rock_1_C_Color1.gltf`, baseScale: 2.2 },
+  rock3A: { path: `${kaykitForestRoot}/Rock_3_A_Color1.gltf`, baseScale: 2.0 },
+} satisfies Record<string, AssetSpec>;
+
+const NPC_ANIMAL_SPECIES = [
+  { path: `${voxelRiggedRoot}/deer.glb`, scale: 0.52, speed: 2.4 },
+  { path: `${voxelRiggedRoot}/fawn.glb`, scale: 0.54, speed: 2.2 },
+  { path: `${voxelRiggedRoot}/fox.glb`, scale: 0.55, speed: 2.8 },
+  { path: `${voxelRiggedRoot}/sheep.glb`, scale: 0.58, speed: 1.7 },
+  { path: `${voxelRiggedRoot}/rabbit.glb`, scale: 0.52, speed: 2.6 },
+  { path: `${voxelRiggedRoot}/duck.glb`, scale: 0.52, speed: 1.6 },
+  { path: `${voxelRiggedRoot}/boar.glb`, scale: 0.56, speed: 2.1 },
+  { path: `${voxelRiggedRoot}/hedgehog.glb`, scale: 0.55, speed: 1.4 },
+] as const;
+
+// Voxel animal scale tuned to match the 1 unit = 1m nature models
 const PLAYER_MODEL_SCALE = 0.65;
-const PLAYER_NAMETAG_Y = 1.25;
+const PLAYER_NAMETAG_Y = 1.45;
 
-// NPC traffic cars (vehicles in the city streets)
-const npcCarPaths = [
-  `${carRoot}/sedan.glb`,
-  `${carRoot}/suv.glb`,
-  `${carRoot}/delivery.glb`,
-  `${carRoot}/van.glb`,
-  `${carRoot}/taxi.glb`,
-  `${carRoot}/police.glb`,
-  `${carRoot}/hatchback-sports.glb`,
-];
+export const WORLD_LIMIT = 140.0;
+export const WORLD_HALF_SIZE = WORLD_LIMIT;
+export const AVENUES: number[] = [];
+const WATER_LEVEL = -0.25;
 
-// ─── Commercial Kit Assets ────────────────────────────────────────────────────
-const skyscraperPaths = ["a", "b", "c", "d", "e"].map(
-  (l) => `${commercialRoot}/building-skyscraper-${l}.glb`
-);
-const commercialPaths = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"].map(
-  (l) => `${commercialRoot}/building-${l}.glb`
-);
-const awningPath       = `${commercialRoot}/detail-awning.glb`;
-const awningWidePath   = `${commercialRoot}/detail-awning-wide.glb`;
-const parasolAPath     = `${commercialRoot}/detail-parasol-a.glb`;
-const parasolBPath     = `${commercialRoot}/detail-parasol-b.glb`;
-
-// ─── Suburban Kit Assets ──────────────────────────────────────────────────────
-const suburbanLetters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u"];
-const suburbanBuildingPaths = suburbanLetters.map((l) => `${suburbanRoot}/building-type-${l}.glb`);
-const treeLargePath    = `${suburbanRoot}/tree-large.glb`;
-const treeSmallPath    = `${suburbanRoot}/tree-small.glb`;
-const fencePath        = `${suburbanRoot}/fence-1x3.glb`;
-const planterPath      = `${suburbanRoot}/planter.glb`;
-
-// ─── Nature Kit Assets (New!) ─────────────────────────────────────────────────
-const naturePineDefaultPath  = `${natureRoot}/tree_pineDefaultA.glb`;
-const naturePineTallPath     = `${natureRoot}/tree_pineTallA.glb`;
-const naturePineRoundPath    = `${natureRoot}/tree_pineRoundA.glb`;
-const natureOakPath          = `${natureRoot}/tree_oak.glb`;
-const natureTreeDetailedPath = `${natureRoot}/tree_detailed.glb`;
-const natureRockLargeAPath   = `${natureRoot}/rock_largeA.glb`;
-const natureRockLargeBPath   = `${natureRoot}/rock_largeB.glb`;
-const natureRockTallPath     = `${natureRoot}/rock_tallA.glb`;
-const natureRockSmallPath    = `${natureRoot}/rock_smallA.glb`;
-const natureCliffRockPath    = `${natureRoot}/cliff_block_rock.glb`;
-const natureCliffStonePath   = `${natureRoot}/cliff_block_stone.glb`;
-const natureTentOpenPath     = `${natureRoot}/tent_detailedOpen.glb`;
-const natureTentClosedPath   = `${natureRoot}/tent_smallClosed.glb`;
-const natureCampfirePath     = `${natureRoot}/campfire_stones.glb`;
-const natureBridgeWoodPath   = `${natureRoot}/bridge_wood.glb`;
-const natureBushPath         = `${natureRoot}/plant_bush.glb`;
-const natureLogStackPath     = `${natureRoot}/log_stack.glb`;
-
-// OhmTap OT-39: lightweight blocky nature set used by the dense forest biome.
-const blockyForestTreePaths = [
-  "A01_spruce_small", "A02_spruce_medium", "A03_spruce_tall", "A04_pine",
-  "A05_birch_small", "A06_birch_tall", "A07_oak", "A08_oak_young",
-].map((name) => `${blockyNatureRoot}/${name}.glb`);
-const blockyForestGroundPaths = [
-  "B01_grass_short", "B02_grass_medium", "B08_bush_round", "B11_fern",
-].map((name) => `${blockyNatureRoot}/${name}.glb`);
-const blockyForestDetailPaths = [
-  "A10_stump", "A11_fallen_log", "A12_mushrooms", "C01_rock_small", "C02_rock_medium",
-].map((name) => `${blockyNatureRoot}/${name}.glb`);
-
-const stylizedTreePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/CommonTree_${n}.gltf`);
-const stylizedPinePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/Pine_${n}.gltf`);
-const stylizedTwistedTreePaths = [1, 2, 3, 4, 5].map((n) => `${stylizedNatureRoot}/TwistedTree_${n}.gltf`);
-const stylizedGroundPaths = [
-  `${stylizedNatureRoot}/Grass_Common_Short.gltf`,
-  `${stylizedNatureRoot}/Grass_Common_Tall.gltf`,
-  `${stylizedNatureRoot}/Fern_1.gltf`,
-  `${stylizedNatureRoot}/Bush_Common.gltf`,
-];
-const stylizedDetailPaths = [
-  `${stylizedNatureRoot}/Rock_Medium_1.gltf`,
-  `${stylizedNatureRoot}/Rock_Medium_2.gltf`,
-  `${stylizedNatureRoot}/Mushroom_Common.gltf`,
-  `${stylizedNatureRoot}/DeadTree_1.gltf`,
-];
-const ohmNaturePathTile = `${blockyNatureRoot}/D03_tile_path.glb`;
-
-// ─── Industrial Kit Assets (New!) ─────────────────────────────────────────────
-const industrialBuildingAPath    = `${industrialRoot}/building-a.glb`;
-const industrialBuildingBPath    = `${industrialRoot}/building-b.glb`;
-const industrialBuildingCPath    = `${industrialRoot}/building-c.glb`;
-const industrialBuildingDPath    = `${industrialRoot}/building-d.glb`;
-const industrialBuildingEPath    = `${industrialRoot}/building-e.glb`;
-const industrialBuildingFPath    = `${industrialRoot}/building-f.glb`;
-const industrialChimneyBasicPath = `${industrialRoot}/chimney-basic.glb`;
-const industrialChimneyLargePath = `${industrialRoot}/chimney-large.glb`;
-const industrialTankPath         = `${industrialRoot}/detail-tank.glb`;
-const industrialTankLargePath    = `${industrialRoot}/detail-tank-large.glb`;
-const industrialContainerAPath   = `${industrialRoot}/shipping-container-a.glb`;
-const industrialContainerBPath   = `${industrialRoot}/shipping-container-b.glb`;
-const industrialContainerCPath   = `${industrialRoot}/shipping-container-c.glb`;
-const industrialWaterTowerPath   = `${industrialRoot}/water-tower.glb`;
-const industrialWindmillPath     = `${industrialRoot}/windmill.glb`;
-const industrialSolarPath        = `${industrialRoot}/solar-panel-portrait.glb`;
-
-// ─── Road Infrastructure ──────────────────────────────────────────────────────
-const roadStraightPath = `${roadsRoot}/road-straight.glb`;
-const roadCrossPath    = `${roadsRoot}/road-crossroad.glb`;
-const roadCrossingPath = `${roadsRoot}/road-crossing.glb`;
-const streetLightPath  = `${roadsRoot}/light-square.glb`;
-const trafficLightPath = `${roadsRoot}/traffic-light.glb`;
-const stopSignPath     = `${roadsRoot}/road-sign-stop.glb`;
-
-// ─── Street Props (knockable small objects) ───────────────────────────────────
-const conePath         = `${roadsRoot}/construction-cone.glb`;
-const dumpsterPath     = `${roadsRoot}/dumpster.glb`;
-const electricityPolePath = `${roadsRoot}/electricity-pole-single.glb`;
-
-// ─── Low-detail Commercial Background Buildings ───────────────────────────────
-const lowDetailPaths = ["a","b","c","d","e","f","g","h","i","j"].map(
-  (l) => `${commercialRoot}/low-detail-building-${l}.glb`
-);
-
-// ─── Suburban Path Tiles ──────────────────────────────────────────────────────
-const pathLongPath     = `${suburbanRoot}/path-long.glb`;
-
-// Keep the initial request queue small. The rest of the world loads
-// progressively so mobile devices can show the first frame sooner.
-
-// ─── Seeded RNG ───────────────────────────────────────────────────────────────
+// ─── Seeded Avalanche Hash RNG (zero linear/diagonal correlation) ─────────────
 function lcg(seed: number, index: number): number {
-  return ((seed * 1664525 + index * 22695477 + 1013904223) & 0x7fffffff) / 0x7fffffff;
+  let h = (Math.imul(seed | 0, 0x27d4eb2d) ^ Math.imul((index + 1) | 0, 0x9e3779b1)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h / 4294967296;
 }
 
-// ─── Expansive City Grid Constants (Expanded to 260x260 World, 100 Blocks) ─────
-// 11 major avenues across -100 to +100 (road runs from -112 to +112)
-export const AVENUES = [-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100];
-export const ROAD_TILE_SCALE = 4.0; // Tile bounds are exactly 4x4 units
-export const ROAD_STEP = 4.0;
-export const ROAD_MIN = -112;
-export const ROAD_MAX = 112;
-export const WORLD_HALF_SIZE = 130;
-export const WORLD_LIMIT = 108.0;
+function smoothstep(edge0: number, edge1: number, x: number): number {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
 
-// ─── Road-Aligned Candidate Spots for Questions (Distributed across 260x260) ──
-export const candidateSpots: Point[] = [
-  // Central Core (Ring 0)
-  { x: 0, z: -10 }, { x: 0, z: 10 }, { x: -10, z: 0 }, { x: 10, z: 0 },
-  { x: 0, z: -20 }, { x: 0, z: 20 }, { x: -20, z: 0 }, { x: 20, z: 0 },
-  { x: -20, z: -20 }, { x: 20, z: -20 }, { x: -20, z: 20 }, { x: 20, z: 20 },
-  { x: -20, z: -10 }, { x: -20, z: 10 }, { x: 20, z: -10 }, { x: 20, z: 10 },
-  { x: -10, z: -20 }, { x: 10, z: -20 }, { x: -10, z: 20 }, { x: 10, z: 20 },
+// ─── Deterministic Lakes & Trail Geometry ────────────────────────────────────
+type LakeSpec = { x: number; z: number; radius: number };
 
-  // Inner-Mid Ring (Ring ±40)
-  { x: 0, z: -30 }, { x: 0, z: 30 }, { x: -30, z: 0 }, { x: 30, z: 0 },
-  { x: -40, z: 0 }, { x: 40, z: 0 }, { x: 0, z: -40 }, { x: 0, z: 40 },
-  { x: -40, z: -20 }, { x: -40, z: 20 }, { x: 40, z: -20 }, { x: 40, z: 20 },
-  { x: -20, z: -40 }, { x: 20, z: -40 }, { x: -20, z: 40 }, { x: 20, z: 40 },
-  { x: -40, z: -40 }, { x: 40, z: -40 }, { x: -40, z: 40 }, { x: 40, z: 40 },
-  { x: -30, z: -40 }, { x: 30, z: -40 }, { x: -30, z: 40 }, { x: 30, z: 40 },
+function getLakeSpec(seed: number): LakeSpec {
+  const angle = lcg(seed, 901) * Math.PI * 2;
+  const dist = 42 + lcg(seed, 902) * 14;
+  return {
+    x: Math.cos(angle) * dist,
+    z: Math.sin(angle) * dist,
+    radius: 13.5 + lcg(seed, 903) * 3.5,
+  };
+}
 
-  // Mid-Outer Ring (Ring ±60)
-  { x: 0, z: -50 }, { x: 0, z: 50 }, { x: -50, z: 0 }, { x: 50, z: 0 },
-  { x: -60, z: 0 }, { x: 60, z: 0 }, { x: 0, z: -60 }, { x: 0, z: 60 },
-  { x: -60, z: -20 }, { x: -60, z: 20 }, { x: 60, z: -20 }, { x: 60, z: 20 },
-  { x: -20, z: -60 }, { x: 20, z: -60 }, { x: -20, z: 60 }, { x: 20, z: 60 },
-  { x: -60, z: -40 }, { x: -60, z: 40 }, { x: 60, z: -40 }, { x: 60, z: 40 },
-  { x: -40, z: -60 }, { x: 40, z: -60 }, { x: -40, z: 60 }, { x: 40, z: 60 },
-  { x: -60, z: -60 }, { x: 60, z: -60 }, { x: -60, z: 60 }, { x: 60, z: 60 },
+function getPondSpec(seed: number): LakeSpec {
+  const mainAngle = lcg(seed, 901) * Math.PI * 2;
+  const angle = mainAngle + Math.PI * (0.75 + lcg(seed, 904) * 0.5);
+  const dist = 70 + lcg(seed, 905) * 18;
+  return {
+    x: Math.cos(angle) * dist,
+    z: Math.sin(angle) * dist,
+    radius: 8.5 + lcg(seed, 906) * 2.5,
+  };
+}
 
-  // Outer Ring (Ring ±80)
-  { x: 0, z: -70 }, { x: 0, z: 70 }, { x: -70, z: 0 }, { x: 70, z: 0 },
-  { x: -80, z: 0 }, { x: 80, z: 0 }, { x: 0, z: -80 }, { x: 0, z: 80 },
-  { x: -80, z: -20 }, { x: -80, z: 20 }, { x: 80, z: -20 }, { x: 80, z: 20 },
-  { x: -20, z: -80 }, { x: 20, z: -80 }, { x: -20, z: 80 }, { x: 20, z: 80 },
-  { x: -80, z: -40 }, { x: -80, z: 40 }, { x: 80, z: -40 }, { x: 80, z: 40 },
-  { x: -40, z: -80 }, { x: 40, z: -80 }, { x: -40, z: 80 }, { x: 40, z: 80 },
-  { x: -80, z: -60 }, { x: 80, z: -60 }, { x: -80, z: 60 }, { x: 80, z: 60 },
-  { x: -60, z: -80 }, { x: 60, z: -80 }, { x: -60, z: 80 }, { x: 60, z: 80 },
-  { x: -80, z: -80 }, { x: 80, z: -80 }, { x: -80, z: 80 }, { x: 80, z: 80 },
+function getTrail1Z(seed: number, x: number): number {
+  const phaseA = (seed % 97) * 0.13;
+  return Math.sin(x * 0.032 + phaseA) * 17.5 - Math.sin(phaseA) * 17.5;
+}
 
-  // Expanded Perimeter Ring (Ring ±100 & Inter-avenue avenues)
-  { x: 0, z: -90 }, { x: 0, z: 90 }, { x: -90, z: 0 }, { x: 90, z: 0 },
-  { x: -100, z: 0 }, { x: 100, z: 0 }, { x: 0, z: -100 }, { x: 0, z: 100 },
-  { x: -100, z: -20 }, { x: -100, z: 20 }, { x: 100, z: -20 }, { x: 100, z: 20 },
-  { x: -20, z: -100 }, { x: 20, z: -100 }, { x: -20, z: 100 }, { x: 20, z: 100 },
-  { x: -100, z: -40 }, { x: -100, z: 40 }, { x: 100, z: -40 }, { x: 100, z: 40 },
-  { x: -40, z: -100 }, { x: 40, z: -100 }, { x: -40, z: 100 }, { x: 40, z: 100 },
-  { x: -100, z: -60 }, { x: 100, z: -60 }, { x: -100, z: 60 }, { x: 100, z: 60 },
-  { x: -60, z: -100 }, { x: 60, z: -100 }, { x: -60, z: 100 }, { x: 60, z: 100 },
-  { x: -100, z: -80 }, { x: 100, z: -80 }, { x: -100, z: 80 }, { x: 100, z: 80 },
-  { x: -80, z: -100 }, { x: 80, z: -100 }, { x: -80, z: 100 }, { x: 80, z: 100 },
-  { x: -100, z: -100 }, { x: 100, z: -100 }, { x: -100, z: 100 }, { x: 100, z: 100 },
-];
+function getTrail2X(seed: number, z: number): number {
+  const phaseB = (seed % 53) * 0.19;
+  return Math.sin(z * 0.03 + phaseB) * 18.0 - Math.sin(phaseB) * 18.0;
+}
 
+function getTrailDistance(seed: number, x: number, z: number): number {
+  const d1 = Math.abs(z - getTrail1Z(seed, x));
+  const d2 = Math.abs(x - getTrail2X(seed, z));
+  return Math.min(d1, d2);
+}
+
+export function getNatureMapPreview(seed: number) {
+  const lake = getLakeSpec(seed);
+  const pond = getPondSpec(seed);
+  const trail1Points: Point[] = [];
+  const trail2Points: Point[] = [];
+  for (let t = -WORLD_LIMIT; t <= WORLD_LIMIT; t += 8) {
+    trail1Points.push({ x: t, z: getTrail1Z(seed, t) });
+    trail2Points.push({ x: getTrail2X(seed, t), z: t });
+  }
+  return { lake, pond, trail1Points, trail2Points };
+}
+
+// ─── Continuous Terrain Height Function ──────────────────────────────────────
+export function terrainHeight(seed: number, x: number, z: number): number {
+  const s1 = (seed % 101) * 0.07;
+  const s2 = (seed % 73) * 0.11;
+
+  // Gentle rolling hills across the 280x280 world
+  const hills =
+    Math.sin(x * 0.03 + s1) * Math.cos(z * 0.028 + s2) * 1.25 +
+    Math.sin((x + z) * 0.019 + s2) * 0.8;
+
+  // Flatten central spawn clearing around (0, 0)
+  const spawnDist = Math.hypot(x, z);
+  const spawnFlatten = smoothstep(7, 20, spawnDist);
+
+  // Flatten near trails so paths stay walkable
+  const trailDist = getTrailDistance(seed, x, z);
+  const trailFlatten = smoothstep(2.0, 8.0, trailDist);
+
+  let h = hills * spawnFlatten * (0.3 + 0.7 * trailFlatten);
+
+  // Scenic main lake & secondary pond depressions
+  const lake = getLakeSpec(seed);
+  const lakeDist = Math.hypot(x - lake.x, z - lake.z);
+  if (lakeDist < lake.radius + 7.0) {
+    const basin = 1 - smoothstep(lake.radius * 0.45, lake.radius + 6.5, lakeDist);
+    h = THREE.MathUtils.lerp(h, -1.0, basin);
+  }
+
+  const pond = getPondSpec(seed);
+  const pondDist = Math.hypot(x - pond.x, z - pond.z);
+  if (pondDist < pond.radius + 5.5) {
+    const basin = 1 - smoothstep(pond.radius * 0.45, pond.radius + 5.0, pondDist);
+    h = THREE.MathUtils.lerp(h, -0.9, basin);
+  }
+
+  // Gently rising valley rim outside playable bounds
+  const edgeDist = Math.max(Math.abs(x), Math.abs(z));
+  if (edgeDist > WORLD_LIMIT - 2) {
+    const rim = smoothstep(WORLD_LIMIT - 2, WORLD_LIMIT + 40, edgeDist);
+    h += rim * 6.0;
+  }
+
+  return h;
+}
+
+// ─── Deterministic Question Spots in Natural Clearings ───────────────────────
 export function seededPoints(seed: number, count: number): Point[] {
-  const actualCount = Math.min(Math.max(count, 3), candidateSpots.length);
-  const spots = [...candidateSpots];
-  // Shuffle deterministically
-  for (let i = spots.length - 1; i > 0; i--) {
+  const actualCount = Math.min(Math.max(count, 3), 24);
+  const lake = getLakeSpec(seed);
+  const pond = getPondSpec(seed);
+  const candidates: Point[] = [];
+
+  // Generate well-distributed candidate clearings across the 280x280 valley
+  for (let i = 0; i < 240; i++) {
+    const angle = i * 2.39996 + lcg(seed, i * 3) * 0.45;
+    const radius = 20 + Math.sqrt((i + 1) / 240) * 98; // 20m to 118m from center
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+
+    if (Math.abs(x) > 120 || Math.abs(z) > 120) continue;
+    if (Math.hypot(x - lake.x, z - lake.z) < lake.radius + 5.5) continue;
+    if (Math.hypot(x - pond.x, z - pond.z) < pond.radius + 5.0) continue;
+
+    candidates.push({ x: Math.round(x * 10) / 10, z: Math.round(z * 10) / 10 });
+  }
+
+  for (let i = candidates.length - 1; i > 0; i--) {
     const j = Math.floor(lcg(seed + i * 17, i) * (i + 1));
-    [spots[i], spots[j]] = [spots[j], spots[i]];
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
   }
-  // Greedy spread selection: enforce minimum 30-unit gap between chosen spots
-  const MIN_GAP = 30;
+
+  const MIN_GAP = 28;
   const selected: Point[] = [];
-  for (const candidate of spots) {
+  for (const c of candidates) {
     if (selected.length >= actualCount) break;
-    const tooClose = selected.some(
-      (s) => Math.hypot(s.x - candidate.x, s.z - candidate.z) < MIN_GAP
-    );
-    if (!tooClose) selected.push(candidate);
-  }
-  // If not enough spread spots, fill with remaining (shouldn't happen with large candidateSpots)
-  if (selected.length < actualCount) {
-    for (const candidate of spots) {
-      if (selected.length >= actualCount) break;
-      if (!selected.includes(candidate)) selected.push(candidate);
+    if (!selected.some((s) => Math.hypot(s.x - c.x, s.z - c.z) < MIN_GAP)) {
+      selected.push(c);
     }
   }
+
+  if (selected.length < actualCount) {
+    for (const c of candidates) {
+      if (selected.length >= actualCount) break;
+      if (!selected.includes(c)) selected.push(c);
+    }
+  }
+
   return selected;
 }
 
-// ─── Generic Model Component ──────────────────────────────────────────────────
+// ─── Generic GLB/glTF Model Component ────────────────────────────────────────
 function Model({
   path,
   position,
@@ -397,833 +397,811 @@ function Model({
 }) {
   const { scene } = useGLTF(path);
   const cloned = useMemo(() => scene.clone(true), [scene]);
-  return <primitive object={cloned} position={position} rotation={rotation ?? [0, 0, 0]} scale={scale} />;
-}
-
-// ─── Seamless Road Network (Edge-to-Edge Snapping, 0 Gaps) ────────────────────
-function RoadGrid() {
-  const roadCoords: number[] = [];
-  for (let c = ROAD_MIN; c <= ROAD_MAX; c += ROAD_STEP) {
-    roadCoords.push(c);
-  }
-
-  // Intersections at all avenue crossings (5x5 = 25 crossroads)
-  const crossroads: [number, number, number][] = AVENUES.flatMap((x) =>
-    AVENUES.map((z) => [x, 0, z] as [number, number, number])
-  );
-
-  // Horizontal road tiles along Z = -40, -20, 0, 20, 40
-  const hSegments: { pos: [number, number, number]; path: string }[] = [];
-  for (const z of AVENUES) {
-    for (const x of roadCoords) {
-      if (AVENUES.includes(x)) continue; // skip crossroads
-      // Place crosswalk tile directly adjacent to crossroads
-      const isCrosswalk = AVENUES.some((ax) => Math.abs(x - ax) === ROAD_STEP);
-      const path = isCrosswalk ? roadCrossingPath : roadStraightPath;
-      hSegments.push({ pos: [x, 0, z], path });
-    }
-  }
-
-  // Vertical road tiles along X = -40, -20, 0, 20, 40
-  const vSegments: { pos: [number, number, number]; path: string }[] = [];
-  for (const x of AVENUES) {
-    for (const z of roadCoords) {
-      if (AVENUES.includes(z)) continue; // skip crossroads
-      const isCrosswalk = AVENUES.some((az) => Math.abs(z - az) === ROAD_STEP);
-      const path = isCrosswalk ? roadCrossingPath : roadStraightPath;
-      vSegments.push({ pos: [x, 0, z], path });
-    }
-  }
-
   return (
-    <>
-      {crossroads.map((pos, i) => (
-        <Model key={`rc-${i}`} path={roadCrossPath} position={pos} scale={ROAD_TILE_SCALE} />
-      ))}
-      {hSegments.map(({ pos, path }, i) => (
-        <Model key={`rh-${i}`} path={path} position={pos} rotation={[0, 0, 0]} scale={ROAD_TILE_SCALE} />
-      ))}
-      {vSegments.map(({ pos, path }, i) => (
-        <Model key={`rv-${i}`} path={path} position={pos} rotation={[0, Math.PI / 2, 0]} scale={ROAD_TILE_SCALE} />
-      ))}
-    </>
+    <primitive
+      object={cloned}
+      position={position}
+      rotation={rotation ?? [0, 0, 0]}
+      scale={scale}
+    />
   );
 }
 
-// ─── Buildings & Props Structure ──────────────────────────────────────────────
-type PlacedBuilding = {
-  path: string;
-  x: number;
-  z: number;
-  ry: number;
-  scale: number;
-  propPath?: string;
-  propPos?: [number, number, number];
-  propScale?: number;
-};
-
-function terrainHeight(seed: number, x: number, z: number): number {
-  const seedOffset = seed * 0.000013;
-  const broadHills = Math.sin(x * 0.035 + seedOffset) * 0.65 + Math.cos(z * 0.028 - seedOffset) * 0.5;
-  const detail = Math.sin((x + z) * 0.085 + seedOffset * 2) * 0.16;
-  return broadHills + detail;
-}
-
-function NatureTerrain({ seed, color }: { seed: number; color: string }) {
-  const geometry = useMemo(() => {
-    const terrain = new THREE.PlaneGeometry(260, 260, 40, 40);
-    terrain.rotateX(-Math.PI / 2);
-    const positions = terrain.attributes.position;
-    for (let i = 0; i < positions.count; i++) {
-      positions.setY(i, terrainHeight(seed, positions.getX(i), positions.getZ(i)));
-    }
-    positions.needsUpdate = true;
-    terrain.computeVertexNormals();
-    return terrain;
-  }, [seed]);
-
-  useEffect(() => () => geometry.dispose(), [geometry]);
-
-  return (
-    <mesh geometry={geometry} receiveShadow>
-      <meshStandardMaterial color={color} roughness={1} flatShading />
-    </mesh>
-  );
-}
-
-// Nature-only world generator. It deliberately has no roads, buildings,
-// traffic, or Kenney dependencies: the player explores clearings and natural
-// paths through a continuous forest.
-function useNatureWorld(seed: number, mapThemeKey?: string) {
-  return useMemo(() => {
-    const buildings: PlacedBuilding[] = [];
-    const trees: { path: string; pos: [number, number, number]; scale: number }[] = [];
-    const colliders: ColliderBox[] = [];
-    const themeId = resolveMapThemeConfig(mapThemeKey).id;
-    const treeSets = themeId === "forest"
-      ? [...stylizedTreePaths, ...stylizedPinePaths, ...stylizedTwistedTreePaths, ...blockyForestTreePaths]
-      : [...stylizedTreePaths, ...stylizedPinePaths, ...blockyForestTreePaths.slice(0, 5)];
-
-    // Scatter natural groves instead of placing objects on block coordinates.
-    // Each grove has a loose center and jitter, which keeps the forest dense
-    // while avoiding visible rows and columns.
-    for (let grove = 0; grove < 24; grove++) {
-      const gx = (lcg(seed + 41, grove * 3) - 0.5) * 190;
-      const gz = (lcg(seed + 83, grove * 3 + 1) - 0.5) * 190;
-      const count = 5 + Math.floor(lcg(seed + grove, 12) * 4);
-      for (let member = 0; member < count; member++) {
-        const index = grove * 9 + member;
-        const px = Math.max(-112, Math.min(112, gx + (lcg(seed, index * 2) - 0.5) * 22));
-        const pz = Math.max(-112, Math.min(112, gz + (lcg(seed, index * 2 + 1) - 0.5) * 22));
-        const path = treeSets[Math.floor(lcg(seed + 7, index) * treeSets.length)];
-        trees.push({
-          path,
-          pos: [px, terrainHeight(seed, px, pz), pz],
-          scale: 0.52 + lcg(seed + 19, index) * 0.28,
-        });
-        if (member % 3 === 0) {
-          colliders.push({ minX: px - 0.9, maxX: px + 0.9, minZ: pz - 0.9, maxZ: pz + 0.9 });
-        }
-        if (member % 2 === 0) {
-          const groundX = px + (lcg(seed + 29, index) - 0.5) * 5;
-          const groundZ = pz + (lcg(seed + 31, index) - 0.5) * 5;
-          trees.push({
-            path: stylizedGroundPaths[index % stylizedGroundPaths.length],
-            pos: [groundX, terrainHeight(seed, groundX, groundZ), groundZ],
-            scale: 0.8 + lcg(seed + 37, index) * 0.5,
-          });
-        }
-      }
-      if (grove % 2 === 0) {
-        buildings.push({
-          path: stylizedDetailPaths[grove % stylizedDetailPaths.length],
-          x: gx + (lcg(seed + 101, grove) - 0.5) * 6,
-          z: gz + (lcg(seed + 103, grove) - 0.5) * 6,
-          ry: lcg(seed + 107, grove) * Math.PI,
-          scale: 0.75 + lcg(seed + 109, grove) * 0.35,
-        });
-      }
-    }
-
-    // A winding trail follows a sine curve with a smaller branch, never a grid.
-    for (let i = -84; i <= 84; i += 2.5) {
-      const z = Math.sin((i + seed % 31) * 0.055) * 14 - 3;
-      const slope = Math.cos((i + seed % 31) * 0.055) * 14 * 0.055;
-      buildings.push({
-        path: ohmNaturePathTile,
-        x: i,
-        z,
-        ry: Math.atan2(slope, 1),
-        scale: 1,
-      });
-    }
-
-    return { buildings, trees, colliders };
-  }, [seed, mapThemeKey]);
-}
-
-// ─── City Districts Generator (Downtown, Nature, Industrial, Suburban & Mega) ─
-function useCityBlocks(seed: number, mapThemeKey?: string) {
-  return useMemo(() => {
-    const buildings: PlacedBuilding[] = [];
-    const trees: { path: string; pos: [number, number, number]; scale: number }[] = [];
-    const colliders: ColliderBox[] = [];
-
-    const themeConfig = resolveMapThemeConfig(mapThemeKey);
-    const themeId = themeConfig.id;
-
-    // 10 blocks (10x10 = 100 blocks) between 11 avenues
-    const blockIntervals = [
-      { min: -97.5, max: -82.5 }, // col 0: -90
-      { min: -77.5, max: -62.5 }, // col 1: -70
-      { min: -57.5, max: -42.5 }, // col 2: -50
-      { min: -37.5, max: -22.5 }, // col 3: -30
-      { min: -17.5, max: -2.5 },  // col 4: -10
-      { min: 2.5, max: 17.5 },    // col 5: 10
-      { min: 22.5, max: 37.5 },   // col 6: 30
-      { min: 42.5, max: 57.5 },   // col 7: 50
-      { min: 62.5, max: 77.5 },   // col 8: 70
-      { min: 82.5, max: 97.5 },   // col 9: 90
-    ];
-
-    let itemIdx = 0;
-
-    blockIntervals.forEach((xBlock, col) => {
-      blockIntervals.forEach((zBlock, row) => {
-        const p1 = { x: xBlock.min + 3.2, z: zBlock.min + 3.2 };
-        const p2 = { x: xBlock.max - 3.2, z: zBlock.min + 3.2 };
-        const p3 = { x: xBlock.min + 3.2, z: zBlock.max - 3.2 };
-        const p4 = { x: xBlock.max - 3.2, z: zBlock.max - 3.2 };
-        const centerP = { x: (xBlock.min + xBlock.max) / 2, z: (zBlock.min + zBlock.max) / 2 };
-
-        let blockType: "metropolis-core" | "metropolis-comm" | "nature" | "industrial" | "suburban" = "suburban";
-
-        if (themeId === "nature-valley" || themeId === "forest") {
-          blockType = "nature";
-        } else if (themeId === "industrial-zone") {
-          blockType = "industrial";
-        } else if (themeId === "suburban-town") {
-          blockType = "suburban";
-        } else if (themeId === "metropolis") {
-          if (col >= 3 && col <= 6 && row >= 3 && row <= 6) {
-            blockType = "metropolis-core";
-          } else {
-            blockType = "metropolis-comm";
-          }
-        } else {
-          // "mega-world" 4 distinct quadrants
-          if (col < 5 && row < 5) {
-            blockType = (col >= 2 && row >= 2) ? "metropolis-core" : "metropolis-comm";
-          } else if (col >= 5 && row < 5) {
-            blockType = "industrial";
-          } else if (col < 5 && row >= 5) {
-            blockType = "suburban";
-          } else {
-            blockType = "nature";
-          }
-        }
-
-        // ── Block Type Implementations ──
-        if (blockType === "nature") {
-          // NATURE VALLEY / FULL FOREST BIOME
-          if (themeId === "forest") {
-            const forestPoints = [
-              p1,
-              p2,
-              p3,
-              p4,
-              { x: centerP.x - 2.1, z: centerP.z + 1.8 },
-              { x: centerP.x + 2.0, z: centerP.z - 1.7 },
-            ];
-            forestPoints.forEach((p, idx) => {
-              trees.push({
-                path: blockyForestTreePaths[(itemIdx + idx + col + row) % blockyForestTreePaths.length],
-                pos: [p.x, 0, p.z],
-                scale: idx < 4 ? 0.72 : 0.58,
-              });
-              // Keep only the main trees solid so collision checks remain light.
-              if (idx < 4) {
-                colliders.push({ minX: p.x - 0.75, maxX: p.x + 0.75, minZ: p.z - 0.75, maxZ: p.z + 0.75 });
-              }
-            });
-            // Low vegetation fills the gaps without adding collision work for
-            // every decorative object.
-            [
-              { x: centerP.x - 2.2, z: centerP.z - 2.1 },
-              { x: centerP.x + 2.2, z: centerP.z + 2.0 },
-            ].forEach((p, idx) => {
-              trees.push({
-                path: blockyForestGroundPaths[(itemIdx + idx + col * 2 + row) % blockyForestGroundPaths.length],
-                pos: [p.x, 0, p.z],
-                scale: idx === 0 ? 1.15 : 0.9,
-              });
-            });
-            buildings.push({
-              path: blockyForestDetailPaths[(itemIdx + col + row) % blockyForestDetailPaths.length],
-              x: centerP.x,
-              z: centerP.z,
-              ry: (col + row) * 0.6,
-              scale: 0.9,
-            });
-            itemIdx += 6;
-          } else {
-          const isCamp = (col + row) % 3 === 0;
-          const isRockOutcrop = (col * 3 + row) % 4 === 1;
-
-          if (isCamp) {
-            buildings.push({
-              path: (col + row) % 2 === 0 ? natureTentOpenPath : natureTentClosedPath,
-              x: p1.x,
-              z: p1.z,
-              ry: 0,
-              scale: 1.6,
-            });
-            colliders.push({ minX: p1.x - 1.2, maxX: p1.x + 1.2, minZ: p1.z - 1.2, maxZ: p1.z + 1.2 });
-
-            buildings.push({
-              path: natureCampfirePath,
-              x: centerP.x,
-              z: centerP.z,
-              ry: 0,
-              scale: 1.4,
-              propPath: natureLogStackPath,
-              propPos: [centerP.x + 2.0, 0, centerP.z],
-              propScale: 1.2,
-            });
-            colliders.push({ minX: centerP.x - 0.9, maxX: centerP.x + 0.9, minZ: centerP.z - 0.9, maxZ: centerP.z + 0.9 });
-
-            buildings.push({
-              path: natureBridgeWoodPath,
-              x: p4.x,
-              z: p4.z,
-              ry: Math.PI / 4,
-              scale: 1.6,
-            });
-            colliders.push({ minX: p4.x - 1.3, maxX: p4.x + 1.3, minZ: p4.z - 1.3, maxZ: p4.z + 1.3 });
-
-            [p2, p3].forEach((p, idx) => {
-              trees.push({
-                path: idx === 0 ? naturePineTallPath : naturePineRoundPath,
-                pos: [p.x, 0, p.z],
-                scale: 1.7,
-              });
-              colliders.push({ minX: p.x - 0.7, maxX: p.x + 0.7, minZ: p.z - 0.7, maxZ: p.z + 0.7 });
-            });
-          } else if (isRockOutcrop) {
-            buildings.push({
-              path: natureCliffRockPath,
-              x: centerP.x,
-              z: centerP.z,
-              ry: (col * Math.PI) / 3,
-              scale: 2.2,
-            });
-            colliders.push({ minX: centerP.x - 1.8, maxX: centerP.x + 1.8, minZ: centerP.z - 1.8, maxZ: centerP.z + 1.8 });
-
-            [p1, p2, p3, p4].forEach((p, idx) => {
-              const rockModel = idx % 2 === 0 ? natureRockLargeAPath : natureRockTallPath;
-              buildings.push({
-                path: rockModel,
-                x: p.x,
-                z: p.z,
-                ry: idx * 1.2,
-                scale: 1.6,
-              });
-              colliders.push({ minX: p.x - 1.2, maxX: p.x + 1.2, minZ: p.z - 1.2, maxZ: p.z + 1.2 });
-            });
-          } else {
-            [p1, p2, p3, p4].forEach((p, idx) => {
-              const treePaths = [naturePineDefaultPath, naturePineTallPath, natureOakPath, natureTreeDetailedPath];
-              const tPath = treePaths[(itemIdx + idx) % treePaths.length];
-              trees.push({
-                path: tPath,
-                pos: [p.x, 0, p.z],
-                scale: 1.8,
-              });
-              colliders.push({ minX: p.x - 0.8, maxX: p.x + 0.8, minZ: p.z - 0.8, maxZ: p.z + 0.8 });
-            });
-
-            buildings.push({
-              path: natureRockSmallPath,
-              x: centerP.x,
-              z: centerP.z,
-              ry: 0.5,
-              scale: 1.5,
-              propPath: natureBushPath,
-              propPos: [centerP.x + 1.5, 0, centerP.z + 1.5],
-              propScale: 1.3,
-            });
-            colliders.push({ minX: centerP.x - 0.8, maxX: centerP.x + 0.8, minZ: centerP.z - 0.8, maxZ: centerP.z + 0.8 });
-          }
-          }
-          itemIdx += 4;
-        } else if (blockType === "industrial") {
-          // INDUSTRIAL CARGO & FACTORY BIOME
-          const indBuildings = [
-            industrialBuildingAPath, industrialBuildingBPath, industrialBuildingCPath,
-            industrialBuildingDPath, industrialBuildingEPath, industrialBuildingFPath
-          ];
-          const hasContainers = (col + row) % 2 === 0;
-
-          if (hasContainers) {
-            const containerPaths = [industrialContainerAPath, industrialContainerBPath, industrialContainerCPath];
-            [p1, p2, p3, p4].forEach((p, idx) => {
-              const cPath = containerPaths[(itemIdx + idx) % containerPaths.length];
-              buildings.push({
-                path: cPath,
-                x: p.x,
-                z: p.z,
-                ry: idx % 2 === 0 ? 0 : Math.PI / 2,
-                scale: 1.8,
-              });
-              colliders.push({ minX: p.x - 1.3, maxX: p.x + 1.3, minZ: p.z - 1.3, maxZ: p.z + 1.3 });
-            });
-
-            const isWater = (col + row) % 4 === 0;
-            buildings.push({
-              path: isWater ? industrialWaterTowerPath : industrialSolarPath,
-              x: centerP.x,
-              z: centerP.z,
-              ry: 0,
-              scale: isWater ? 2.0 : 1.7,
-            });
-            colliders.push({ minX: centerP.x - 1.2, maxX: centerP.x + 1.2, minZ: centerP.z - 1.2, maxZ: centerP.z + 1.2 });
-          } else {
-            [p1, p2, p3, p4].forEach((p, idx) => {
-              const bPath = indBuildings[(itemIdx + idx) % indBuildings.length];
-              const isChimney = idx === 1;
-              buildings.push({
-                path: bPath,
-                x: p.x,
-                z: p.z,
-                ry: (idx * Math.PI) / 2,
-                scale: 2.3,
-                propPath: isChimney ? industrialChimneyBasicPath : industrialTankPath,
-                propPos: isChimney ? [p.x, 2.0, p.z] : [p.x + 1.6, 0, p.z],
-                propScale: 1.4,
-              });
-              colliders.push({ minX: p.x - 1.6, maxX: p.x + 1.6, minZ: p.z - 1.6, maxZ: p.z + 1.6 });
-            });
-            buildings.push({
-              path: industrialTankLargePath,
-              x: centerP.x,
-              z: centerP.z,
-              ry: 0,
-              scale: 1.8,
-            });
-            colliders.push({ minX: centerP.x - 1.3, maxX: centerP.x + 1.3, minZ: centerP.z - 1.3, maxZ: centerP.z + 1.3 });
-          }
-          itemIdx += 4;
-        } else if (blockType === "metropolis-core") {
-          // DOWNTOWN SKYSCRAPERS
-          [p1, p2, p3, p4].forEach((p, idx) => {
-            const sc = 2.8;
-            buildings.push({
-              path: skyscraperPaths[(idx + seed + itemIdx) % skyscraperPaths.length],
-              x: p.x,
-              z: p.z,
-              ry: (idx * Math.PI) / 2,
-              scale: sc,
-            });
-            colliders.push({
-              minX: p.x - 1.7, maxX: p.x + 1.7, minZ: p.z - 1.7, maxZ: p.z + 1.7,
-            });
-          });
-          trees.push({ path: treeLargePath, pos: [centerP.x, 0, centerP.z], scale: 1.4 });
-          colliders.push({
-            minX: centerP.x - 0.7, maxX: centerP.x + 0.7, minZ: centerP.z - 0.7, maxZ: centerP.z + 0.7,
-          });
-          itemIdx += 4;
-        } else if (blockType === "metropolis-comm") {
-          // COMMERCIAL RETAIL, SHOPS & CAFES
-          [p1, p2, p3, p4].forEach((p, idx) => {
-            const sc = 2.4;
-            const path = commercialPaths[(itemIdx + idx + seed) % commercialPaths.length];
-            const ry = idx < 2 ? 0 : Math.PI;
-            const hasAwning = (idx + col + row) % 3 === 0;
-            const hasParasol = (idx + col + row) % 3 === 1;
-
-            buildings.push({
-              path,
-              x: p.x,
-              z: p.z,
-              ry,
-              scale: sc,
-              propPath: hasAwning ? awningPath : hasParasol ? parasolAPath : undefined,
-              propPos: hasAwning
-                ? [p.x, 1.6, ry === 0 ? p.z + 2.0 : p.z - 2.0]
-                : hasParasol
-                ? [p.x, 0, ry === 0 ? p.z + 2.0 : p.z - 2.0]
-                : undefined,
-              propScale: 1.25,
-            });
-            colliders.push({
-              minX: p.x - 1.6, maxX: p.x + 1.6, minZ: p.z - 1.6, maxZ: p.z + 1.6,
-            });
-          });
-          trees.push({
-            path: (col + row) % 2 === 0 ? treeLargePath : planterPath,
-            pos: [centerP.x, 0, centerP.z],
-            scale: 1.3,
-          });
-          colliders.push({
-            minX: centerP.x - 0.7, maxX: centerP.x + 0.7, minZ: centerP.z - 0.7, maxZ: centerP.z + 0.7,
-          });
-          itemIdx += 4;
-        } else {
-          // SUBURBAN RESIDENTIAL HOMES & GARDENS
-          [p1, p2, p3, p4].forEach((p, idx) => {
-            const sc = 2.3;
-            const model = suburbanBuildingPaths[(itemIdx + seed) % suburbanBuildingPaths.length];
-            itemIdx++;
-            const ry = idx < 2 ? 0 : Math.PI;
-            buildings.push({
-              path: model,
-              x: p.x,
-              z: p.z,
-              ry,
-              scale: sc,
-            });
-            colliders.push({
-              minX: p.x - 1.55, maxX: p.x + 1.55, minZ: p.z - 1.55, maxZ: p.z + 1.55,
-            });
-
-            // Yard tree
-            const treeX = p.x + (idx % 2 === 0 ? 1.8 : -1.8);
-            const treeZ = p.z + (ry === 0 ? 1.8 : -1.8);
-            trees.push({
-              path: (idx + col) % 2 === 0 ? treeLargePath : treeSmallPath,
-              pos: [treeX, 0, treeZ],
-              scale: 1.2,
-            });
-          });
-        }
-      });
-    });
-
-    return { buildings, trees, colliders };
-  }, [seed, mapThemeKey]);
-}
-
-// ─── Suburban Path Tiles + Fence + Driveway extra assets ─────────────────────
-const fence1x2Path     = `${suburbanRoot}/fence-1x2.glb`;
-const fence1x4Path     = `${suburbanRoot}/fence-1x4.glb`;
-const fence2x2Path     = `${suburbanRoot}/fence-2x2.glb`;
-const fenceLowPath     = `${suburbanRoot}/fence-low.glb`;
-const drivewayShortPath = `${suburbanRoot}/driveway-short.glb`;
-const drivewayLongPath  = `${suburbanRoot}/driveway-long.glb`;
-const pathStonesLongPath = `${suburbanRoot}/path-stones-long.glb`;
-const pathStonesShortPath = `${suburbanRoot}/path-stones-short.glb`;
-const pathStonesMessyPath = `${suburbanRoot}/path-stones-messy.glb`;
-const pathShortPath    = `${suburbanRoot}/path-short.glb`;
-
-// ─── Street Furniture (Illuminated Boulevards, Signals, Signs) ────────────────
-function StreetFurniture() {
-  const streetProps = useMemo(() => {
-    const lights: [number, number, number, number][] = [];
-    const trafficLights: [number, number, number, number][] = [];
-    const stopSigns: [number, number, number, number][] = [];
-
-    // Street lights along avenues on curbs
-    for (const avenue of AVENUES) {
-      for (let c = ROAD_MIN + 6; c <= ROAD_MAX - 6; c += 24) {
-        // Horizontal avenue curbs
-        lights.push([c, 0, avenue - 2.4, 0]);
-        lights.push([c, 0, avenue + 2.4, Math.PI]);
-        // Vertical avenue curbs
-        lights.push([avenue - 2.4, 0, c, Math.PI / 2]);
-        lights.push([avenue + 2.4, 0, c, -Math.PI / 2]);
-      }
-    }
-
-    // Traffic signals and stop signs at selected intersections
-    for (const ax of AVENUES) {
-      for (const az of AVENUES) {
-        if ((ax + az) % 40 === 0) {
-          trafficLights.push([ax + 2.5, 0, az + 2.5, Math.PI]);
-          stopSigns.push([ax + 2.5, 0, az - 2.5, -Math.PI / 2]);
-        }
-      }
-    }
-
-    return { lights, trafficLights, stopSigns };
-  }, []);
-
-  return (
-    <>
-      {streetProps.lights.map(([x, y, z, ry], i) => (
-        <Model key={`sl-${i}`} path={streetLightPath} position={[x, y, z]} rotation={[0, ry, 0]} scale={1.2} />
-      ))}
-      {streetProps.trafficLights.map(([x, y, z, ry], i) => (
-        <Model key={`tl-${i}`} path={trafficLightPath} position={[x, y, z]} rotation={[0, ry, 0]} scale={1.2} />
-      ))}
-      {streetProps.stopSigns.map(([x, y, z, ry], i) => (
-        <Model key={`ss-${i}`} path={stopSignPath} position={[x, y, z]} rotation={[0, ry, 0]} scale={1.2} />
-      ))}
-    </>
-  );
-}
-
-// ─── Street Props (Curb Decorations: Cones, Planters, Electricity Poles, Fences, Driveways) ─────
-function StreetProps({ seed }: { seed: number }) {
-  const propList = useMemo(() => {
-    const items: { path: string; pos: [number, number, number]; rot: number; scale: number }[] = [];
-
-    // Place props along avenue curbs at regular intervals
-    const propPaths = [conePath, planterPath, electricityPolePath, planterPath, conePath];
-    let idx = 0;
-    for (const avenue of AVENUES) {
-      for (let c = ROAD_MIN + 10; c <= ROAD_MAX - 10; c += 14) {
-        const r1 = lcg(seed + idx, 1);
-        const r2 = lcg(seed + idx, 2);
-        if (r1 > 0.45) { // 55% of slots get a prop — denser
-          const propPath = propPaths[Math.floor(r2 * propPaths.length)];
-          const offset = 3.0 + r1 * 0.5;
-          // Horizontal avenue: prop on north & south curbs
-          items.push({ path: propPath, pos: [c, 0, avenue - offset], rot: 0, scale: 1.1 });
-          if (lcg(seed + idx, 3) > 0.35) {
-            items.push({ path: propPath, pos: [c, 0, avenue + offset], rot: Math.PI, scale: 1.1 });
-          }
-          // Vertical avenue: prop on east & west curbs
-          items.push({ path: propPath, pos: [avenue - offset, 0, c], rot: Math.PI / 2, scale: 1.1 });
-          if (lcg(seed + idx, 4) > 0.35) {
-            items.push({ path: propPath, pos: [avenue + offset, 0, c], rot: -Math.PI / 2, scale: 1.1 });
-          }
-        }
-        // Dumpster occasionally
-        if (lcg(seed + idx, 5) > 0.84) {
-          items.push({ path: dumpsterPath, pos: [c + 1, 0, avenue - 3.2], rot: 0, scale: 1.0 });
-        }
-        idx++;
-      }
-    }
-
-    // ── Suburban fence rows along outer block perimeters ──
-    const outerBlockCenters = [-90, -70, 70, 90]; // outer blocks
-    const innerBlockCenters = [-50, -30, -10, 10, 30, 50];  // inner blocks
-    const fenceVariants = [fence1x2Path, fence1x4Path, fence2x2Path, fenceLowPath];
-
-    for (const bx of outerBlockCenters) {
-      for (const bz of [...outerBlockCenters, ...innerBlockCenters]) {
-        const fi = Math.floor(lcg(seed + bx * 7 + bz, 10) * fenceVariants.length);
-        const fencePath2 = fenceVariants[fi];
-        const ry = lcg(seed + bx + bz, 11) > 0.5 ? Math.PI / 2 : 0;
-        // Front fence of suburban block
-        items.push({ path: fencePath2, pos: [bx, 0, bz - 5.5], rot: ry, scale: 1.3 });
-        items.push({ path: fencePath2, pos: [bx, 0, bz + 5.5], rot: ry + Math.PI, scale: 1.3 });
-        // Side fence
-        items.push({ path: fencePath2, pos: [bx - 5.5, 0, bz], rot: ry + Math.PI / 2, scale: 1.3 });
-        items.push({ path: fencePath2, pos: [bx + 5.5, 0, bz], rot: ry - Math.PI / 2, scale: 1.3 });
-      }
-    }
-
-    // ── Driveway tiles in front of suburban houses ──
-    const drivewayPaths2 = [drivewayShortPath, drivewayLongPath];
-    for (const bx of outerBlockCenters) {
-      for (const bz of outerBlockCenters) {
-        const dIdx = Math.floor(lcg(seed + bx + bz, 20) * drivewayPaths2.length);
-        items.push({ path: drivewayPaths2[dIdx], pos: [bx, 0, bz - 4.0], rot: 0, scale: 1.1 });
-        items.push({ path: drivewayPaths2[dIdx], pos: [bx, 0, bz + 4.0], rot: Math.PI, scale: 1.1 });
-      }
-    }
-
-    // ── Path stone decorations in midtown plazas ──
-    const pathStonePaths = [pathStonesLongPath, pathStonesShortPath, pathStonesMessyPath, pathShortPath];
-    for (const bx of innerBlockCenters) {
-      for (const bz of innerBlockCenters) {
-        const psIdx = Math.floor(lcg(seed + bx * 3 + bz, 30) * pathStonePaths.length);
-        if (lcg(seed + bx + bz * 2, 31) > 0.4) {
-          items.push({ path: pathStonePaths[psIdx], pos: [bx + 2, 0, bz], rot: 0, scale: 1.0 });
-          items.push({ path: pathStonePaths[psIdx], pos: [bx - 2, 0, bz], rot: Math.PI, scale: 1.0 });
-        }
-      }
-    }
-
-    return items;
-  }, [seed]);
-
-  return (
-    <>
-      {propList.map((p, i) => (
-        <Model key={`sp-${i}`} path={p.path} position={p.pos} rotation={[0, p.rot, 0]} scale={p.scale} />
-      ))}
-    </>
-  );
-}
-
-// ─── Multi-Avenue NPC Traffic ─────────────────────────────────────────────────
-type NpcRoute = {
-  carPath: string;
-  sx: number; sz: number;
-  ex: number; ez: number;
-  speed: number;
-  offset: number;
-};
-
-function NpcCar({
-  route,
-  index,
-  npcPositionsRef,
-}: {
-  route: NpcRoute;
-  index: number;
-  npcPositionsRef: React.MutableRefObject<Array<{ x: number; z: number }>>;
-}) {
-  const groupRef = useRef<THREE.Group>(null);
-  const t = useRef(route.offset);
-  const { scene } = useGLTF(route.carPath);
-  const carScene = useMemo(() => scene.clone(true), [scene]);
-  const len = useMemo(() => Math.hypot(route.ex - route.sx, route.ez - route.sz), [route]);
-  const angle = useMemo(() => Math.atan2(route.ex - route.sx, route.ez - route.sz), [route]);
-
-  useFrame((_, delta) => {
-    if (!groupRef.current) return;
-    t.current = (t.current + (delta * route.speed) / len) % 1;
-    const curX = route.sx + (route.ex - route.sx) * t.current;
-    const curZ = route.sz + (route.ez - route.sz) * t.current;
-    groupRef.current.position.set(curX, 0, curZ);
-    groupRef.current.rotation.y = angle;
-
-    npcPositionsRef.current[index] = { x: curX, z: curZ };
-  });
-
-  return (
-    <group ref={groupRef}>
-      <primitive object={carScene} scale={0.95} />
-    </group>
-  );
-}
-
-function NpcTraffic({
+// ─── Procedural Vertex-Colored Nature Terrain ────────────────────────────────
+function NatureGround({
   seed,
-  npcPositionsRef,
+  themeId,
 }: {
   seed: number;
-  npcPositionsRef: React.MutableRefObject<Array<{ x: number; z: number }>>;
+  themeId: MapThemeId;
 }) {
-  const routes = useMemo<NpcRoute[]>(() => {
-    const list: NpcRoute[] = [];
+  const geometry = useMemo(() => {
+    const size = 440;
+    const segments = 180;
+    const geom = new THREE.PlaneGeometry(size, size, segments, segments);
+    geom.rotateX(-Math.PI / 2);
 
-    // Select 4 avenue corridors for NPC traffic across the 260x260 world
-    const npcHAvenues = [-40, 40]; // 2 horizontal corridors
-    const npcVAvenues = [-40, 40]; // 2 vertical corridors
+    const pos = geom.attributes.position;
+    const colors = new Float32Array(pos.count * 3);
+    const lake = getLakeSpec(seed);
+    const pond = getPondSpec(seed);
 
-    npcHAvenues.forEach((z, li) => {
-      // Eastbound lane
-      list.push({
-        carPath: npcCarPaths[(seed + li * 2) % npcCarPaths.length],
-        sx: ROAD_MIN, sz: z + 0.9,
-        ex: ROAD_MAX, ez: z + 0.9,
-        speed: 6.0 + lcg(seed + li, 1) * 3,
-        offset: lcg(seed + li, 2),
-      });
-      // Westbound lane
-      list.push({
-        carPath: npcCarPaths[(seed + li * 2 + 1) % npcCarPaths.length],
-        sx: ROAD_MAX, sz: z - 0.9,
-        ex: ROAD_MIN, ez: z - 0.9,
-        speed: 6.0 + lcg(seed + li, 3) * 3,
-        offset: lcg(seed + li, 4),
-      });
-    });
-
-    npcVAvenues.forEach((x, li) => {
-      // Southbound lane
-      list.push({
-        carPath: npcCarPaths[(seed + li * 2 + 2) % npcCarPaths.length],
-        sx: x + 0.9, sz: ROAD_MIN,
-        ex: x + 0.9, ez: ROAD_MAX,
-        speed: 6.0 + lcg(seed + li, 5) * 3,
-        offset: lcg(seed + li, 6),
-      });
-      // Northbound lane
-      list.push({
-        carPath: npcCarPaths[(seed + li * 2 + 3) % npcCarPaths.length],
-        sx: x - 0.9, sz: ROAD_MAX,
-        ex: x - 0.9, ez: ROAD_MIN,
-        speed: 6.0 + lcg(seed + li, 7) * 3,
-        offset: lcg(seed + li, 8),
-      });
-    });
-
-    return list;
-  }, [seed]);
-
-  return (
-    <>
-      {routes.map((r, i) => (
-        <NpcCar key={`npc-${i}`} route={r} index={i} npcPositionsRef={npcPositionsRef} />
-      ))}
-    </>
-  );
-}
-
-// ─── Flying Prop State (knocked small objects) ────────────────────────────────
-type FlyingPropState = {
-  id: number;
-  path: string;
-  startX: number;
-  startZ: number;
-  velX: number;
-  velZ: number;
-  spin: number;
-  age: number; // seconds since spawned
-};
-
-const MAX_FLYING_DURATION = 1.5; // seconds
-
-function FlyingPropMesh({ prop }: { prop: FlyingPropState }) {
-  const { scene } = useGLTF(prop.path);
-  const cloned = useMemo(() => scene.clone(true), [scene]);
-  const meshRef = useRef<THREE.Group>(null);
-  const ageRef = useRef(prop.age);
-
-  useFrame((_, delta) => {
-    ageRef.current += delta;
-    if (!meshRef.current) return;
-    const t = ageRef.current;
-    // parabolic arc: gravity pulls down after peak
-    const gravity = 9.8;
-    const vY0 = 4.0; // initial upward velocity
-    const y = Math.max(0, vY0 * t - 0.5 * gravity * t * t);
-    meshRef.current.position.set(
-      prop.startX + prop.velX * t,
-      y,
-      prop.startZ + prop.velZ * t
+    const grassMain = new THREE.Color(
+      themeId === "forest"
+        ? "#356638"
+        : themeId === "nature-valley"
+        ? "#68a64c"
+        : "#599645"
     );
-    meshRef.current.rotation.y += prop.spin * delta;
-    meshRef.current.rotation.x += prop.spin * 0.5 * delta;
-  });
+    const grassLush = new THREE.Color(
+      themeId === "forest"
+        ? "#264d2b"
+        : themeId === "nature-valley"
+        ? "#528a3c"
+        : "#457a36"
+    );
+    const dirtCore = new THREE.Color("#966c40");
+    const dirtEdge = new THREE.Color("#b99260");
+    const sandShore = new THREE.Color("#d8be86");
+    const cliffTint = new THREE.Color("#6b756e");
+    const tmpColor = new THREE.Color();
+
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getZ(i);
+      const y = terrainHeight(seed, x, z);
+      pos.setY(i, y);
+
+      const patch = 0.5 + 0.5 * Math.sin(x * 0.055 + z * 0.048 + seed * 0.1);
+      tmpColor.copy(grassMain).lerp(grassLush, patch * 0.7);
+
+      const trailDist = getTrailDistance(seed, x, z);
+      if (trailDist < 4.5) {
+        const edgeBlend = 1 - smoothstep(2.3, 4.5, trailDist);
+        const coreBlend = 1 - smoothstep(1.0, 2.6, trailDist);
+        tmpColor.lerp(dirtEdge, edgeBlend * 0.85);
+        tmpColor.lerp(dirtCore, coreBlend * 0.88);
+      }
+
+      const lakeDist = Math.hypot(x - lake.x, z - lake.z);
+      if (lakeDist < lake.radius + 3.8) {
+        const shoreBlend = 1 - smoothstep(lake.radius - 0.5, lake.radius + 3.8, lakeDist);
+        tmpColor.lerp(sandShore, shoreBlend * 0.94);
+      }
+      const pondDist = Math.hypot(x - pond.x, z - pond.z);
+      if (pondDist < pond.radius + 3.0) {
+        const shoreBlend = 1 - smoothstep(pond.radius - 0.5, pond.radius + 3.0, pondDist);
+        tmpColor.lerp(sandShore, shoreBlend * 0.92);
+      }
+
+      if (y > 1.4) {
+        const rockBlend = smoothstep(1.4, 4.8, y);
+        tmpColor.lerp(cliffTint, rockBlend * 0.72);
+      }
+
+      colors[i * 3] = tmpColor.r;
+      colors[i * 3 + 1] = tmpColor.g;
+      colors[i * 3 + 2] = tmpColor.b;
+    }
+
+    geom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geom.computeVertexNormals();
+    return geom;
+  }, [seed, themeId]);
+
+  const lake = useMemo(() => getLakeSpec(seed), [seed]);
+  const pond = useMemo(() => getPondSpec(seed), [seed]);
 
   return (
-    <group ref={meshRef} position={[prop.startX, 0, prop.startZ]}>
-      <primitive object={cloned} scale={1.0} />
+    <group>
+      <mesh geometry={geometry} receiveShadow>
+        <meshStandardMaterial vertexColors roughness={0.95} metalness={0.02} />
+      </mesh>
+      <mesh
+        position={[lake.x, WATER_LEVEL, lake.z]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <circleGeometry args={[lake.radius + 1.4, 40]} />
+        <meshStandardMaterial
+          color="#38bdf8"
+          transparent
+          opacity={0.78}
+          roughness={0.15}
+          metalness={0.1}
+        />
+      </mesh>
+      <mesh
+        position={[pond.x, WATER_LEVEL, pond.z]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <circleGeometry args={[pond.radius + 1.1, 32]} />
+        <meshStandardMaterial
+          color="#2dd4bf"
+          transparent
+          opacity={0.76}
+          roughness={0.18}
+          metalness={0.08}
+        />
+      </mesh>
     </group>
   );
 }
 
-// ─── Remote Player Pet Avatar ─────────────────────────────────────────────────
+// ─── Procedural Nature World Generator (Blocky + Stylized Nature MegaKit) ─────
+type PlacedNatureItem = {
+  path: string;
+  pos: [number, number, number];
+  ry: number;
+  scale: number;
+};
+
+type NpcAnimalSpec = {
+  path: string;
+  homeX: number;
+  homeZ: number;
+  wanderRadius: number;
+  scale: number;
+  speed: number;
+  phaseOffset: number;
+};
+
+function useNatureWorld(
+  seed: number,
+  mapThemeKey: string | undefined,
+  questionPoints: Point[]
+) {
+  return useMemo(() => {
+    const items: PlacedNatureItem[] = [];
+    const colliders: ColliderBox[] = [];
+    const npcAnimals: NpcAnimalSpec[] = [];
+    const themeId = resolveMapThemeConfig(mapThemeKey).id;
+    const lake = getLakeSpec(seed);
+    const pond = getPondSpec(seed);
+
+    const treePool: AssetSpec[] =
+      themeId === "forest"
+        ? [
+            BLOCKY.spruceTall,
+            BLOCKY.spruceMedium,
+            BLOCKY.spruceSmall,
+            BLOCKY.pine,
+            BLOCKY.oak,
+            BLOCKY.birchTall,
+            STYLIZED.pine1,
+            STYLIZED.pine2,
+            STYLIZED.commonTree3,
+            STYLIZED.twistedTree1,
+            STYLIZED.twistedTree2,
+            STYLIZED.deadTree1,
+            KAYKIT.tree2A,
+            KAYKIT.tree4A,
+            KAYKIT.treeBare1A,
+          ]
+        : themeId === "nature-valley"
+        ? [
+            BLOCKY.pine,
+            BLOCKY.spruceMedium,
+            BLOCKY.spruceSmall,
+            BLOCKY.birchSmall,
+            BLOCKY.oakYoung,
+            STYLIZED.pine1,
+            STYLIZED.pine3,
+            STYLIZED.commonTree1,
+            STYLIZED.commonTree2,
+            STYLIZED.twistedTree1,
+            KAYKIT.tree1A,
+            KAYKIT.tree2A,
+            KAYKIT.tree3A,
+            KAYKIT.tree4A,
+          ]
+        : [
+            BLOCKY.oak,
+            BLOCKY.oakYoung,
+            BLOCKY.birchTall,
+            BLOCKY.birchSmall,
+            BLOCKY.spruceMedium,
+            BLOCKY.pine,
+            STYLIZED.commonTree1,
+            STYLIZED.commonTree2,
+            STYLIZED.commonTree3,
+            STYLIZED.pine1,
+            STYLIZED.pine2,
+            STYLIZED.twistedTree1,
+            KAYKIT.tree1A,
+            KAYKIT.tree2A,
+            KAYKIT.tree3A,
+            KAYKIT.tree4A,
+          ];
+
+    const flowerPool: AssetSpec[] = [
+      BLOCKY.flowersYellow,
+      BLOCKY.flowersWhite,
+      BLOCKY.flowersViolet,
+      BLOCKY.flowersRed,
+      STYLIZED.flower3Group,
+      STYLIZED.flower4Group,
+      STYLIZED.clover1,
+    ];
+
+    const grassPool: AssetSpec[] = [
+      BLOCKY.grassShort,
+      BLOCKY.grassMedium,
+      BLOCKY.grassTall,
+      BLOCKY.fern,
+      STYLIZED.grassShort,
+      STYLIZED.grassTall,
+      STYLIZED.grassWispy,
+      STYLIZED.fern1,
+      KAYKIT.grass1A,
+      KAYKIT.grass2A,
+    ];
+
+    const bushPool: AssetSpec[] = [
+      BLOCKY.bushRound,
+      BLOCKY.bushBerry,
+      BLOCKY.bushFlowering,
+      STYLIZED.bushCommon,
+      STYLIZED.bushFlowers,
+      KAYKIT.bush1A,
+      KAYKIT.bush3A,
+    ];
+
+    const detailPool: AssetSpec[] = [
+      BLOCKY.mushrooms,
+      BLOCKY.stump,
+      BLOCKY.fern,
+      STYLIZED.fern1,
+      STYLIZED.mushroomCommon,
+      STYLIZED.mushroomLaetiporus,
+      STYLIZED.clover1,
+      KAYKIT.bush1A,
+      KAYKIT.grass1A,
+    ];
+
+    const rockPool: AssetSpec[] = [
+      BLOCKY.rockMedium,
+      BLOCKY.rockLarge,
+      STYLIZED.rockMedium1,
+      STYLIZED.rockMedium2,
+      KAYKIT.rock1A,
+      KAYKIT.rock1C,
+      KAYKIT.rock3A,
+    ];
+
+    const occupiedTrees: { x: number; z: number }[] = [];
+
+    const isClearForProp = (x: number, z: number, minTrailDist = 4.0) => {
+      if (Math.hypot(x, z) < 8.5) return false; // Spawn clearing
+      if (Math.hypot(x - lake.x, z - lake.z) < lake.radius + 3.0) return false;
+      if (Math.hypot(x - pond.x, z - pond.z) < pond.radius + 2.6) return false;
+      if (getTrailDistance(seed, x, z) < minTrailDist) return false;
+      if (questionPoints.some((qp) => Math.hypot(x - qp.x, z - qp.z) < 5.2)) {
+        return false;
+      }
+      return true;
+    };
+
+    // 1. Main lake & secondary pond shoreline details
+    const addWaterDetails = (body: LakeSpec, withPier: boolean, salt: number) => {
+      const pierAngle = Math.atan2(-body.z, -body.x);
+      const pierX = body.x + Math.cos(pierAngle) * (body.radius - 0.5);
+      const pierZ = body.z + Math.sin(pierAngle) * (body.radius - 0.5);
+      if (withPier) {
+        items.push({
+          path: BLOCKY.pier.path,
+          pos: [pierX, WATER_LEVEL - 0.05, pierZ],
+          ry: pierAngle + Math.PI / 2,
+          scale: 1.05,
+        });
+      }
+
+      const waterBlockRadius = body.radius * 0.68;
+      colliders.push({
+        minX: body.x - waterBlockRadius,
+        maxX: body.x + waterBlockRadius,
+        minZ: body.z - waterBlockRadius,
+        maxZ: body.z + waterBlockRadius,
+        kind: "building",
+      });
+
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2 + lcg(seed + salt, 500 + i) * 0.3;
+        const r = body.radius + (lcg(seed + salt, 520 + i) - 0.3) * 1.5;
+        const rx = body.x + Math.cos(a) * r;
+        const rz = body.z + Math.sin(a) * r;
+        if (withPier && Math.hypot(rx - pierX, rz - pierZ) < 3.2) continue;
+        items.push({
+          path: i % 3 === 0 ? BLOCKY.rockSmall.path : BLOCKY.reeds.path,
+          pos: [rx, terrainHeight(seed, rx, rz), rz],
+          ry: lcg(seed + salt, 540 + i) * Math.PI * 2,
+          scale: 0.95 + lcg(seed + salt, 560 + i) * 0.4,
+        });
+      }
+
+      for (let i = 0; i < 9; i++) {
+        const a = lcg(seed + salt, 600 + i) * Math.PI * 2;
+        const r = 1.5 + lcg(seed + salt, 620 + i) * (body.radius - 2.4);
+        items.push({
+          path: i % 2 === 0 ? BLOCKY.lilyPad.path : BLOCKY.lilyPadFlower.path,
+          pos: [body.x + Math.cos(a) * r, WATER_LEVEL + 0.02, body.z + Math.sin(a) * r],
+          ry: lcg(seed + salt, 640 + i) * Math.PI * 2,
+          scale: 1.0 + lcg(seed + salt, 660 + i) * 0.35,
+        });
+      }
+    };
+
+    addWaterDetails(lake, true, 0);
+    addWaterDetails(pond, false, 77);
+
+    // 2. Sector-Based Organic Groves (8x8 jittered regions so NO area stays barren or lined up)
+    const sectors = 8;
+    const sectorSpan = (WORLD_LIMIT * 2 - 12) / sectors;
+    const treesPerSector = themeId === "forest" ? 6 : themeId === "nature-valley" ? 4 : 5;
+
+    for (let sx = 0; sx < sectors; sx++) {
+      for (let sz = 0; sz < sectors; sz++) {
+        const sectorIdx = sx * sectors + sz;
+        const baseX = -WORLD_LIMIT + 6 + sx * sectorSpan;
+        const baseZ = -WORLD_LIMIT + 6 + sz * sectorSpan;
+
+        // Jittered grove center anywhere inside this 33x33m region
+        const gx = baseX + lcg(seed + 41, sectorIdx * 7) * sectorSpan;
+        const gz = baseZ + lcg(seed + 83, sectorIdx * 7 + 1) * sectorSpan;
+
+        // Place trees clustered loosely + scattered around the sector
+        for (let m = 0; m < treesPerSector; m++) {
+          const idx = sectorIdx * 16 + m;
+          const isCluster = m < treesPerSector - 1;
+          const tx = isCluster
+            ? gx + (lcg(seed + 13, idx * 2) - 0.5) * 20
+            : baseX + lcg(seed + 17, idx * 2) * sectorSpan;
+          const tz = isCluster
+            ? gz + (lcg(seed + 21, idx * 2 + 1) - 0.5) * 20
+            : baseZ + lcg(seed + 25, idx * 2 + 1) * sectorSpan;
+
+          if (Math.abs(tx) > WORLD_LIMIT - 2 || Math.abs(tz) > WORLD_LIMIT - 2) continue;
+          if (!isClearForProp(tx, tz, 4.1)) continue;
+          if (occupiedTrees.some((t) => Math.hypot(t.x - tx, t.z - tz) < 4.2)) continue;
+
+          const spec = treePool[Math.floor(lcg(seed + 7, idx) * treePool.length)];
+          const jitter = 0.88 + lcg(seed + 19, idx) * 0.38;
+          const ty = terrainHeight(seed, tx, tz);
+
+          items.push({
+            path: spec.path,
+            pos: [tx, ty, tz],
+            ry: lcg(seed + 23, idx) * Math.PI * 2,
+            scale: spec.baseScale * jitter,
+          });
+          occupiedTrees.push({ x: tx, z: tz });
+          colliders.push({
+            minX: tx - 0.68,
+            maxX: tx + 0.68,
+            minZ: tz - 0.68,
+            maxZ: tz + 0.68,
+            kind: "building",
+          });
+
+          // Understory ferns / mushrooms / stumps / bushes near trees
+          if (m % 2 === 0) {
+            const fx = tx + (lcg(seed + 29, idx) - 0.5) * 4.2;
+            const fz = tz + (lcg(seed + 31, idx) - 0.5) * 4.2;
+            if (Math.hypot(fx - tx, fz - tz) > 1.3 && isClearForProp(fx, fz, 2.8)) {
+              const detail = detailPool[Math.floor(lcg(seed + 33, idx) * detailPool.length)];
+              items.push({
+                path: detail.path,
+                pos: [fx, terrainHeight(seed, fx, fz), fz],
+                ry: lcg(seed + 37, idx) * Math.PI * 2,
+                scale: detail.baseScale * (0.9 + lcg(seed + 43, idx) * 0.3),
+              });
+            }
+          }
+        }
+
+        // Guarantee at least 1 rock or fallen log in most sectors so no zone feels empty
+        if (lcg(seed + 111, sectorIdx) > 0.22) {
+          const rx = baseX + lcg(seed + 113, sectorIdx * 3) * sectorSpan;
+          const rz = baseZ + lcg(seed + 117, sectorIdx * 3 + 1) * sectorSpan;
+          if (
+            isClearForProp(rx, rz, 3.8) &&
+            !occupiedTrees.some((t) => Math.hypot(t.x - rx, t.z - rz) < 3.0)
+          ) {
+            const isRock = sectorIdx % 4 !== 0;
+            const spec = isRock
+              ? rockPool[Math.floor(lcg(seed + 119, sectorIdx) * rockPool.length)]
+              : BLOCKY.fallenLog;
+            items.push({
+              path: spec.path,
+              pos: [rx, terrainHeight(seed, rx, rz), rz],
+              ry: lcg(seed + 121, sectorIdx) * Math.PI * 2,
+              scale: spec.baseScale * (0.9 + lcg(seed + 127, sectorIdx) * 0.35),
+            });
+            colliders.push({
+              minX: rx - 1.0,
+              maxX: rx + 1.0,
+              minZ: rz - 1.0,
+              maxZ: rz + 1.0,
+              kind: "building",
+            });
+          }
+        }
+
+        // Guarantee meadow grass, wildflowers & bushes in EVERY sector
+        for (let f = 0; f < 4; f++) {
+          const fIdx = sectorIdx * 8 + f;
+          const fx = baseX + lcg(seed + 211, fIdx * 2) * sectorSpan;
+          const fz = baseZ + lcg(seed + 213, fIdx * 2 + 1) * sectorSpan;
+          if (Math.hypot(fx - lake.x, fz - lake.z) < lake.radius + 1.8) continue;
+          if (Math.hypot(fx - pond.x, fz - pond.z) < pond.radius + 1.6) continue;
+          if (getTrailDistance(seed, fx, fz) < 2.3) continue;
+
+          const roll = lcg(seed + 219, fIdx);
+          const spec =
+            roll < 0.42
+              ? grassPool[Math.floor(lcg(seed + 221, fIdx) * grassPool.length)]
+              : roll < 0.76
+              ? flowerPool[Math.floor(lcg(seed + 223, fIdx) * flowerPool.length)]
+              : bushPool[Math.floor(lcg(seed + 225, fIdx) * bushPool.length)];
+
+          items.push({
+            path: spec.path,
+            pos: [fx, terrainHeight(seed, fx, fz), fz],
+            ry: lcg(seed + 227, fIdx) * Math.PI * 2,
+            scale: spec.baseScale * (0.9 + lcg(seed + 229, fIdx) * 0.42),
+          });
+        }
+      }
+    }
+
+    // 3. Extra Free-Scattered Accent Trees, Rocks & Bushes in Open Spots
+    for (let i = 0; i < 42; i++) {
+      const tx = (lcg(seed + 701, i * 2) - 0.5) * 260;
+      const tz = (lcg(seed + 709, i * 2 + 1) - 0.5) * 260;
+      if (!isClearForProp(tx, tz, 4.3)) continue;
+      if (occupiedTrees.some((t) => Math.hypot(t.x - tx, t.z - tz) < 4.5)) continue;
+
+      const spec = treePool[Math.floor(lcg(seed + 719, i) * treePool.length)];
+      items.push({
+        path: spec.path,
+        pos: [tx, terrainHeight(seed, tx, tz), tz],
+        ry: lcg(seed + 727, i) * Math.PI * 2,
+        scale: spec.baseScale * (0.95 + lcg(seed + 733, i) * 0.35),
+      });
+      occupiedTrees.push({ x: tx, z: tz });
+      colliders.push({
+        minX: tx - 0.7,
+        maxX: tx + 0.7,
+        minZ: tz - 0.7,
+        maxZ: tz + 0.7,
+        kind: "building",
+      });
+    }
+
+    // 4. Trail-side pebbles & flat stone path accents so winding trails pop
+    for (let t = -130; t <= 130; t += 10) {
+      const edgeCandidates = [
+        { x: t, z: getTrail1Z(seed, t) + (lcg(seed + 401, t + 200) > 0.5 ? 2.5 : -2.5) },
+        { x: getTrail2X(seed, t) + (lcg(seed + 403, t + 200) > 0.5 ? 2.5 : -2.5), z: t },
+      ];
+      for (const c of edgeCandidates) {
+        if (Math.hypot(c.x - lake.x, c.z - lake.z) < lake.radius + 2.2) continue;
+        if (Math.hypot(c.x - pond.x, c.z - pond.z) < pond.radius + 2.0) continue;
+        items.push({
+          path: Math.abs(t) % 20 === 0 ? BLOCKY.rockSmall.path : BLOCKY.pebbles.path,
+          pos: [c.x, terrainHeight(seed, c.x, c.z), c.z],
+          ry: lcg(seed + 409, t + 300) * Math.PI * 2,
+          scale: 1.05 + lcg(seed + 419, t + 300) * 0.35,
+        });
+      }
+
+      if (Math.abs(t) % 20 === 0) {
+        const s1x = t;
+        const s1z = getTrail1Z(seed, t);
+        if (Math.hypot(s1x - lake.x, s1z - lake.z) > lake.radius + 2.5) {
+          const stone = t % 40 === 0 ? STYLIZED.rockPath1 : STYLIZED.rockPath2;
+          items.push({
+            path: stone.path,
+            pos: [s1x, terrainHeight(seed, s1x, s1z) + 0.03, s1z],
+            ry: lcg(seed + 431, t + 300) * Math.PI * 2,
+            scale: stone.baseScale,
+          });
+        }
+      }
+    }
+
+    // 7. Scenic outer perimeter cliffs & border forest (beyond WORLD_LIMIT)
+    for (let i = 0; i < 64; i++) {
+      const a = (i / 64) * Math.PI * 2;
+      const r = WORLD_LIMIT + 9 + lcg(seed + 301, i) * 14;
+      const cx = Math.cos(a) * r;
+      const cz = Math.sin(a) * r;
+      const isCliff = i % 3 === 0;
+      const borderTree = treePool[i % treePool.length];
+      items.push({
+        path: isCliff ? BLOCKY.cliff.path : borderTree.path,
+        pos: [cx, terrainHeight(seed, cx, cz) - 0.3, cz],
+        ry: a + Math.PI + (lcg(seed + 307, i) - 0.5) * 0.6,
+        scale: isCliff
+          ? 2.2 + lcg(seed + 311, i) * 0.9
+          : borderTree.baseScale * (1.2 + lcg(seed + 313, i) * 0.45),
+      });
+    }
+
+    // 8. Ambient Wildlife NPCs (8 roaming animals, kept light & lively)
+    for (let i = 0; i < NPC_ANIMAL_SPECIES.length; i++) {
+      const species = NPC_ANIMAL_SPECIES[i];
+      // Place duck near the main lake shore; others in clearings around the world
+      let hx: number;
+      let hz: number;
+      if (species.path.endsWith("/duck.glb")) {
+        const shoreAngle = lcg(seed + 801, i) * Math.PI * 2;
+        hx = lake.x + Math.cos(shoreAngle) * (lake.radius + 3.2);
+        hz = lake.z + Math.sin(shoreAngle) * (lake.radius + 3.2);
+      } else {
+        const a = (i / NPC_ANIMAL_SPECIES.length) * Math.PI * 2 + lcg(seed + 811, i) * 0.5;
+        const d = 22 + lcg(seed + 821, i) * 72;
+        hx = Math.cos(a) * d;
+        hz = Math.sin(a) * d;
+      }
+      npcAnimals.push({
+        path: species.path,
+        homeX: hx,
+        homeZ: hz,
+        wanderRadius: species.path.endsWith("/duck.glb") ? 4.5 : 12 + lcg(seed + 831, i) * 6,
+        scale: species.scale,
+        speed: species.speed,
+        phaseOffset: lcg(seed + 841, i) * 100,
+      });
+    }
+
+    return { items, colliders, npcAnimals };
+  }, [seed, mapThemeKey, questionPoints]);
+}
+
+// ─── Rigged Animal Procedural Animation Helpers ──────────────────────────────
+type RigPart = {
+  obj: THREE.Object3D;
+  baseRotX: number;
+  baseRotY: number;
+  baseRotZ: number;
+};
+
+type RigParts = {
+  body?: RigPart;
+  head?: RigPart;
+  tail?: RigPart;
+  legFL?: RigPart;
+  legFR?: RigPart;
+  legBL?: RigPart;
+  legBR?: RigPart;
+  legL?: RigPart;
+  legR?: RigPart;
+  wingL?: RigPart;
+  wingR?: RigPart;
+};
+
+function captureRigParts(root: THREE.Object3D): RigParts {
+  const parts: RigParts = {};
+  const toPart = (obj: THREE.Object3D): RigPart => ({
+    obj,
+    baseRotX: obj.rotation.x,
+    baseRotY: obj.rotation.y,
+    baseRotZ: obj.rotation.z,
+  });
+
+  root.traverse((child) => {
+    const name = child.name;
+    if (!name) return;
+    if (name.endsWith("__body")) parts.body = toPart(child);
+    else if (name.endsWith("__head")) parts.head = toPart(child);
+    else if (name.endsWith("__tail")) parts.tail = toPart(child);
+    else if (name.endsWith("__leg_fl")) parts.legFL = toPart(child);
+    else if (name.endsWith("__leg_fr")) parts.legFR = toPart(child);
+    else if (name.endsWith("__leg_bl")) parts.legBL = toPart(child);
+    else if (name.endsWith("__leg_br")) parts.legBR = toPart(child);
+    else if (name.endsWith("__leg_l")) parts.legL = toPart(child);
+    else if (name.endsWith("__leg_r")) parts.legR = toPart(child);
+    else if (name.endsWith("__wing_l")) parts.wingL = toPart(child);
+    else if (name.endsWith("__wing_r")) parts.wingR = toPart(child);
+  });
+
+  return parts;
+}
+
+function animateRigParts(
+  parts: RigParts,
+  walkPhase: number,
+  speedRatio: number,
+  elapsedTime: number
+) {
+  const moving = speedRatio > 0.05;
+  const swing = moving ? Math.sin(walkPhase) * 0.6 * Math.min(speedRatio, 1) : 0;
+
+  if (parts.legFL) parts.legFL.obj.rotation.x = parts.legFL.baseRotX + swing;
+  if (parts.legBR) parts.legBR.obj.rotation.x = parts.legBR.baseRotX + swing;
+  if (parts.legFR) parts.legFR.obj.rotation.x = parts.legFR.baseRotX - swing;
+  if (parts.legBL) parts.legBL.obj.rotation.x = parts.legBL.baseRotX - swing;
+
+  if (parts.legL) parts.legL.obj.rotation.x = parts.legL.baseRotX + swing;
+  if (parts.legR) parts.legR.obj.rotation.x = parts.legR.baseRotX - swing;
+
+  if (parts.wingL) {
+    const flap = moving ? Math.abs(Math.sin(walkPhase)) * 0.45 * speedRatio : 0;
+    parts.wingL.obj.rotation.z = parts.wingL.baseRotZ + flap;
+  }
+  if (parts.wingR) {
+    const flap = moving ? Math.abs(Math.sin(walkPhase)) * 0.45 * speedRatio : 0;
+    parts.wingR.obj.rotation.z = parts.wingR.baseRotZ - flap;
+  }
+
+  if (parts.head) {
+    const nod = moving
+      ? Math.sin(walkPhase * 2) * 0.07 * speedRatio
+      : Math.sin(elapsedTime * 1.8) * 0.04;
+    parts.head.obj.rotation.x = parts.head.baseRotX + nod;
+  }
+
+  if (parts.tail) {
+    const wag = moving
+      ? Math.sin(walkPhase * 1.5) * 0.35
+      : Math.sin(elapsedTime * 3.0) * 0.16;
+    parts.tail.obj.rotation.y = parts.tail.baseRotY + wag;
+  }
+
+  if (parts.body) {
+    const bobRot = moving ? Math.sin(walkPhase * 2) * 0.04 * speedRatio : 0;
+    parts.body.obj.rotation.x = parts.body.baseRotX + bobRot;
+  }
+}
+
+// ─── Roaming Ambient Wildlife NPC ────────────────────────────────────────────
+function RoamingNpcAnimal({
+  spec,
+  index,
+  terrainSeed,
+  npcPositionsRef,
+}: {
+  spec: NpcAnimalSpec;
+  index: number;
+  terrainSeed: number;
+  npcPositionsRef: React.MutableRefObject<Array<{ x: number; z: number }>>;
+}) {
+  const { scene } = useGLTF(spec.path);
+  const animalScene = useMemo(() => scene.clone(true), [scene]);
+  const rigParts = useMemo(() => captureRigParts(animalScene), [animalScene]);
+
+  const groupRef = useRef<THREE.Group>(null);
+  const posRef = useRef(new THREE.Vector3(spec.homeX, 0, spec.homeZ));
+  const targetRef = useRef(new THREE.Vector3(spec.homeX, 0, spec.homeZ));
+  const headingRef = useRef((index * 1.3) % (Math.PI * 2));
+  const walkPhaseRef = useRef(spec.phaseOffset);
+  const stepCounterRef = useRef(1);
+  const pauseTimerRef = useRef(0.5 + (index % 3) * 0.8);
+
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.05);
+    let movingSpeed = 0;
+
+    if (pauseTimerRef.current > 0) {
+      pauseTimerRef.current -= dt;
+      if (pauseTimerRef.current <= 0) {
+        const s = stepCounterRef.current++;
+        const a = lcg(terrainSeed + index * 37, s * 2) * Math.PI * 2;
+        const r = (0.35 + lcg(terrainSeed + index * 53, s * 2 + 1) * 0.65) * spec.wanderRadius;
+        targetRef.current.set(
+          THREE.MathUtils.clamp(spec.homeX + Math.cos(a) * r, -WORLD_LIMIT + 4, WORLD_LIMIT - 4),
+          0,
+          THREE.MathUtils.clamp(spec.homeZ + Math.sin(a) * r, -WORLD_LIMIT + 4, WORLD_LIMIT - 4)
+        );
+      }
+    } else {
+      const dx = targetRef.current.x - posRef.current.x;
+      const dz = targetRef.current.z - posRef.current.z;
+      const dist = Math.hypot(dx, dz);
+
+      if (dist < 0.45) {
+        pauseTimerRef.current = 1.8 + lcg(terrainSeed + index * 19, stepCounterRef.current) * 2.5;
+      } else {
+        const desiredHeading = Math.atan2(dx, dz);
+        let diff = desiredHeading - headingRef.current;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        headingRef.current += diff * Math.min(1, dt * 4.5);
+
+        const step = Math.min(dist, spec.speed * dt);
+        posRef.current.x += (dx / dist) * step;
+        posRef.current.z += (dz / dist) * step;
+        movingSpeed = spec.speed;
+        walkPhaseRef.current += dt * (spec.speed * 3.8);
+      }
+    }
+
+    const speedRatio = movingSpeed > 0 ? 0.65 : 0;
+    animateRigParts(rigParts, walkPhaseRef.current, speedRatio, state.clock.elapsedTime + spec.phaseOffset);
+
+    const gy = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
+    if (groupRef.current) {
+      groupRef.current.position.set(posRef.current.x, gy, posRef.current.z);
+      groupRef.current.rotation.y = headingRef.current;
+    }
+    npcPositionsRef.current[index] = { x: posRef.current.x, z: posRef.current.z };
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={[spec.homeX, terrainHeight(terrainSeed, spec.homeX, spec.homeZ), spec.homeZ]}
+    >
+      <primitive object={animalScene} scale={spec.scale} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
+        <circleGeometry args={[0.5, 16]} />
+        <meshBasicMaterial color="#111" transparent opacity={0.22} />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Remote Player Pet Avatar ────────────────────────────────────────────────
 function RemotePetAvatar({
   player,
   petIdx,
+  terrainSeed,
   showNameTag,
 }: {
   player: RemotePlayer;
   petIdx: number;
+  terrainSeed: number;
   showNameTag: boolean;
 }) {
   const petPath = playerPetOptions[petIdx % playerPetOptions.length];
   const { scene } = useGLTF(petPath);
   const petScene = useMemo(() => scene.clone(true), [scene]);
-  const x = player.position?.x ?? 0;
-  const z = player.position?.z ?? 0;
+  const rigParts = useMemo(() => captureRigParts(petScene), [petScene]);
+
+  const groupRef = useRef<THREE.Group>(null);
+  const targetX = player.position?.x ?? 0;
+  const targetZ = player.position?.z ?? 0;
+  const smoothPosRef = useRef(new THREE.Vector3(targetX, 0, targetZ));
+  const headingRef = useRef(0);
+  const walkPhaseRef = useRef(0);
+
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const dx = targetX - smoothPosRef.current.x;
+    const dz = targetZ - smoothPosRef.current.z;
+    const dist = Math.hypot(dx, dz);
+
+    smoothPosRef.current.x = THREE.MathUtils.lerp(smoothPosRef.current.x, targetX, 1 - Math.pow(0.001, dt * 6));
+    smoothPosRef.current.z = THREE.MathUtils.lerp(smoothPosRef.current.z, targetZ, 1 - Math.pow(0.001, dt * 6));
+
+    if (dist > 0.04) {
+      const desiredHeading = Math.atan2(dx, dz);
+      let diff = desiredHeading - headingRef.current;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      headingRef.current += diff * Math.min(1, dt * 10);
+    }
+
+    const speedRatio = Math.min(dist * 2.5, 1);
+    if (speedRatio > 0.05) {
+      walkPhaseRef.current += dt * (speedRatio * 14 + 4);
+    }
+    animateRigParts(rigParts, walkPhaseRef.current, speedRatio, state.clock.elapsedTime);
+
+    const gy = terrainHeight(terrainSeed, smoothPosRef.current.x, smoothPosRef.current.z);
+    if (groupRef.current) {
+      groupRef.current.position.set(smoothPosRef.current.x, gy, smoothPosRef.current.z);
+      groupRef.current.rotation.y = headingRef.current;
+    }
+  });
+
   return (
-    <group position={[x, 0, z]}>
+    <group ref={groupRef} position={[targetX, terrainHeight(terrainSeed, targetX, targetZ), targetZ]}>
       <primitive object={petScene} scale={PLAYER_MODEL_SCALE} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
         <circleGeometry args={[0.65, 20]} />
         <meshBasicMaterial color="#111" transparent opacity={0.25} />
       </mesh>
-      {/* Player name tag floating above remote pet */}
       {showNameTag && (
         <Html position={[0, player.nameTagY ?? PLAYER_NAMETAG_Y, 0]} center distanceFactor={12} zIndexRange={[2, 0]}>
           <div className="player-nametag">{player.name}</div>
@@ -1233,7 +1211,7 @@ function RemotePetAvatar({
   );
 }
 
-// ─── 3D Question Marker with 16m Sky Beam & Pulsing Ground Ring ───────────────
+// ─── 3D Question Marker with Sky Beam & Pulsing Ground Ring ──────────────────
 function QuestionMarker({
   point,
   index,
@@ -1289,7 +1267,7 @@ function QuestionMarker({
         </mesh>
       </group>
 
-      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
+      <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
         <ringGeometry args={[1.5, 1.9, 32]} />
         <meshBasicMaterial
           color={color}
@@ -1299,7 +1277,7 @@ function QuestionMarker({
         />
       </mesh>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
         <circleGeometry args={[1.5, 32]} />
         <meshBasicMaterial
           color={color}
@@ -1312,56 +1290,49 @@ function QuestionMarker({
   );
 }
 
-// ─── Fast, Non-Penetrating Collision Resolution ───────────────────────────────
-// Returns 'building' if hit a solid building, 'prop' if hit a small prop, false if no hit
+// ─── Non-Penetrating Obstacle Collision Resolution ───────────────────────────
 function resolveObstacleCollision(
-  carPos: THREE.Vector3,
-  carRadius: number,
+  pos: THREE.Vector3,
+  radius: number,
   colliders: ColliderBox[]
-): "building" | "prop" | false {
-  let hitKind: "building" | "prop" | false = false;
+): boolean {
+  let hit = false;
 
   for (let i = 0; i < colliders.length; i++) {
     const box = colliders[i];
-    const closestX = Math.max(box.minX, Math.min(carPos.x, box.maxX));
-    const closestZ = Math.max(box.minZ, Math.min(carPos.z, box.maxZ));
+    const closestX = Math.max(box.minX, Math.min(pos.x, box.maxX));
+    const closestZ = Math.max(box.minZ, Math.min(pos.z, box.maxZ));
 
-    const dx = carPos.x - closestX;
-    const dz = carPos.z - closestZ;
+    const dx = pos.x - closestX;
+    const dz = pos.z - closestZ;
     const distSq = dx * dx + dz * dz;
 
-    if (distSq < carRadius * carRadius) {
-      const kind = box.kind ?? "building";
-      hitKind = hitKind === "building" ? "building" : kind;
-
-      // Props don't push back the car (car passes through with minor deceleration)
-      if (kind === "prop") continue;
-
-      // Buildings: rigid push out
+    if (distSq < radius * radius) {
+      hit = true;
       const dist = Math.sqrt(distSq);
       if (dist > 0.0001) {
-        const overlap = carRadius - dist;
-        carPos.x += (dx / dist) * overlap;
-        carPos.z += (dz / dist) * overlap;
+        const overlap = radius - dist;
+        pos.x += (dx / dist) * overlap;
+        pos.z += (dz / dist) * overlap;
       } else {
-        const dMinX = Math.abs(carPos.x - box.minX);
-        const dMaxX = Math.abs(carPos.x - box.maxX);
-        const dMinZ = Math.abs(carPos.z - box.minZ);
-        const dMaxZ = Math.abs(carPos.z - box.maxZ);
+        const dMinX = Math.abs(pos.x - box.minX);
+        const dMaxX = Math.abs(pos.x - box.maxX);
+        const dMinZ = Math.abs(pos.z - box.minZ);
+        const dMaxZ = Math.abs(pos.z - box.maxZ);
         const minEdge = Math.min(dMinX, dMaxX, dMinZ, dMaxZ);
 
-        if (minEdge === dMinX) carPos.x = box.minX - carRadius;
-        else if (minEdge === dMaxX) carPos.x = box.maxX + carRadius;
-        else if (minEdge === dMinZ) carPos.z = box.minZ - carRadius;
-        else carPos.z = box.maxZ + carRadius;
+        if (minEdge === dMinX) pos.x = box.minX - radius;
+        else if (minEdge === dMaxX) pos.x = box.maxX + radius;
+        else if (minEdge === dMinZ) pos.z = box.minZ - radius;
+        else pos.z = box.maxZ + radius;
       }
     }
   }
 
-  return hitKind;
+  return hit;
 }
 
-// ─── Player Pet Controller with Expansive Speed, Hop Physics & Collision ──────
+// ─── Player Pet Controller with Rigged Animation & Smooth Camera ─────────────
 function PlayerPetController({
   roomCode,
   playerId,
@@ -1377,7 +1348,6 @@ function PlayerPetController({
   isBrakingRef,
   onPlayerPosUpdate,
   onNearQuestion,
-  onPropHit,
 }: {
   roomCode: string;
   playerId: string;
@@ -1393,43 +1363,40 @@ function PlayerPetController({
   isBrakingRef?: React.RefObject<boolean>;
   onPlayerPosUpdate?: (pos: { x: number; z: number }) => void;
   onNearQuestion?: (index: number | null) => void;
-  onPropHit?: (pos: { x: number; z: number }, heading: number) => void;
 }) {
   const petGroupRef = useRef<THREE.Group>(null);
 
-  // Character starts at center intersection (0, 0, 0)
-  const posRef     = useRef(new THREE.Vector3(0, 0, 0));
+  const posRef = useRef(new THREE.Vector3(0, 0, 0));
   const headingRef = useRef(0);
-  const speedRef   = useRef(0);
-  const bumpRef    = useRef(0);
-  const hopRef     = useRef(0); // Cute running bounce animation
+  const speedRef = useRef(0);
+  const bumpRef = useRef(0);
+  const hopRef = useRef(0);
 
-  // Smooth steering & damped camera follow refs
-  const steerAngleRef   = useRef(0);
+  const steerAngleRef = useRef(0);
   const smoothCamYawRef = useRef(0);
-
-  // Camera placed 7.4 units behind pet
-  const camPosRef  = useRef(new THREE.Vector3(0, 3.5, -7.4));
+  const camPosRef = useRef(new THREE.Vector3(0, 3.5, -7.4));
   const camLookRef = useRef(new THREE.Vector3(0, 1.0, 3.5));
 
-  const keys          = useRef<Record<string, boolean>>({});
-  const lastSync      = useRef(0);
+  const keys = useRef<Record<string, boolean>>({});
+  const lastSync = useRef(0);
   const lastPosReport = useRef(0);
   const { camera, gl } = useThree();
-  // Loaded inside the player boundary so the rest of the city can render
-  // while the selected avatar is still downloading.
+
   const { scene: petBase } = useGLTF(petPath);
   const petScene = useMemo(() => petBase.clone(true), [petBase]);
+  const rigParts = useMemo(() => captureRigParts(petScene), [petScene]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright"].includes(k)) {
+      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) {
         if (!isQuizOpen) e.preventDefault();
       }
       keys.current[k] = true;
     };
-    const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
+    const up = (e: KeyboardEvent) => {
+      keys.current[e.key.toLowerCase()] = false;
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => {
@@ -1438,45 +1405,98 @@ function PlayerPetController({
     };
   }, [isQuizOpen]);
 
-  // Touch / pointer swipe for rotating camera orbit (yaw + pitch)
-  const swipeYaw   = useRef(0);
-  const swipePitch = useRef(0.42); // ~24° elevation in radians
+  const targetSwipeYaw = useRef(0);
+  const targetSwipePitch = useRef(0.42);
+  const swipeYaw = useRef(0);
+  const swipePitch = useRef(0.42);
+  const isDraggingCamRef = useRef(false);
+
   useEffect(() => {
     const canvas = gl.domElement;
+
+    let activePointerId: number | null = null;
     let lastX = 0;
     let lastY = 0;
+
     const isJoystickZone = (e: PointerEvent) => {
-      const cw = canvas.clientWidth;
-      const ch = canvas.clientHeight;
-      return e.clientX > cw * 0.65 && e.clientY > ch * 0.72;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest?.(".mobile-controls-layer, .virtual-joystick-base")) {
+        return true;
+      }
+      const rect = canvas.getBoundingClientRect();
+      const relX = e.clientX - rect.left;
+      const relY = e.clientY - rect.top;
+      return relX > rect.width * 0.65 && relY > rect.height * 0.72;
     };
+
     const onDown = (e: PointerEvent) => {
+      if (activePointerId !== null) return;
+      if (e.pointerType === "mouse" && e.button !== 0) return;
       if (isJoystickZone(e)) return;
+
+      activePointerId = e.pointerId;
+      isDraggingCamRef.current = true;
       lastX = e.clientX;
       lastY = e.clientY;
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // Ignore if pointer capture is unsupported
+      }
     };
+
     const onMove = (e: PointerEvent) => {
-      if (!(e.buttons & 1)) return;
-      if (isJoystickZone(e)) return;
-      swipeYaw.current   -= (e.clientX - lastX) * 0.007;
-      swipePitch.current  = THREE.MathUtils.clamp(
-        swipePitch.current + (e.clientY - lastY) * 0.004,
-        0.18,  // ~10° min (looking nearly level)
-        1.1    // ~63° max (looking steeply down)
-      );
+      if (e.pointerId !== activePointerId) return;
+      if (e.pointerType === "mouse" && !(e.buttons & 1)) {
+        activePointerId = null;
+        isDraggingCamRef.current = false;
+        return;
+      }
+
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
+
+      const yawSens = e.pointerType === "touch" ? 0.0085 : 0.0065;
+      const pitchSens = e.pointerType === "touch" ? 0.005 : 0.004;
+
+      targetSwipeYaw.current -= dx * yawSens;
+      targetSwipePitch.current = THREE.MathUtils.clamp(
+        targetSwipePitch.current + dy * pitchSens,
+        0.16,
+        1.08
+      );
     };
+
+    const onEnd = (e: PointerEvent) => {
+      if (e.pointerId !== activePointerId) return;
+      activePointerId = null;
+      isDraggingCamRef.current = false;
+      try {
+        if (canvas.hasPointerCapture(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Ignore
+      }
+    };
+
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onEnd);
+    canvas.addEventListener("pointercancel", onEnd);
     return () => {
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerup", onEnd);
+      canvas.removeEventListener("pointercancel", onEnd);
     };
   }, [gl]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
+    const maxFwd = 16.5;
     let rawSteer = 0;
 
     if (isQuizOpen) {
@@ -1487,93 +1507,70 @@ function PlayerPetController({
       const joyY = joystickRef?.current?.y ?? 0;
       const isBraking = isBrakingRef?.current ?? false;
 
-      const keyAccel   = (keys.current["w"] || keys.current["arrowup"]) ? 1 : 0;
-      const keyReverse = (keys.current["s"] || keys.current["arrowdown"]) ? 1 : 0;
-      const keyLeft    = (keys.current["a"] || keys.current["arrowleft"]) ? 1 : 0;
-      const keyRight   = (keys.current["d"] || keys.current["arrowright"]) ? 1 : 0;
+      const keyAccel = keys.current["w"] || keys.current["arrowup"] ? 1 : 0;
+      const keyReverse = keys.current["s"] || keys.current["arrowdown"] ? 1 : 0;
+      const keyLeft = keys.current["a"] || keys.current["arrowleft"] ? 1 : 0;
+      const keyRight = keys.current["d"] || keys.current["arrowright"] ? 1 : 0;
 
-      // Throttle inputs
       const fwdThrottle = Math.max(keyAccel, joyY > 0 ? joyY : 0);
       const revThrottle = Math.max(keyReverse, joyY < 0 ? -joyY : 0);
 
-      // Raw steering input: keyboard overrides joystick if pressed
       if (keyLeft) rawSteer = 1;
       else if (keyRight) rawSteer = -1;
       else if (Math.abs(joyX) > 0.04) rawSteer = -joyX;
 
-      // ── Smooth Steering Interpolation ──
-      // Transitions smoothly towards target angle, eliminating sudden snap
-      const steerLerpSpeed = 9.5;
       steerAngleRef.current = THREE.MathUtils.lerp(
         steerAngleRef.current,
         rawSteer,
-        1 - Math.pow(0.001, dt * steerLerpSpeed)
+        1 - Math.pow(0.001, dt * 9.5)
       );
 
-      // Cruise dynamics tuned for expansive 260x260 world
-      const maxFwd = 17.5;
-      const maxRev = 7.0;
+      const maxRev = 6.5;
       const acc = 22.0;
-      const coastDrag = 2.4;  // Natural rolling coasting (smooth glide on throttle release)
-      const activeBrake = 24.0; // Responsive deceleration on active brake or reverse key
+      const coastDrag = 2.8;
+      const activeBrake = 24.0;
 
       if (isBraking) {
         speedRef.current = THREE.MathUtils.lerp(speedRef.current, 0, dt * 14);
         if (Math.abs(speedRef.current) < 0.08) speedRef.current = 0;
       } else if (fwdThrottle > 0.04) {
         if (speedRef.current < -0.3) {
-          // If reversing, forward key acts as smooth brake first
           speedRef.current += activeBrake * dt;
         } else {
-          const targetMax = maxFwd * fwdThrottle;
-          speedRef.current = Math.min(speedRef.current + acc * fwdThrottle * dt, targetMax);
+          speedRef.current = Math.min(speedRef.current + acc * fwdThrottle * dt, maxFwd * fwdThrottle);
         }
       } else if (revThrottle > 0.04) {
         if (speedRef.current > 0.5) {
-          // If moving forward, reverse key acts as smooth progressive brake!
-          // This eliminates the violent instant velocity reversal
           speedRef.current = Math.max(speedRef.current - activeBrake * revThrottle * dt, 0);
         } else {
-          const targetRev = -maxRev * revThrottle;
-          speedRef.current = Math.max(speedRef.current - (acc * 0.75) * revThrottle * dt, targetRev);
+          speedRef.current = Math.max(speedRef.current - acc * 0.75 * revThrottle * dt, -maxRev * revThrottle);
         }
       } else {
-        // Smooth rolling coasting with gentle drag
-        const dragFactor = Math.exp(-coastDrag * dt);
-        speedRef.current *= dragFactor;
+        speedRef.current *= Math.exp(-coastDrag * dt);
         if (Math.abs(speedRef.current) < 0.05) speedRef.current = 0;
       }
 
-      // ── Dynamic Speed-Adaptive Turning Curve ──
       const currentSpeedMag = Math.abs(speedRef.current);
-      // Turning is stable at high speeds and nimble at low-mid speeds
-      const speedFactor = THREE.MathUtils.clamp(currentSpeedMag / (maxFwd * 0.4), 0.28, 1.0);
-      const steerRate = 2.45 * speedFactor;
+      const speedFactor = THREE.MathUtils.clamp(currentSpeedMag / (maxFwd * 0.4), 0.3, 1.0);
+      const steerRate = 2.5 * speedFactor;
       const steerDir = Math.sign(speedRef.current || 1);
 
       if (Math.abs(steerAngleRef.current) > 0.01 && currentSpeedMag > 0.05) {
         headingRef.current += steerAngleRef.current * steerRate * dt * steerDir;
       }
 
-      // Movement vector
       const moveDir = new THREE.Vector3(Math.sin(headingRef.current), 0, Math.cos(headingRef.current));
       posRef.current.addScaledVector(moveDir, speedRef.current * dt);
 
-      // ── Collision Resolution with Smooth Wall Sliding ──
-      const carRadius = 0.85;
-      const hitResult = resolveObstacleCollision(posRef.current, carRadius, colliders);
-      const hitBuilding = hitResult === "building";
-      const hitProp     = hitResult === "prop";
+      const hitObstacle = resolveObstacleCollision(posRef.current, 0.85, colliders);
 
-      // Expanded City Outer Boundary Limit (108.0 units for 260x260 world)
-      const limit = WORLD_LIMIT;
       let hitBorder = false;
-      if (posRef.current.x < -limit) { posRef.current.x = -limit; hitBorder = true; }
-      if (posRef.current.x > limit)  { posRef.current.x = limit; hitBorder = true; }
-      if (posRef.current.z < -limit) { posRef.current.z = -limit; hitBorder = true; }
-      if (posRef.current.z > limit)  { posRef.current.z = limit; hitBorder = true; }
+      if (posRef.current.x < -WORLD_LIMIT) { posRef.current.x = -WORLD_LIMIT; hitBorder = true; }
+      if (posRef.current.x > WORLD_LIMIT) { posRef.current.x = WORLD_LIMIT; hitBorder = true; }
+      if (posRef.current.z < -WORLD_LIMIT) { posRef.current.z = -WORLD_LIMIT; hitBorder = true; }
+      if (posRef.current.z > WORLD_LIMIT) { posRef.current.z = WORLD_LIMIT; hitBorder = true; }
 
-      // NPC Cars Collision
+      // Soft collision with roaming NPC animals
       let hitNpc = false;
       const npcs = npcPositionsRef.current;
       for (let i = 0; i < npcs.length; i++) {
@@ -1582,7 +1579,7 @@ function PlayerPetController({
         const dx = posRef.current.x - npc.x;
         const dz = posRef.current.z - npc.z;
         const dist = Math.hypot(dx, dz);
-        const minDist = 1.9;
+        const minDist = 1.4;
         if (dist < minDist) {
           hitNpc = true;
           if (dist > 0.0001) {
@@ -1593,14 +1590,13 @@ function PlayerPetController({
         }
       }
 
-      // Remote Players Collision
       let hitPlayer = false;
       for (const [id, rp] of Object.entries(remotePlayers)) {
         if (id === playerId || !rp.position) continue;
         const dx = posRef.current.x - rp.position.x;
         const dz = posRef.current.z - rp.position.z;
         const dist = Math.hypot(dx, dz);
-        const minDist = 1.9;
+        const minDist = 1.7;
         if (dist < minDist) {
           hitPlayer = true;
           if (dist > 0.0001) {
@@ -1611,75 +1607,91 @@ function PlayerPetController({
         }
       }
 
-      // Smooth collision sliding (damps velocity instead of violent negative bounce)
-      if (hitBuilding || hitBorder) {
+      if (hitObstacle || hitBorder) {
         speedRef.current *= 0.65;
-        bumpRef.current = Math.min(bumpRef.current + 0.04, 0.08);
-      } else if (hitNpc || hitPlayer) {
-        speedRef.current *= 0.4;
-        bumpRef.current = Math.min(bumpRef.current + 0.06, 0.12);
-      } else if (hitProp) {
-        speedRef.current *= 0.85;
-        bumpRef.current = Math.min(bumpRef.current + 0.03, 0.06);
-        onPropHit?.({ x: posRef.current.x, z: posRef.current.z }, headingRef.current);
+        bumpRef.current = Math.min(bumpRef.current + 0.03, 0.07);
+      } else if (hitPlayer || hitNpc) {
+        speedRef.current *= 0.5;
+        bumpRef.current = Math.min(bumpRef.current + 0.04, 0.09);
       }
     }
 
-    // ── Cute Running Hop & Waddle Animation ──
+    // ── Rigged Limb Animation & Gentle Hop ──
     const curSpeed = Math.abs(speedRef.current);
+    const speedRatio = THREE.MathUtils.clamp(curSpeed / maxFwd, 0, 1);
     if (curSpeed > 0.15) {
-      hopRef.current += dt * (curSpeed * 1.3 + 7.0);
+      hopRef.current += dt * (curSpeed * 1.15 + 6.5);
     }
-    const hopY = curSpeed > 0.15 ? Math.abs(Math.sin(hopRef.current)) * 0.16 : 0;
-    const waddleZ = curSpeed > 0.15 ? Math.sin(hopRef.current * 0.5) * 0.04 : 0;
+    animateRigParts(rigParts, hopRef.current, speedRatio, state.clock.elapsedTime);
+
+    const hopY = curSpeed > 0.15 ? Math.abs(Math.sin(hopRef.current)) * 0.12 : 0;
+    const waddleZ = curSpeed > 0.15 ? Math.sin(hopRef.current * 0.5) * 0.03 : 0;
 
     bumpRef.current = THREE.MathUtils.lerp(bumpRef.current, 0, dt * 10);
     const tiltZ = !isQuizOpen ? -steerAngleRef.current * 0.05 : 0;
 
+    const groundY = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
     if (petGroupRef.current) {
-      const groundY = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
       petGroupRef.current.position.set(posRef.current.x, groundY + bumpRef.current + hopY, posRef.current.z);
       petGroupRef.current.rotation.y = headingRef.current;
       petGroupRef.current.rotation.z = THREE.MathUtils.lerp(
-        petGroupRef.current.rotation.z, tiltZ + waddleZ, 1 - Math.pow(0.001, dt)
+        petGroupRef.current.rotation.z,
+        tiltZ + waddleZ,
+        1 - Math.pow(0.001, dt)
       );
     }
 
-    // ── Buttery Smooth Damped Follow Camera ──
+    // ── Smooth Damped Follow Camera + Auto-Recenter When Walking ──
+    if (curSpeed > 0.35 && !isDraggingCamRef.current) {
+      // Wrap targetSwipeYaw into [-PI, PI] so recentering always takes the shortest path
+      while (targetSwipeYaw.current > Math.PI) {
+        targetSwipeYaw.current -= Math.PI * 2;
+        swipeYaw.current -= Math.PI * 2;
+      }
+      while (targetSwipeYaw.current < -Math.PI) {
+        targetSwipeYaw.current += Math.PI * 2;
+        swipeYaw.current += Math.PI * 2;
+      }
+      const recenterFactor = 1 - Math.exp(-dt * 3.2);
+      targetSwipeYaw.current = THREE.MathUtils.lerp(targetSwipeYaw.current, 0, recenterFactor);
+      targetSwipePitch.current = THREE.MathUtils.lerp(targetSwipePitch.current, 0.42, recenterFactor * 0.75);
+    }
+
+    const orbitDamp = 1 - Math.exp(-dt * 15);
+    swipeYaw.current = THREE.MathUtils.lerp(swipeYaw.current, targetSwipeYaw.current, orbitDamp);
+    swipePitch.current = THREE.MathUtils.lerp(swipePitch.current, targetSwipePitch.current, orbitDamp);
+
     const targetCamTotalYaw = headingRef.current + swipeYaw.current;
-    // Damped camera rotation follows pet with silky smooth lag (~6.5 rad/s)
     smoothCamYawRef.current = THREE.MathUtils.lerp(
       smoothCamYawRef.current,
       targetCamTotalYaw,
       1 - Math.pow(0.001, dt * 6.5)
     );
 
-    const pitch = swipePitch.current; // 0.18–1.1 radians
+    const pitch = swipePitch.current;
     const camRadius = 7.4;
     const camOffX = -Math.sin(smoothCamYawRef.current) * Math.cos(pitch) * camRadius;
-    const camOffY =  Math.sin(pitch) * camRadius;
+    const camOffY = Math.sin(pitch) * camRadius;
     const camOffZ = -Math.cos(smoothCamYawRef.current) * Math.cos(pitch) * camRadius;
 
-    const groundY = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
     const desiredCam = new THREE.Vector3(
       posRef.current.x + camOffX,
       groundY + camOffY,
-      posRef.current.z + camOffZ,
+      posRef.current.z + camOffZ
     );
     camPosRef.current.lerp(desiredCam, 1 - Math.pow(0.0001, dt * 8));
     camera.position.copy(camPosRef.current);
 
-    // Dynamic look-ahead: gently leads ahead in motion direction for excellent visibility
-    const lookLead = Math.min(curSpeed * 0.1, 1.6);
+    const lookLead = Math.min(curSpeed * 0.1, 1.5);
     const desiredLook = new THREE.Vector3(
       posRef.current.x + Math.sin(headingRef.current) * lookLead,
-      groundY + 0.8,
-      posRef.current.z + Math.cos(headingRef.current) * lookLead,
+      groundY + 0.85,
+      posRef.current.z + Math.cos(headingRef.current) * lookLead
     );
     camLookRef.current.lerp(desiredLook, 1 - Math.pow(0.001, dt * 8));
     camera.lookAt(camLookRef.current);
 
-    // ── Position & Proximity Reporting ───────────────────────────────────────
+    // ── Position & Proximity Reporting ──
     if (performance.now() - lastPosReport.current > 120) {
       lastPosReport.current = performance.now();
       onPlayerPosUpdate?.({ x: posRef.current.x, z: posRef.current.z });
@@ -1687,8 +1699,7 @@ function PlayerPetController({
       let nearIdx: number | null = null;
       for (let i = 0; i < questionPoints.length; i++) {
         const qp = questionPoints[i];
-        const d = Math.hypot(qp.x - posRef.current.x, qp.z - posRef.current.z);
-        if (d <= 3.8) {
+        if (Math.hypot(qp.x - posRef.current.x, qp.z - posRef.current.z) <= 3.8) {
           nearIdx = i;
           break;
         }
@@ -1696,7 +1707,7 @@ function PlayerPetController({
       onNearQuestion?.(nearIdx);
     }
 
-    // ── Firebase Sync (throttled 100ms) ──────────────────────────────────────
+    // ── Firebase Sync (throttled) ──
     if (
       Math.abs(speedRef.current) > 0.1 &&
       realtimeDb &&
@@ -1706,7 +1717,7 @@ function PlayerPetController({
       lastSync.current = performance.now();
       void update(
         ref(realtimeDb, `rooms/${roomCode}/positions/${playerId}`),
-        { x: posRef.current.x, z: posRef.current.z },
+        { x: posRef.current.x, z: posRef.current.z }
       ).catch((err) => console.error("Position sync failed", err));
     }
   });
@@ -1714,11 +1725,10 @@ function PlayerPetController({
   return (
     <group ref={petGroupRef}>
       <primitive object={petScene} scale={PLAYER_MODEL_SCALE} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]}>
         <circleGeometry args={[0.65, 20]} />
         <meshBasicMaterial color="#111" transparent opacity={0.28} />
       </mesh>
-      {/* Player name tag floating above local pet */}
       {playerName && !isQuizOpen && (
         <Html position={[0, PLAYER_NAMETAG_Y, 0]} center distanceFactor={12} zIndexRange={[2, 0]}>
           <div className="player-nametag player-nametag--self">{playerName}</div>
@@ -1728,12 +1738,8 @@ function PlayerPetController({
   );
 }
 
-// ─── Full City Scene ──────────────────────────────────────────────────────────
-// Knockable prop paths (small, can fly when hit)
-const KNOCKABLE_PROP_PATHS = [conePath, planterPath, dumpsterPath];
-let flyingPropIdCounter = 0;
-
-function CityScene({
+// ─── Full Nature World Scene ─────────────────────────────────────────────────
+function NatureScene({
   seed,
   questionCount,
   roomCode,
@@ -1751,53 +1757,14 @@ function CityScene({
   onNearQuestion,
 }: CityCanvasProps) {
   const themeConfig = useMemo(() => resolveMapThemeConfig(mapTheme), [mapTheme]);
+  const npcPositionsRef = useRef<Array<{ x: number; z: number }>>([]);
 
   const points = useMemo(
-    () => customPoints && customPoints.length > 0 ? customPoints : seededPoints(seed, questionCount),
+    () => (customPoints && customPoints.length > 0 ? customPoints : seededPoints(seed, questionCount)),
     [customPoints, seed, questionCount]
   );
 
-  const npcPositionsRef = useRef<Array<{ x: number; z: number }>>([]);
-
-  // Flying props state: small objects knocked away by player car
-  const [flyingProps, setFlyingProps] = useState<FlyingPropState[]>([]);
-  const lastPropHitRef = useRef(0);
-  const flyingPropTimeoutsRef = useRef<Set<number>>(new Set());
-
-  useEffect(() => {
-    const timeouts = flyingPropTimeoutsRef.current;
-    return () => {
-      timeouts.forEach((timeoutId) => window.clearTimeout(timeoutId));
-      timeouts.clear();
-    };
-  }, []);
-
-  const handlePropHit = useMemo(() => (pos: { x: number; z: number }, heading: number) => {
-    const now = performance.now();
-    if (now - lastPropHitRef.current < 400) return;
-    lastPropHitRef.current = now;
-
-    const propPath = KNOCKABLE_PROP_PATHS[Math.floor(Math.random() * KNOCKABLE_PROP_PATHS.length)];
-    const spreadAngle = heading + (Math.random() - 0.5) * 1.4;
-    const speed = 3.5 + Math.random() * 3;
-    const newProp: FlyingPropState = {
-      id: ++flyingPropIdCounter,
-      path: propPath,
-      startX: pos.x + Math.sin(heading) * 1.5,
-      startZ: pos.z + Math.cos(heading) * 1.5,
-      velX: Math.sin(spreadAngle) * speed,
-      velZ: Math.cos(spreadAngle) * speed,
-      spin: (Math.random() - 0.5) * 10,
-      age: 0,
-    };
-    setFlyingProps((prev) => [...prev.slice(-4), newProp]);
-    const timeoutId = window.setTimeout(() => {
-      flyingPropTimeoutsRef.current.delete(timeoutId);
-      setFlyingProps((prev) => prev.filter((p) => p.id !== newProp.id));
-    }, MAX_FLYING_DURATION * 1000 + 100);
-    flyingPropTimeoutsRef.current.add(timeoutId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { items, colliders, npcAnimals } = useNatureWorld(seed, mapTheme, points);
 
   const playerPetIdx = useMemo(() => {
     const selectedPetIndex = players[playerId]?.petIndex;
@@ -1809,52 +1776,50 @@ function CityScene({
     return h % playerPetOptions.length;
   }, [playerId, players]);
 
-  const { buildings, trees, colliders } = useNatureWorld(seed, mapTheme);
-
   return (
     <>
-      {/* Lighting tuned dynamically to chosen Map Theme */}
+      <color attach="background" args={[themeConfig.skyColor]} />
+      <fog attach="fog" args={[themeConfig.skyColor, 58, 175]} />
+
+      <hemisphereLight args={[themeConfig.skyColor, themeConfig.groundColor, 0.75]} />
       <ambientLight intensity={themeConfig.ambientIntensity} />
-      <directionalLight position={[20, 30, 15]} intensity={themeConfig.sunIntensity} color={themeConfig.sunColor} />
-      <directionalLight position={[-20, 15, -15]} intensity={0.6} color="#c8d8ff" />
-      <fog attach="fog" args={[themeConfig.groundColor, 48, 175]} />
+      <directionalLight
+        position={[32, 46, 22]}
+        intensity={themeConfig.sunIntensity}
+        color={themeConfig.sunColor}
+      />
+      <directionalLight position={[-24, 20, -18]} intensity={0.55} color="#d8ecff" />
 
-      {/* Low-poly rolling terrain: gentle contour without expensive physics. */}
-      <NatureTerrain seed={seed} color={themeConfig.groundColor} />
+      {/* Continuous Rolling Meadow, Trails & Lakes */}
+      <NatureGround seed={seed} themeId={themeConfig.id} />
 
-      {/* Nature-only scenery from Stylized Nature MegaKit and OhmTap. */}
+      {/* Trees, Rocks, Wildflowers, Bushes, Lake Props & Perimeter Cliffs */}
       <Suspense fallback={null}>
-        {buildings.map((b, i) => (
-          <group key={`b-${i}`}>
-            <Model
-              path={b.path}
-              position={[b.x, terrainHeight(seed, b.x, b.z), b.z]}
-              rotation={[0, b.ry, 0]}
-              scale={b.scale}
-            />
-            {b.propPath && b.propPos && (
-              <Model
-                path={b.propPath}
-                position={b.propPos}
-                rotation={[0, b.ry, 0]}
-                scale={b.propScale ?? 1.2}
-              />
-            )}
-          </group>
-        ))}
-        {trees.map((t, i) => (
-          <Model key={`tree-${i}`} path={t.path} position={t.pos} scale={t.scale} />
+        {items.map((item, idx) => (
+          <Model
+            key={`nat-${idx}`}
+            path={item.path}
+            position={item.pos}
+            rotation={[0, item.ry, 0]}
+            scale={item.scale}
+          />
         ))}
       </Suspense>
 
-      {/* Flying Props (knocked away on prop collision) */}
+      {/* Ambient Roaming Wildlife NPCs */}
       <Suspense fallback={null}>
-        {flyingProps.map((fp) => (
-          <FlyingPropMesh key={`fp-${fp.id}`} prop={fp} />
+        {npcAnimals.map((animal, idx) => (
+          <RoamingNpcAnimal
+            key={`npc-animal-${idx}`}
+            spec={animal}
+            index={idx}
+            terrainSeed={seed}
+            npcPositionsRef={npcPositionsRef}
+          />
         ))}
       </Suspense>
 
-      {/* 3D Question Markers with Sky Beams */}
+      {/* 3D Question Markers */}
       {points.map((pt, i) => (
         <QuestionMarker
           key={`qm-${i}`}
@@ -1866,7 +1831,7 @@ function CityScene({
         />
       ))}
 
-      {/* Remote Players' Pets */}
+      {/* Remote Players' Rigged Pets */}
       <Suspense fallback={null}>
         {Object.entries(players)
           .filter(([id, p]) => id !== playerId && typeof p?.name === "string" && p.position !== undefined)
@@ -1883,13 +1848,14 @@ function CityScene({
                 key={`remote-${id}`}
                 player={{ ...p, nameTagY: PLAYER_NAMETAG_Y + Math.min(stackedBefore, 4) * 0.24 }}
                 petIdx={p.petIndex ?? i + 1}
+                terrainSeed={seed}
                 showNameTag={!isQuizOpen}
               />
             );
           })}
       </Suspense>
 
-      {/* Local Player Pet with Complete Smooth Physics & Hop System */}
+      {/* Local Player Rigged Pet */}
       <Suspense fallback={null}>
         <PlayerPetController
           roomCode={roomCode}
@@ -1906,25 +1872,25 @@ function CityScene({
           isBrakingRef={isBrakingRef}
           onPlayerPosUpdate={onPlayerPosUpdate}
           onNearQuestion={onNearQuestion}
-          onPropHit={handlePropHit}
         />
       </Suspense>
     </>
   );
 }
 
-// ─── Canvas Export ────────────────────────────────────────────────────────────
+// ─── Canvas Export ───────────────────────────────────────────────────────────
 export default function CityCanvas(props: CityCanvasProps) {
   return (
     <Canvas
       className="city-canvas"
+      style={{ touchAction: "none" }}
       camera={{ position: [0, 3.5, -7.2], fov: 52 }}
-      dpr={[1, 1]}
+      dpr={[1, 1.5]}
       performance={{ min: 0.6, max: 1, debounce: 200 }}
-      gl={{ antialias: false, powerPreference: "high-performance" }}
+      gl={{ antialias: true, powerPreference: "high-performance" }}
     >
       <Suspense fallback={null}>
-        <CityScene {...props} />
+        <NatureScene {...props} />
       </Suspense>
     </Canvas>
   );

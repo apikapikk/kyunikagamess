@@ -1058,3 +1058,74 @@ Pengguna mengajukan request untuk mengganti kendaraan mobil pemain dengan karakt
 - `npx tsc --noEmit` ✅ Lolos 100% tanpa error kompilasi TypeScript.
 - `npm run build` ✅ Sukses 100% terkompilasi menggunakan Turbopack (7/7 static routes: `/`, `/_not-found`, `/admin`, `/game`, `/play`).
 - Karakter hewan Cube Pets berhasil berjalan, melompat lucu saat berlari, berbelok halus tanpa patah-patah, dan terintegrasi penuh ke sesi multiplayer maupun map raksasa 260×260.
+
+
+---
+
+## Pembaruan Map Nature Penuh, Karakter Rigged, & Perbaikan Live Tracking Admin
+
+### Ringkasan Perubahan
+
+1. **Overhaul Dunia Nature Prosedural (`components/CityCanvas.tsx`)**:
+   - Menghapus seluruh aset & logika kota Kenney (gedung, jalan aspal, lalu lintas NPC, properti jalanan, dan diorama statis `D05_demo_island.glb`).
+   - Memperluas arena bermain menjadi **210×210** (`WORLD_LIMIT = 105.0`) dengan mesh terrain 360×360 (`150×150` segmen) yang memiliki kontur perbukitan halus, kabut atmosfer, dan dua jalur tanah berliku yang terlihat jelas (diperkuat kerikil tepi jalur `C05_pebbles.glb`).
+   - Menambahkan **danau utama** (dengan dermaga `C09_pier.glb`) dan **kolam hutan sekunder**, lengkap dengan alang-alang, teratai, dan collider air dalam.
+   - Menambah kepadatan pepohonan (30–42 rumpun hutan), bunga liar, semak, pakis, jamur, batu besar, kayu tumbang, serta tebing pembatas lembah (`C04_cliff.glb`) menggunakan paket `ohmtap-ot39-blocky-nature`.
+   - Mempertahankan 3 tema alam yang dapat dipilih di admin (`mega-world`, `nature-valley`, `forest`) + opsi `random`.
+
+2. **Animasi Karakter Hewan Voxel Rigged (`lib/player-characters.ts` & `components/CityCanvas.tsx`)**:
+   - Mengalihkan `petRoot` ke `Voxel_Animals_Farm_Forest_Wild/GLB_Rigged`.
+   - Menambahkan `captureRigParts` dan `animateRigParts` untuk menganimasikan kaki, sayap, kepala, dan ekor secara prosedural baik saat berlari maupun *idle* pada pemain lokal dan `RemotePetAvatar`.
+
+3. **Perbaikan Live Tracking & Tampilan Peta Admin (`app/admin/page.tsx`)**:
+   - Memperbaiki listener Realtime Database agar menggabungkan `rooms/{roomCode}/positions` ke dalam state `roomPlayers` sehingga titik posisi pemain di `WorldMonitorMap` bergerak secara real-time.
+   - Memperbarui `WorldMonitorMap` agar menampilkan latar hutan, jalur tanah berliku, danau, dan kolam sesuai `seed` room via `getNatureMapPreview(seed)`.
+   - Memperbarui label skala di panel buat room menjadi `Skala 210×210 (Nature)`.
+
+
+---
+
+## Perluasan World 280×280, Integrasi Stylized Nature MegaKit, & NPC Hewan Liar
+
+### Ringkasan Perubahan
+
+1. **Perluasan Dunia Nature ke 280×280 (`components/CityCanvas.tsx` & `app/admin/page.tsx`)**:
+   - Memperluas `WORLD_LIMIT` dari `105.0` menjadi **`140.0`** (arena bermain 280×280) dengan mesh terrain 440×440 (`180×180` segmen), kabut atmosfer `[58, 175]`, dan sebaran titik soal `seededPoints` hingga radius `118m` (`MIN_GAP = 28`).
+   - Memperbarui label skala di dashboard admin menjadi `Skala 280×280 (Nature)`.
+
+2. **Integrasi `Stylized Nature MegaKit[Standard]` + Penambahan Vegetasi (`components/CityCanvas.tsx`)**:
+   - Menggabungkan aset `.gltf` dari `Stylized Nature MegaKit[Standard]` (`CommonTree_1..3`, `Pine_1..3`, `TwistedTree_1..2`, `DeadTree_1`, `Bush_Common`, `Bush_Common_Flowers`, `Fern_1`, `Flower_3_Group`, `Flower_4_Group`, `Grass_Common_Short/Tall`, `Grass_Wispy_Tall`, `Clover_1`, `Mushroom_Common/Laetiporus`, `Rock_Medium_1..2`, `RockPath_Round_Small_1..2`) dengan `baseScale` terukur agar proporsinya serasi dengan aset `ohmtap-ot39-blocky-nature`.
+   - Meningkatkan kepadatan menjadi 48–68 rumpun hutan + 28 pohon *landmark* tunggal, 230 vegetasi bawah/bunga liar, 36–46 batu & kayu tumbang, 64 tebing/pohon pembatas, serta batu pijakan di atas jalur tanah berliku.
+
+3. **NPC Hewan Liar Ambient (`RoamingNpcAnimal` di `components/CityCanvas.tsx`)**:
+   - Menambahkan 8 NPC hewan rigged (`deer`, `fawn`, `fox`, `sheep`, `rabbit`, `duck`, `boar`, `hedgehog`) dari `Voxel_Animals_Farm_Forest_Wild/GLB_Rigged/` yang berkeliaran di habitat masing-masing (bebek di tepi danau utama, hewan lain di padang/hutan) dengan animasi prosedural dan *soft collision* terhadap pemain.
+
+
+---
+
+## Integrasi KayKit Forest Nature Pack & Distribusi Sektor Alami Tanpa Pola Garis
+
+### Ringkasan Perubahan
+
+1. **Integrasi `KayKit_Forest_Nature_Pack_1.0_FREE` (`components/CityCanvas.tsx`)**:
+   - Menambahkan model pepohonan (`Tree_1_A`, `Tree_2_A`, `Tree_3_A`, `Tree_4_A`, `Tree_Bare_1_A`), semak (`Bush_1_A`, `Bush_3_A`), rumput (`Grass_1_A`, `Grass_2_A`), dan batu (`Rock_1_A`, `Rock_1_C`, `Rock_3_A`) dengan `baseScale` yang dinormalisasi ke skala 1 unit = 1m.
+
+2. **Perbaikan Distribusi Alami Bebas Pola Garis ("Ber Alur") & Area Kosong (`components/CityCanvas.tsx`)**:
+   - Mengganti RNG linear lama di `lcg()` dengan 32-bit *avalanche hash* agar koordinat `x` dan `z` benar-benar independen (menghilangkan pola garis/alur diagonal yang sebelumnya muncul).
+   - Menggunakan distribusi **8×8 sektor teracak (*jittered sectors*)** di seluruh area 280×280 (ditambah 42 pohon aksen tambahan), sehingga setiap wilayah pasti memiliki rumpun pohon, batu/kayu tumbang, semak, rumput, dan bunga liar secara merata dan organik tanpa zona kosong.
+
+
+---
+
+## Perbaikan Kamera Orbit Sentuh Mobile & Auto-Recenter Saat Berjalan
+
+### Ringkasan Perubahan
+
+1. **Rotasi Kamera Sentuh Mobile Lebih Halus (`app/globals.css` & `components/CityCanvas.tsx`)**:
+   - Menambahkan `touch-action: none; user-select: none;` pada `.city-3d-stage` dan `.city-canvas` agar browser mobile tidak memotong atau menganggap geseran jari sebagai scroll/zoom halaman.
+   - Melacak `activePointerId` dengan `setPointerCapture` khusus kamera sehingga multi-touch (ibu jari kanan di joystick + jari kiri menggeser kamera) berjalan mulus tanpa saling mengganggu.
+   - Menambahkan interpolasi *damped orbit* (`targetSwipeYaw`/`targetSwipePitch` → `swipeYaw`/`swipePitch`) agar gerakan kamera saat digeser terasa halus.
+
+2. **Kamera Kembali ke Belakang Karakter Saat Berjalan (`components/CityCanvas.tsx`)**:
+   - Saat karakter diam (atau sedang menggeser kamera), pemain bebas memutar kamera 360° untuk melihat karakter dari depan/samping.
+   - Begitu karakter mulai berjalan (`curSpeed > 0.35`) dan jari/mouse dilepas, kamera otomatis kembali secara halus (*shortest-path lerp*) ke posisi default di belakang karakter.

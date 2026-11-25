@@ -19,7 +19,7 @@ export const playerPetNames = [
   "Tupai",
 ] as const;
 
-const petRoot = "/assets/3d-assets/Voxel_Animals_Farm_Forest_Wild/GLB";
+const petRoot = "/assets/3d-assets/Voxel_Animals_Farm_Forest_Wild/GLB_Rigged";
 
 export const playerPetOptions = [
   `${petRoot}/dog.glb`,

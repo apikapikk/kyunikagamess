@@ -5,11 +5,10 @@ import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase
 import { onValue, ref, remove, set, update } from "firebase/database";
 import { firebaseEnabled, firestore, realtimeDb } from "@/lib/firebase";
 import {
-  AVENUES,
   WORLD_HALF_SIZE,
   seededPoints,
+  getNatureMapPreview,
   MapThemeId,
-  MAP_THEMES,
   resolveMapThemeConfig,
 } from "@/components/CityCanvas";
 
@@ -451,7 +450,16 @@ export default function AdminPage() {
       roomRef,
       (snapshot) => {
         const value = snapshot.val() ?? {};
-        setRoomPlayers((value.players ?? {}) as Record<string, RoomPlayer>);
+        const rawPlayers = (value.players ?? {}) as Record<string, RoomPlayer>;
+        const rawPositions = (value.positions ?? {}) as Record<string, { x: number; z: number }>;
+        const mergedPlayers: Record<string, RoomPlayer & { position?: { x: number; z: number } }> = {};
+        for (const [id, p] of Object.entries(rawPlayers)) {
+          mergedPlayers[id] = {
+            ...p,
+            position: rawPositions[id] ?? (p as RoomPlayer & { position?: { x: number; z: number } }).position,
+          };
+        }
+        setRoomPlayers(mergedPlayers);
         setSelectedRoomStatus(value.meta?.status ?? "lobby");
         
         let qList: Question[] = [];
@@ -1558,7 +1566,7 @@ export default function AdminPage() {
                 {/* Preview Tema Terpilih */}
                 {(() => {
                   const previewConfig = selectedMapTheme === "random"
-                    ? { icon: "🎲", name: "Acak Otomatis (Surprise)", tagline: "Dipilih acak antara 6 tema dunia saat room digenerate" }
+                    ? { icon: "🎲", name: "Acak Otomatis (Surprise)", tagline: "Dipilih acak antara 3 tema alam saat room digenerate" }
                     : resolveMapThemeConfig(selectedMapTheme);
                   return (
                     <div className="random-preview map-theme-preview-box">
@@ -1580,7 +1588,7 @@ export default function AdminPage() {
                       ? "🎲 Acak Tiap Room"
                       : `${resolveMapThemeConfig(selectedMapTheme).icon} ${resolveMapThemeConfig(selectedMapTheme).name}`}
                   </span>
-                  <span>Skala 260×260 (100 Blok)</span>
+                  <span>Skala 280×280 (Nature)</span>
                   <span>Seed baru</span>
                   <span>{banks.find((b) => b.id === selectedBankForRoom)?.title ?? "Semua Bank Soal"}</span>
                 </div>
@@ -1982,6 +1990,22 @@ function WorldMonitorMap({
   completedPlayerQuestions: Record<string, string[]>;
 }) {
   const questionPoints = useMemo(() => seededPoints(seed, questionCount), [seed, questionCount]);
+  const naturePreview = useMemo(() => getNatureMapPreview(seed), [seed]);
+  const trail1Path = useMemo(
+    () =>
+      naturePreview.trail1Points
+        .map((pt, idx) => `${idx === 0 ? "M" : "L"} ${worldToSvg(pt.x)} ${worldToSvg(pt.z)}`)
+        .join(" "),
+    [naturePreview]
+  );
+  const trail2Path = useMemo(
+    () =>
+      naturePreview.trail2Points
+        .map((pt, idx) => `${idx === 0 ? "M" : "L"} ${worldToSvg(pt.x)} ${worldToSvg(pt.z)}`)
+        .join(" "),
+    [naturePreview]
+  );
+  const scaleRadius = (r: number) => (r / (WORLD_HALF_SIZE * 2)) * MAP_SIZE;
 
   // Collect all completed question indices across all players
   const completedGlobally = useMemo(() => {
@@ -2001,7 +2025,7 @@ function WorldMonitorMap({
   return (
     <div className="world-monitor-map-wrap">
       <div className="world-monitor-map-label">
-        <span className="live-dot">●</span> Peta Dunia Live — Posisi Pemain Real-Time
+        <span className="live-dot">●</span> Peta Nature Live — Posisi Pemain Real-Time
       </div>
       <div className="world-monitor-map-container">
         <svg
@@ -2010,27 +2034,32 @@ function WorldMonitorMap({
           viewBox={`0 0 ${MAP_SIZE} ${MAP_SIZE}`}
           className="world-monitor-svg"
         >
-          {/* Background */}
-          <rect width={MAP_SIZE} height={MAP_SIZE} fill="#1a2235" rx="8" />
+          {/* Nature Forest Background */}
+          <rect width={MAP_SIZE} height={MAP_SIZE} fill="#183024" rx="8" />
 
-          {/* Road grid lines (avenues) */}
-          {AVENUES.map((av) => {
-            const svgCoord = worldToSvg(av);
-            return (
-              <g key={`road-${av}`}>
-                {/* Horizontal avenue */}
-                <line
-                  x1={0} y1={svgCoord} x2={MAP_SIZE} y2={svgCoord}
-                  stroke="#374151" strokeWidth={3.5} strokeLinecap="round"
-                />
-                {/* Vertical avenue */}
-                <line
-                  x1={svgCoord} y1={0} x2={svgCoord} y2={MAP_SIZE}
-                  stroke="#374151" strokeWidth={3.5} strokeLinecap="round"
-                />
-              </g>
-            );
-          })}
+          {/* Winding Dirt Trails */}
+          <path d={trail1Path} fill="none" stroke="#8c6b45" strokeWidth={5} strokeLinecap="round" opacity={0.8} />
+          <path d={trail2Path} fill="none" stroke="#8c6b45" strokeWidth={5} strokeLinecap="round" opacity={0.8} />
+
+          {/* Scenic Lake & Pond */}
+          <circle
+            cx={worldToSvg(naturePreview.lake.x)}
+            cy={worldToSvg(naturePreview.lake.z)}
+            r={scaleRadius(naturePreview.lake.radius)}
+            fill="#0ea5e9"
+            opacity={0.7}
+            stroke="#7dd3fc"
+            strokeWidth={1.5}
+          />
+          <circle
+            cx={worldToSvg(naturePreview.pond.x)}
+            cy={worldToSvg(naturePreview.pond.z)}
+            r={scaleRadius(naturePreview.pond.radius)}
+            fill="#14b8a6"
+            opacity={0.68}
+            stroke="#5eead4"
+            strokeWidth={1.2}
+          />
 
           {/* Question markers */}
           {questionPoints.map((pt, i) => {

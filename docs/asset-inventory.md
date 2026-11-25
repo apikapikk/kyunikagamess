@@ -4,73 +4,40 @@
 
 Asset root: `public/assets/3d-assets/`.
 
-Paket utama yang terdeteksi:
+Paket utama yang digunakan saat ini (fokus dunia alam / nature, paket Kenney city/road/car sudah tidak digunakan):
 
-### Kenney Mini Characters
+### 1. OhmTap OT-39 Blocky Nature
 
-Lokasi: `public/assets/3d-assets/kenney_mini-characters/`
+Lokasi: `public/assets/3d-assets/ohmtap-ot39-blocky-nature/models/glb/`
 
-- Karakter laki-laki: `character-male-a` sampai `character-male-f`.
-- Karakter perempuan: `character-female-a` sampai `character-female-f`.
-- Aksesori dan alat bantu: kacamata, masker, hearing aid, tongkat, kruk, dan kursi roda.
-- Format runtime yang tersedia: GLB.
-- Preview PNG tersedia untuk layar pemilihan karakter.
+- **Pepohonan**: `A01_spruce_small` sampai `A09_dead_tree` (spruce, pine, birch, oak).
+- **Detail Hutan**: `A10_stump`, `A11_fallen_log`, `A12_mushrooms`.
+- **Padang Rumput & Bunga**: `B01_grass_short` sampai `B03_grass_tall`, `B04_flowers_yellow`, `B05_flowers_white`, `B06_flowers_violet`, `B07_flowers_red`, `B08_bush_round`, `B09_bush_berry`, `B10_bush_flowering`, `B11_fern`.
+- **Batu, Tebing & Danau**: `C01_rock_small` sampai `C03_rock_large`, `C04_cliff`, `C05_pebbles`, `C06_reeds`, `C07_lily_pad`, `C08_lily_pad_flower`, `C09_pier`, `C10_stepping_stones`.
 
-Rencana penggunaan:
+### 2. Stylized Nature MegaKit [Standard]
 
-- Tampilkan preview PNG di menu pilih karakter.
-- Muat file GLB pilihan pemain ke dunia game.
-- Pisahkan aksesori sebagai opsi personalisasi lanjutan bila pipeline model mendukungnya.
+Lokasi: `public/assets/3d-assets/Stylized Nature MegaKit[Standard]/glTF/`
 
-### Kenney City Kit Suburban 20
+- **Pepohonan**: `CommonTree_1..3`, `Pine_1..3`, `TwistedTree_1..2`, `DeadTree_1`.
+- **Semak, Rumput & Bunga**: `Bush_Common`, `Bush_Common_Flowers`, `Fern_1`, `Flower_3_Group`, `Flower_4_Group`, `Grass_Common_Short`, `Grass_Common_Tall`, `Grass_Wispy_Tall`, `Clover_1`, `Mushroom_Common`, `Mushroom_Laetiporus`.
+- **Batu & Batu Pijakan Jalur**: `Rock_Medium_1..2`, `RockPath_Round_Small_1..2`.
 
-Lokasi: `public/assets/3d-assets/kenney_city-kit-suburban_20/`
+### 3. KayKit Forest Nature Pack 1.0 FREE
 
-- Bangunan: `building-type-a` sampai `building-type-u`.
-- Jalur: `path-short`, `path-long`, dan variasi batu.
-- Driveway dan pagar dalam beberapa ukuran.
-- Tanaman: `tree-small`, `tree-large`, dan `planter`.
-- Variasi material/warna: variation A, B, dan C.
-- Format runtime yang tersedia: GLB.
-- Preview dan sample scene tersedia untuk referensi visual.
+Lokasi: `public/assets/3d-assets/KayKit_Forest_Nature_Pack_1.0_FREE/Assets/gltf/`
 
-Rencana penggunaan:
+- **Pepohonan**: `Tree_1_A`, `Tree_2_A`, `Tree_3_A`, `Tree_4_A`, `Tree_Bare_1_A`.
+- **Semak & Rumput**: `Bush_1_A`, `Bush_3_A`, `Grass_1_A`, `Grass_2_A`.
+- **Batu**: `Rock_1_A`, `Rock_1_C`, `Rock_3_A`.
 
-- Bangunan dan path menjadi komponen layout kota.
-- Pagar, driveway, pohon, dan planter menjadi dekorasi yang diacak.
-- Variasi tekstur menjadi tema visual per sesi atau per zona.
+### 4. Voxel Animals: Farm, Forest & Wild (Rigged)
 
-### Kenney City Kit Commercial 2.1
+Lokasi: `public/assets/3d-assets/Voxel_Animals_Farm_Forest_Wild/GLB_Rigged/`
 
-Lokasi: `public/assets/3d-assets/kenney_city-kit-commercial_2.1/`
-
-- Pencakar langit (*skyscrapers*): `building-skyscraper-a` sampai `building-skyscraper-e`.
-- Bangunan komersial/toko: `building-a` sampai `building-n`.
-- Detail eksterior toko & kafe: kanopi (`detail-awning`, `detail-awning-wide`), payung kafe outdoor (`detail-parasol-a`, `detail-parasol-b`), overhang.
-- Format runtime: GLB.
-
-Rencana penggunaan:
-- Membangun zona *Downtown Commercial District* di sepanjang Avenue Center.
-- Memberikan variasi vertikal (skyline pencakar langit) dan kafe trotoar di samping zona perumahan suburban.
-
-### Kenney Car Kit
-
-Lokasi: `public/assets/3d-assets/kenney_car-kit/`
-
-- Mobil: sedan, sedan-sports, suv, suv-luxury, hatchback-sports, race-future, taxi, delivery, van, police.
-- Format runtime: GLB.
-
-Rencana penggunaan:
-- Kendaraan utama pemain (avatar interaktif) dan mobil lalu lintas ambient NPC.
+- **Karakter Pemain (`lib/player-characters.ts`)**: 18 hewan pilihan (`dog`, `cat`, `rabbit`, `panda`, `fox`, `chick`, `pig`, `cow`, `deer`, `lion`, `wolf`, `badger`, `monkey`, `owl`, `bear`, `beaver`, `arctic_fox`, `squirrel`).
+- **NPC Hewan Liar (`components/CityCanvas.tsx`)**: 8 hewan ambient berkeliaran (`deer`, `fawn`, `fox`, `sheep`, `rabbit`, `duck`, `boar`, `hedgehog`).
 
 ## Catatan lisensi
 
-Masing-masing paket memiliki `License.txt`. Lisensi perlu dibaca dan dicatat sebelum game dipublikasikan, terutama jika aset didistribusikan dalam build produksi.
-
-## Konvensi yang disarankan
-
-- Gunakan path GLB sebagai sumber referensi runtime.
-- Jangan mengubah file vendor asli secara langsung.
-- Jika perlu optimasi, buat salinan turunan dengan nama yang jelas.
-- Simpan metadata mapping aset di kode/config, bukan mengandalkan nama file yang tersebar.
-
+Masing-masing paket memiliki file `LICENSE.txt` / `License_Standard.txt` di direktorinya masing-masing.
