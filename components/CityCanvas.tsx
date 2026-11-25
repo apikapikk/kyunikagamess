@@ -10,7 +10,12 @@ import { playerPetOptions } from "@/lib/player-characters";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export type Point = { x: number; z: number };
-export type RemotePlayer = { name: string; position?: { x: number; z: number }; petIndex?: number };
+export type RemotePlayer = {
+  name: string;
+  position?: { x: number; z: number };
+  petIndex?: number;
+  nameTagY?: number;
+};
 
 export type MapThemeId =
   | "mega-world"
@@ -236,53 +241,12 @@ const lowDetailPaths = ["a","b","c","d","e","f","g","h","i","j"].map(
 // ─── Suburban Path Tiles ──────────────────────────────────────────────────────
 const pathLongPath     = `${suburbanRoot}/path-long.glb`;
 
-// Preload key world assets. Player pets are loaded on demand so all 18 pet
-// models do not occupy GPU memory before the selected avatar is known.
+// Keep the initial request queue small. The rest of the world loads
+// progressively so mobile devices can show the first frame sooner.
 npcCarPaths.forEach((p) => useGLTF.preload(p));
-skyscraperPaths.forEach((p) => useGLTF.preload(p));
-commercialPaths.slice(0, 8).forEach((p) => useGLTF.preload(p));
-suburbanBuildingPaths.slice(0, 10).forEach((p) => useGLTF.preload(p));
-useGLTF.preload(awningPath);
-useGLTF.preload(awningWidePath);
-useGLTF.preload(parasolAPath);
-useGLTF.preload(parasolBPath);
-useGLTF.preload(treeLargePath);
-useGLTF.preload(treeSmallPath);
 useGLTF.preload(roadStraightPath);
 useGLTF.preload(roadCrossPath);
 useGLTF.preload(roadCrossingPath);
-useGLTF.preload(streetLightPath);
-useGLTF.preload(trafficLightPath);
-useGLTF.preload(stopSignPath);
-useGLTF.preload(fencePath);
-useGLTF.preload(planterPath);
-useGLTF.preload(conePath);
-useGLTF.preload(dumpsterPath);
-useGLTF.preload(electricityPolePath);
-lowDetailPaths.slice(0, 6).forEach((p) => useGLTF.preload(p));
-useGLTF.preload(pathLongPath);
-
-// Preload Nature Kit Assets
-useGLTF.preload(naturePineDefaultPath);
-useGLTF.preload(naturePineTallPath);
-useGLTF.preload(natureOakPath);
-useGLTF.preload(natureRockLargeAPath);
-useGLTF.preload(natureRockTallPath);
-useGLTF.preload(natureCliffRockPath);
-useGLTF.preload(natureTentOpenPath);
-useGLTF.preload(natureCampfirePath);
-useGLTF.preload(natureBridgeWoodPath);
-useGLTF.preload(natureBushPath);
-
-// Preload Industrial Kit Assets
-useGLTF.preload(industrialBuildingAPath);
-useGLTF.preload(industrialBuildingBPath);
-useGLTF.preload(industrialChimneyBasicPath);
-useGLTF.preload(industrialTankPath);
-useGLTF.preload(industrialContainerAPath);
-useGLTF.preload(industrialContainerBPath);
-useGLTF.preload(industrialWaterTowerPath);
-useGLTF.preload(industrialSolarPath);
 
 // ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function lcg(seed: number, index: number): number {
@@ -1067,7 +1031,15 @@ function FlyingPropMesh({ prop }: { prop: FlyingPropState }) {
 }
 
 // ─── Remote Player Pet Avatar ─────────────────────────────────────────────────
-function RemotePetAvatar({ player, petIdx }: { player: RemotePlayer; petIdx: number }) {
+function RemotePetAvatar({
+  player,
+  petIdx,
+  showNameTag,
+}: {
+  player: RemotePlayer;
+  petIdx: number;
+  showNameTag: boolean;
+}) {
   const petPath = playerPetOptions[petIdx % playerPetOptions.length];
   const { scene } = useGLTF(petPath);
   const petScene = useMemo(() => scene.clone(true), [scene]);
@@ -1081,9 +1053,11 @@ function RemotePetAvatar({ player, petIdx }: { player: RemotePlayer; petIdx: num
         <meshBasicMaterial color="#111" transparent opacity={0.25} />
       </mesh>
       {/* Player name tag floating above remote pet */}
-      <Html position={[0, PLAYER_NAMETAG_Y, 0]} center distanceFactor={10}>
-        <div className="player-nametag">{player.name}</div>
-      </Html>
+      {showNameTag && (
+        <Html position={[0, player.nameTagY ?? PLAYER_NAMETAG_Y, 0]} center distanceFactor={12} zIndexRange={[2, 0]}>
+          <div className="player-nametag">{player.name}</div>
+        </Html>
+      )}
     </group>
   );
 }
@@ -1219,7 +1193,7 @@ function PlayerPetController({
   roomCode,
   playerId,
   playerName = "",
-  petScene,
+  petPath,
   colliders,
   npcPositionsRef,
   remotePlayers,
@@ -1234,7 +1208,7 @@ function PlayerPetController({
   roomCode: string;
   playerId: string;
   playerName?: string;
-  petScene: THREE.Object3D;
+  petPath: string;
   colliders: ColliderBox[];
   npcPositionsRef: React.MutableRefObject<Array<{ x: number; z: number }>>;
   remotePlayers: Record<string, RemotePlayer>;
@@ -1267,6 +1241,10 @@ function PlayerPetController({
   const lastSync      = useRef(0);
   const lastPosReport = useRef(0);
   const { camera, gl } = useThree();
+  // Loaded inside the player boundary so the rest of the city can render
+  // while the selected avatar is still downloading.
+  const { scene: petBase } = useGLTF(petPath);
+  const petScene = useMemo(() => petBase.clone(true), [petBase]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -1546,11 +1524,11 @@ function PlayerPetController({
       Math.abs(speedRef.current) > 0.1 &&
       realtimeDb &&
       playerId &&
-      performance.now() - lastSync.current > 100
+      performance.now() - lastSync.current > 250
     ) {
       lastSync.current = performance.now();
       void update(
-        ref(realtimeDb, `rooms/${roomCode}/players/${playerId}/position`),
+        ref(realtimeDb, `rooms/${roomCode}/positions/${playerId}`),
         { x: posRef.current.x, z: posRef.current.z },
       ).catch((err) => console.error("Position sync failed", err));
     }
@@ -1564,8 +1542,8 @@ function PlayerPetController({
         <meshBasicMaterial color="#111" transparent opacity={0.28} />
       </mesh>
       {/* Player name tag floating above local pet */}
-      {playerName && (
-        <Html position={[0, PLAYER_NAMETAG_Y, 0]} center distanceFactor={10}>
+      {playerName && !isQuizOpen && (
+        <Html position={[0, PLAYER_NAMETAG_Y, 0]} center distanceFactor={12} zIndexRange={[2, 0]}>
           <div className="player-nametag player-nametag--self">{playerName}</div>
         </Html>
       )}
@@ -1654,9 +1632,6 @@ function CityScene({
     return h % playerPetOptions.length;
   }, [playerId, players]);
 
-  const { scene: playerPetBase } = useGLTF(playerPetOptions[playerPetIdx]);
-  const playerPetScene = useMemo(() => playerPetBase.clone(true), [playerPetBase]);
-
   const { buildings, trees, colliders } = useCityBlocks(seed, mapTheme);
 
   return (
@@ -1725,29 +1700,47 @@ function CityScene({
       ))}
 
       {/* Remote Players' Pets */}
-      {Object.entries(players)
-        .filter(([id, p]) => id !== playerId && typeof p?.name === "string" && p.position !== undefined)
-        .map(([id, p], i) => (
-          <RemotePetAvatar key={`remote-${id}`} player={p} petIdx={p.petIndex ?? i + 1} />
-        ))}
+      <Suspense fallback={null}>
+        {Object.entries(players)
+          .filter(([id, p]) => id !== playerId && typeof p?.name === "string" && p.position !== undefined)
+          .map(([id, p], i, entries) => {
+            const x = p.position?.x ?? 0;
+            const z = p.position?.z ?? 0;
+            const stackedBefore = entries.slice(0, i).filter(([, other]) => {
+              const ox = other.position?.x ?? 0;
+              const oz = other.position?.z ?? 0;
+              return Math.hypot(x - ox, z - oz) < 2.2;
+            }).length;
+            return (
+              <RemotePetAvatar
+                key={`remote-${id}`}
+                player={{ ...p, nameTagY: PLAYER_NAMETAG_Y + Math.min(stackedBefore, 4) * 0.24 }}
+                petIdx={p.petIndex ?? i + 1}
+                showNameTag={!isQuizOpen}
+              />
+            );
+          })}
+      </Suspense>
 
       {/* Local Player Pet with Complete Smooth Physics & Hop System */}
-      <PlayerPetController
-        roomCode={roomCode}
-        playerId={playerId}
-        playerName={playerName}
-        petScene={playerPetScene}
-        colliders={colliders}
-        npcPositionsRef={npcPositionsRef}
-        remotePlayers={players}
-        questionPoints={points}
-        isQuizOpen={isQuizOpen}
-        joystickRef={joystickRef}
-        isBrakingRef={isBrakingRef}
-        onPlayerPosUpdate={onPlayerPosUpdate}
-        onNearQuestion={onNearQuestion}
-        onPropHit={handlePropHit}
-      />
+      <Suspense fallback={null}>
+        <PlayerPetController
+          roomCode={roomCode}
+          playerId={playerId}
+          playerName={playerName}
+          petPath={playerPetOptions[playerPetIdx]}
+          colliders={colliders}
+          npcPositionsRef={npcPositionsRef}
+          remotePlayers={players}
+          questionPoints={points}
+          isQuizOpen={isQuizOpen}
+          joystickRef={joystickRef}
+          isBrakingRef={isBrakingRef}
+          onPlayerPosUpdate={onPlayerPosUpdate}
+          onNearQuestion={onNearQuestion}
+          onPropHit={handlePropHit}
+        />
+      </Suspense>
     </>
   );
 }
@@ -1758,7 +1751,7 @@ export default function CityCanvas(props: CityCanvasProps) {
     <Canvas
       className="city-canvas"
       camera={{ position: [0, 3.5, -7.2], fov: 52 }}
-      dpr={[1, 1.15]}
+      dpr={[1, 1]}
       performance={{ min: 0.6, max: 1, debounce: 200 }}
       gl={{ antialias: false, powerPreference: "high-performance" }}
     >

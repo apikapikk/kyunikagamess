@@ -1297,9 +1297,8 @@
   pointer-events: none;
   user-select: none;
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
   letter-spacing: 0.03em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  contain: layout paint;
 }
 .player-nametag--self {
   border-color: rgba(99,179,255,0.5);

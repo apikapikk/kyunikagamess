@@ -78,6 +78,11 @@ export default function GamePage() {
   const [roomCode, setRoomCode] = useState("");
   const [room, setRoom] = useState<RoomMeta | null>(null);
   const [players, setPlayers] = useState<Record<string, Player>>({});
+  // Positions are intentionally kept outside the player profile tree. This
+  // prevents every movement tick from re-sending scores, answers, and names.
+  const [remotePositions, setRemotePositions] = useState<Record<string, Point>>({});
+  const remotePositionsRef = useRef<Record<string, Point>>({});
+  const renderedPositionsRef = useRef<Record<string, Point>>({});
   const [error, setError] = useState("");
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [playerId, setPlayerId] = useState("");
@@ -209,71 +214,74 @@ export default function GamePage() {
     };
   }, [roomCode, playerId]);
 
-  // Listen to room data from Realtime Database
+  // Listen to room metadata, player profiles, questions, and positions
+  // independently. Position updates are high-frequency; the other data is not.
   useEffect(() => {
     if (!realtimeDb || !roomCode) return;
-    const roomRef = ref(realtimeDb, `rooms/${roomCode}`);
-    return onValue(
-      roomRef,
-      (snapshot) => {
-        if (!snapshot.exists()) {
-          setRoom(null);
-          setError("Room sudah tidak tersedia.");
-          return;
-        }
-        const value = snapshot.val();
-        const meta = value.meta as RoomMeta;
-        setRoom(meta);
+    const metaUnsubscribe = onValue(ref(realtimeDb, `rooms/${roomCode}/meta`), (snapshot) => {
+      if (!snapshot.exists()) {
+        setRoom(null);
+        setError("Room sudah tidak tersedia.");
+        return;
+      }
+      const meta = snapshot.val() as RoomMeta;
+      setRoom(meta);
+      const durationSec = Number(meta.duration || 10) * 60;
+      if (meta.status === "running" && meta.startedAt) {
+        setRemainingSeconds(Math.max(0, durationSec - Math.floor((Date.now() - meta.startedAt) / 1000)));
+      } else {
+        setRemainingSeconds(meta.status === "lobby" ? durationSec : 0);
+      }
+      setError("");
+    }, (firebaseError) => setError(firebaseError.message));
 
-        // Synchronize remaining match timer cleanly
-        if (meta) {
-          const durationSec = Number(meta.duration || 10) * 60;
-          if (meta.status === "running" && meta.startedAt) {
-            const elapsed = Math.floor((Date.now() - meta.startedAt) / 1000);
-            setRemainingSeconds(Math.max(0, durationSec - elapsed));
-          } else if (meta.status === "lobby") {
-            setRemainingSeconds(durationSec);
-          } else if (meta.status === "finished") {
-            setRemainingSeconds(0);
-          }
+    const playersUnsubscribe = onValue(ref(realtimeDb, `rooms/${roomCode}/players`), (snapshot) => {
+      const playersData = (snapshot.val() ?? {}) as Record<string, Player>;
+      setPlayers(playersData);
+      if (playerId && playersData[playerId]) {
+        const p = playersData[playerId];
+        const allDone = Array.from(new Set([
+          ...(Array.isArray(p.completedQuestions) ? p.completedQuestions : []),
+          ...(p.answers ? Object.keys(p.answers) : []),
+        ]));
+        if (allDone.length > 0) {
+          setCompletedIds((prev) => {
+            const merged = Array.from(new Set([...prev, ...allDone]));
+            window.localStorage.setItem(`kyunika-completed-${roomCode}`, JSON.stringify(merged));
+            return merged;
+          });
         }
+      }
+    }, (firebaseError) => setError(firebaseError.message));
 
-        const playersData = (value.players ?? {}) as Record<string, Player>;
-        setPlayers(playersData);
-        setError("");
+    const questionsUnsubscribe = onValue(ref(realtimeDb, `rooms/${roomCode}/questions`), (snapshot) => {
+      const value = snapshot.val();
+      const qList: Question[] = Array.isArray(value)
+        ? value
+        : value && typeof value === "object" ? Object.values(value) as Question[] : [];
+      if (qList.length > 0) {
+        hasRoomQuestionsRef.current = true;
+        setQuestions(qList);
+      }
+    });
 
-        // Synchronize local player's completed questions list from Realtime Database
-        if (playerId && playersData[playerId]) {
-          const p = playersData[playerId];
-          const remoteCompleted = Array.isArray(p.completedQuestions) ? p.completedQuestions : [];
-          const answeredKeys = p.answers ? Object.keys(p.answers) : [];
-          const allDone = Array.from(new Set([...remoteCompleted, ...answeredKeys]));
-          if (allDone.length > 0) {
-            setCompletedIds((prev) => {
-              const merged = Array.from(new Set([...prev, ...allDone]));
-              if (roomCode) {
-                window.localStorage.setItem(`kyunika-completed-${roomCode}`, JSON.stringify(merged));
-              }
-              return merged;
-            });
-          }
-        }
+    const positionsUnsubscribe = onValue(ref(realtimeDb, `rooms/${roomCode}/positions`), (snapshot) => {
+      remotePositionsRef.current = (snapshot.val() ?? {}) as Record<string, Point>;
+    });
+    const positionRenderTimer = window.setInterval(() => {
+      if (renderedPositionsRef.current !== remotePositionsRef.current) {
+        renderedPositionsRef.current = remotePositionsRef.current;
+        setRemotePositions({ ...remotePositionsRef.current });
+      }
+    }, 100);
 
-        // If room has questions saved in RTDB, prioritize them (support array and dictionary)
-        let qList: Question[] = [];
-        if (Array.isArray(value.questions)) {
-          qList = value.questions;
-        } else if (value.questions && typeof value.questions === "object") {
-          qList = Object.values(value.questions) as Question[];
-        }
-
-        if (qList.length > 0) {
-          hasRoomQuestionsRef.current = true;
-          setQuestions(qList);
-        }
-      },
-      (firebaseError) => setError(firebaseError.message)
-    );
+    return () => {
+      metaUnsubscribe();
+      playersUnsubscribe();
+      questionsUnsubscribe();
+      positionsUnsubscribe();
+      window.clearInterval(positionRenderTimer);
+    };
   }, [roomCode, playerId]);
 
   // Fallback load questions from Firestore / localStorage if RTDB didn't have full questions list
@@ -586,7 +594,13 @@ export default function GamePage() {
     ),
     [players]
   );
-  const safePlayers = useMemo(() => Object.fromEntries(validPlayers), [validPlayers]);
+  const safePlayers = useMemo(
+    () => Object.fromEntries(validPlayers.map(([id, player]) => [
+      id,
+      { ...player, position: remotePositions[id] ?? player.position },
+    ])),
+    [validPlayers, remotePositions]
+  );
   const leaderboard = validPlayers.sort(([, first], [, second]) => (second.score ?? 0) - (first.score ?? 0));
 
   const myRankIndex = leaderboard.findIndex(([id]) => id === playerId);
