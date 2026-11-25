@@ -462,6 +462,35 @@ type PlacedBuilding = {
   propScale?: number;
 };
 
+function terrainHeight(seed: number, x: number, z: number): number {
+  const seedOffset = seed * 0.000013;
+  const broadHills = Math.sin(x * 0.035 + seedOffset) * 0.65 + Math.cos(z * 0.028 - seedOffset) * 0.5;
+  const detail = Math.sin((x + z) * 0.085 + seedOffset * 2) * 0.16;
+  return broadHills + detail;
+}
+
+function NatureTerrain({ seed, color }: { seed: number; color: string }) {
+  const geometry = useMemo(() => {
+    const terrain = new THREE.PlaneGeometry(260, 260, 40, 40);
+    terrain.rotateX(-Math.PI / 2);
+    const positions = terrain.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      positions.setY(i, terrainHeight(seed, positions.getX(i), positions.getZ(i)));
+    }
+    positions.needsUpdate = true;
+    terrain.computeVertexNormals();
+    return terrain;
+  }, [seed]);
+
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
+  return (
+    <mesh geometry={geometry} receiveShadow>
+      <meshStandardMaterial color={color} roughness={1} flatShading />
+    </mesh>
+  );
+}
+
 // Nature-only world generator. It deliberately has no roads, buildings,
 // traffic, or Kenney dependencies: the player explores clearings and natural
 // paths through a continuous forest.
@@ -471,55 +500,62 @@ function useNatureWorld(seed: number, mapThemeKey?: string) {
     const trees: { path: string; pos: [number, number, number]; scale: number }[] = [];
     const colliders: ColliderBox[] = [];
     const themeId = resolveMapThemeConfig(mapThemeKey).id;
-    const blocks = [-90, -70, -50, -30, -10, 10, 30, 50, 70, 90];
     const treeSets = themeId === "forest"
       ? [...stylizedTreePaths, ...stylizedPinePaths, ...stylizedTwistedTreePaths, ...blockyForestTreePaths]
       : [...stylizedTreePaths, ...stylizedPinePaths, ...blockyForestTreePaths.slice(0, 5)];
 
-    blocks.forEach((x, col) => {
-      blocks.forEach((z, row) => {
-        const variation = Math.floor(lcg(seed + col * 31 + row * 17, 9) * treeSets.length);
-        const points = [
-          [x - 5.0, z - 5.0], [x + 5.0, z - 4.0],
-          [x - 4.0, z + 5.0], [x + 5.0, z + 5.0],
-          [x + (lcg(seed, col * 10 + row) - 0.5) * 5, z + (lcg(seed, col * 10 + row + 1) - 0.5) * 5],
-        ] as const;
-
-        points.forEach(([px, pz], index) => {
-          const path = treeSets[(variation + index + col + row) % treeSets.length];
-          trees.push({ path, pos: [px, 0, pz], scale: index === 4 ? 0.58 : 0.68 });
-          if (index < 4) {
-            colliders.push({ minX: px - 0.9, maxX: px + 0.9, minZ: pz - 0.9, maxZ: pz + 0.9 });
-          }
-        });
-
+    // Scatter natural groves instead of placing objects on block coordinates.
+    // Each grove has a loose center and jitter, which keeps the forest dense
+    // while avoiding visible rows and columns.
+    for (let grove = 0; grove < 24; grove++) {
+      const gx = (lcg(seed + 41, grove * 3) - 0.5) * 190;
+      const gz = (lcg(seed + 83, grove * 3 + 1) - 0.5) * 190;
+      const count = 5 + Math.floor(lcg(seed + grove, 12) * 4);
+      for (let member = 0; member < count; member++) {
+        const index = grove * 9 + member;
+        const px = Math.max(-112, Math.min(112, gx + (lcg(seed, index * 2) - 0.5) * 22));
+        const pz = Math.max(-112, Math.min(112, gz + (lcg(seed, index * 2 + 1) - 0.5) * 22));
+        const path = treeSets[Math.floor(lcg(seed + 7, index) * treeSets.length)];
         trees.push({
-          path: stylizedGroundPaths[(variation + row) % stylizedGroundPaths.length],
-          pos: [x - 1.8, 0, z + 1.8],
-          scale: 1.1,
+          path,
+          pos: [px, terrainHeight(seed, px, pz), pz],
+          scale: 0.52 + lcg(seed + 19, index) * 0.28,
         });
-        trees.push({
-          path: blockyForestGroundPaths[(variation + col + row) % blockyForestGroundPaths.length],
-          pos: [x + 2.4, 0, z - 1.5],
-          scale: 0.9,
-        });
-
-        if ((col * 3 + row + seed) % 4 === 0) {
-          buildings.push({
-            path: stylizedDetailPaths[(variation + col) % stylizedDetailPaths.length],
-            x: x + 1.5,
-            z: z + 1.2,
-            ry: lcg(seed, col + row) * Math.PI,
-            scale: 0.9,
+        if (member % 3 === 0) {
+          colliders.push({ minX: px - 0.9, maxX: px + 0.9, minZ: pz - 0.9, maxZ: pz + 0.9 });
+        }
+        if (member % 2 === 0) {
+          const groundX = px + (lcg(seed + 29, index) - 0.5) * 5;
+          const groundZ = pz + (lcg(seed + 31, index) - 0.5) * 5;
+          trees.push({
+            path: stylizedGroundPaths[index % stylizedGroundPaths.length],
+            pos: [groundX, terrainHeight(seed, groundX, groundZ), groundZ],
+            scale: 0.8 + lcg(seed + 37, index) * 0.5,
           });
         }
-      });
-    });
+      }
+      if (grove % 2 === 0) {
+        buildings.push({
+          path: stylizedDetailPaths[grove % stylizedDetailPaths.length],
+          x: gx + (lcg(seed + 101, grove) - 0.5) * 6,
+          z: gz + (lcg(seed + 103, grove) - 0.5) * 6,
+          ry: lcg(seed + 107, grove) * Math.PI,
+          scale: 0.75 + lcg(seed + 109, grove) * 0.35,
+        });
+      }
+    }
 
-    // A few winding OhmTap path tiles create natural clearings without a city grid.
-    for (let i = -24; i <= 24; i += 2) {
-      const z = Math.sin((i + seed % 17) * 0.22) * 5;
-      buildings.push({ path: ohmNaturePathTile, x: i, z, ry: 0, scale: 1 });
+    // A winding trail follows a sine curve with a smaller branch, never a grid.
+    for (let i = -84; i <= 84; i += 2.5) {
+      const z = Math.sin((i + seed % 31) * 0.055) * 14 - 3;
+      const slope = Math.cos((i + seed % 31) * 0.055) * 14 * 0.055;
+      buildings.push({
+        path: ohmNaturePathTile,
+        x: i,
+        z,
+        ry: Math.atan2(slope, 1),
+        scale: 1,
+      });
     }
 
     return { buildings, trees, colliders };
@@ -1201,11 +1237,13 @@ function RemotePetAvatar({
 function QuestionMarker({
   point,
   index,
+  terrainSeed,
   completed,
   isNearest,
 }: {
   point: Point;
   index: number;
+  terrainSeed: number;
   completed: boolean;
   isNearest: boolean;
 }) {
@@ -1227,7 +1265,7 @@ function QuestionMarker({
   const emissive = completed ? "#15803d" : isNearest ? "#d97706" : "#6d28d9";
 
   return (
-    <group position={[point.x, 0, point.z]}>
+    <group position={[point.x, terrainHeight(terrainSeed, point.x, point.z), point.z]}>
       <mesh position={[0, 8, 0]}>
         <cylinderGeometry args={[0.3, 0.7, 16, 16, 1, true]} />
         <meshBasicMaterial
@@ -1327,6 +1365,7 @@ function resolveObstacleCollision(
 function PlayerPetController({
   roomCode,
   playerId,
+  terrainSeed,
   playerName = "",
   petPath,
   colliders,
@@ -1342,6 +1381,7 @@ function PlayerPetController({
 }: {
   roomCode: string;
   playerId: string;
+  terrainSeed: number;
   playerName?: string;
   petPath: string;
   colliders: ColliderBox[];
@@ -1597,7 +1637,8 @@ function PlayerPetController({
     const tiltZ = !isQuizOpen ? -steerAngleRef.current * 0.05 : 0;
 
     if (petGroupRef.current) {
-      petGroupRef.current.position.set(posRef.current.x, bumpRef.current + hopY, posRef.current.z);
+      const groundY = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
+      petGroupRef.current.position.set(posRef.current.x, groundY + bumpRef.current + hopY, posRef.current.z);
       petGroupRef.current.rotation.y = headingRef.current;
       petGroupRef.current.rotation.z = THREE.MathUtils.lerp(
         petGroupRef.current.rotation.z, tiltZ + waddleZ, 1 - Math.pow(0.001, dt)
@@ -1619,9 +1660,10 @@ function PlayerPetController({
     const camOffY =  Math.sin(pitch) * camRadius;
     const camOffZ = -Math.cos(smoothCamYawRef.current) * Math.cos(pitch) * camRadius;
 
+    const groundY = terrainHeight(terrainSeed, posRef.current.x, posRef.current.z);
     const desiredCam = new THREE.Vector3(
       posRef.current.x + camOffX,
-      posRef.current.y + camOffY,
+      groundY + camOffY,
       posRef.current.z + camOffZ,
     );
     camPosRef.current.lerp(desiredCam, 1 - Math.pow(0.0001, dt * 8));
@@ -1631,7 +1673,7 @@ function PlayerPetController({
     const lookLead = Math.min(curSpeed * 0.1, 1.6);
     const desiredLook = new THREE.Vector3(
       posRef.current.x + Math.sin(headingRef.current) * lookLead,
-      posRef.current.y + 0.8,
+      groundY + 0.8,
       posRef.current.z + Math.cos(headingRef.current) * lookLead,
     );
     camLookRef.current.lerp(desiredLook, 1 - Math.pow(0.001, dt * 8));
@@ -1777,17 +1819,19 @@ function CityScene({
       <directionalLight position={[-20, 15, -15]} intensity={0.6} color="#c8d8ff" />
       <fog attach="fog" args={[themeConfig.groundColor, 48, 175]} />
 
-      {/* Expansive Ground Plane (260x260) with Map Theme palette */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[260, 260]} />
-        <meshStandardMaterial color={themeConfig.groundColor} />
-      </mesh>
+      {/* Low-poly rolling terrain: gentle contour without expensive physics. */}
+      <NatureTerrain seed={seed} color={themeConfig.groundColor} />
 
       {/* Nature-only scenery from Stylized Nature MegaKit and OhmTap. */}
       <Suspense fallback={null}>
         {buildings.map((b, i) => (
           <group key={`b-${i}`}>
-            <Model path={b.path} position={[b.x, 0, b.z]} rotation={[0, b.ry, 0]} scale={b.scale} />
+            <Model
+              path={b.path}
+              position={[b.x, terrainHeight(seed, b.x, b.z), b.z]}
+              rotation={[0, b.ry, 0]}
+              scale={b.scale}
+            />
             {b.propPath && b.propPos && (
               <Model
                 path={b.propPath}
@@ -1816,6 +1860,7 @@ function CityScene({
           key={`qm-${i}`}
           point={pt}
           index={i}
+          terrainSeed={seed}
           completed={completedQuestionIndices.includes(i)}
           isNearest={nearestQuestionIndex === i}
         />
@@ -1849,6 +1894,7 @@ function CityScene({
         <PlayerPetController
           roomCode={roomCode}
           playerId={playerId}
+          terrainSeed={seed}
           playerName={playerName}
           petPath={playerPetOptions[playerPetIdx]}
           colliders={colliders}
