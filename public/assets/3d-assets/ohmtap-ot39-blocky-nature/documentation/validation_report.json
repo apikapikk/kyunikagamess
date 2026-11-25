@@ -1,0 +1,397 @@
+{
+ "summary": {
+  "checked_at": "2026-11-20 17:17 UTC",
+  "manifest_rows": 76,
+  "png_files_checked": 152,
+  "valid_rows": 76,
+  "invalid_rows": 0,
+  "missing_files": 0,
+  "duplicate_groups": 0,
+  "unlisted_pngs": [],
+  "atlas_files_missing": [],
+  "rows_with_warnings": 0
+ },
+ "passed": true,
+ "results": [
+  {
+   "asset_id": "A01_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A01_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A02_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A02_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A03_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A03_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A04_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A04_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A05_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A05_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A06_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A06_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A07_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A07_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A08_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A08_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A09_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A09_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A10_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A10_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A11_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A11_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A12_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "A12_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B01_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B01_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B02_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B02_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B03_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B03_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B04_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B04_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B05_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B05_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B06_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B06_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B07_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B07_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B08_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B08_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B09_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B09_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B10_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B10_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B11_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "B11_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C01_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C01_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C02_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C02_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C03_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C03_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C04_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C04_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C05_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C05_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C06_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C06_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C07_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C07_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C08_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C08_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C09_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C09_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C10_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "C10_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D01_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D01_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D02_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D02_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D03_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D03_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D04_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D04_sw",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D05_se",
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "asset_id": "D05_sw",
+   "errors": [],
+   "warnings": []
+  }
+ ]
+}

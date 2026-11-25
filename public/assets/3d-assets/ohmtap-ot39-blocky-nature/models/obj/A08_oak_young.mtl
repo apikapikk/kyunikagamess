@@ -1,0 +1,32 @@
+# OhmTap A08_oak_young materials
+newmtl trunk
+Kd 0.4392 0.2980 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl oak_leaf
+Kd 0.3216 0.5725 0.2275
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl oak_leaf_dark
+Kd 0.2510 0.4784 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl leaf
+Kd 0.4863 0.7137 0.2824
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

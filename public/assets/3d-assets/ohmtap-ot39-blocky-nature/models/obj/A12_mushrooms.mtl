@@ -1,0 +1,32 @@
+# OhmTap A12_mushrooms materials
+newmtl mushroom_stem
+Kd 0.9255 0.8863 0.8000
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl mushroom_cap
+Kd 0.8392 0.2039 0.1725
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl mushroom_dot
+Kd 0.9647 0.9412 0.8941
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl mushroom_brown
+Kd 0.5882 0.3843 0.2353
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

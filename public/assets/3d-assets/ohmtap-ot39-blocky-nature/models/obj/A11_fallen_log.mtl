@@ -1,0 +1,40 @@
+# OhmTap A11_fallen_log materials
+newmtl trunk
+Kd 0.4392 0.2980 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl wood_cut
+Kd 0.8314 0.6745 0.4627
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl moss
+Kd 0.3843 0.5882 0.2745
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl mushroom_stem
+Kd 0.9255 0.8863 0.8000
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl mushroom_brown
+Kd 0.5882 0.3843 0.2353
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

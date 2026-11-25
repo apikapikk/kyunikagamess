@@ -1,0 +1,8 @@
+# OhmTap C07_lily_pad materials
+newmtl lily
+Kd 0.2824 0.5569 0.2902
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

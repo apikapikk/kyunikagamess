@@ -160,6 +160,7 @@ const roadsRoot      = "/assets/3d-assets/kenney_city-kit-roads/Models/GLB%20for
 const carRoot        = "/assets/3d-assets/kenney_car-kit/Models/GLB%20format";
 const natureRoot     = "/assets/3d-assets/kenney_nature-kit/Models/GLTF%20format";
 const industrialRoot = "/assets/3d-assets/kenney_city-kit-industrial_2.0/Models/GLB%20format";
+const blockyNatureRoot = "/assets/3d-assets/ohmtap-ot39-blocky-nature/models/glb";
 
 // Keep the pet avatars visually comparable to the traffic cars. The Kenney
 // pet models are slightly taller than the car models at their native scale.
@@ -215,6 +216,18 @@ const natureCampfirePath     = `${natureRoot}/campfire_stones.glb`;
 const natureBridgeWoodPath   = `${natureRoot}/bridge_wood.glb`;
 const natureBushPath         = `${natureRoot}/plant_bush.glb`;
 const natureLogStackPath     = `${natureRoot}/log_stack.glb`;
+
+// OhmTap OT-39: lightweight blocky nature set used by the dense forest biome.
+const blockyForestTreePaths = [
+  "A01_spruce_small", "A02_spruce_medium", "A03_spruce_tall", "A04_pine",
+  "A05_birch_small", "A06_birch_tall", "A07_oak", "A08_oak_young",
+].map((name) => `${blockyNatureRoot}/${name}.glb`);
+const blockyForestGroundPaths = [
+  "B01_grass_short", "B02_grass_medium", "B08_bush_round", "B11_fern",
+].map((name) => `${blockyNatureRoot}/${name}.glb`);
+const blockyForestDetailPaths = [
+  "A10_stump", "A11_fallen_log", "A12_mushrooms", "C01_rock_small", "C02_rock_medium",
+].map((name) => `${blockyNatureRoot}/${name}.glb`);
 
 // ─── Industrial Kit Assets (New!) ─────────────────────────────────────────────
 const industrialBuildingAPath    = `${industrialRoot}/building-a.glb`;
@@ -500,13 +513,6 @@ function useCityBlocks(seed: number, mapThemeKey?: string) {
         if (blockType === "nature") {
           // NATURE VALLEY / FULL FOREST BIOME
           if (themeId === "forest") {
-            const forestTreePaths = [
-              naturePineDefaultPath,
-              naturePineTallPath,
-              naturePineRoundPath,
-              natureOakPath,
-              natureTreeDetailedPath,
-            ];
             const forestPoints = [
               p1,
               p2,
@@ -517,24 +523,33 @@ function useCityBlocks(seed: number, mapThemeKey?: string) {
             ];
             forestPoints.forEach((p, idx) => {
               trees.push({
-                path: forestTreePaths[(itemIdx + idx + col + row) % forestTreePaths.length],
+                path: blockyForestTreePaths[(itemIdx + idx + col + row) % blockyForestTreePaths.length],
                 pos: [p.x, 0, p.z],
-                scale: idx < 4 ? 1.65 : 1.25,
+                scale: idx < 4 ? 0.72 : 0.58,
               });
               // Keep only the main trees solid so collision checks remain light.
               if (idx < 4) {
                 colliders.push({ minX: p.x - 0.75, maxX: p.x + 0.75, minZ: p.z - 0.75, maxZ: p.z + 0.75 });
               }
             });
+            // Low vegetation fills the gaps without adding collision work for
+            // every decorative object.
+            [
+              { x: centerP.x - 2.2, z: centerP.z - 2.1 },
+              { x: centerP.x + 2.2, z: centerP.z + 2.0 },
+            ].forEach((p, idx) => {
+              trees.push({
+                path: blockyForestGroundPaths[(itemIdx + idx + col * 2 + row) % blockyForestGroundPaths.length],
+                pos: [p.x, 0, p.z],
+                scale: idx === 0 ? 1.15 : 0.9,
+              });
+            });
             buildings.push({
-              path: natureRockSmallPath,
+              path: blockyForestDetailPaths[(itemIdx + col + row) % blockyForestDetailPaths.length],
               x: centerP.x,
               z: centerP.z,
               ry: (col + row) * 0.6,
-              scale: 1.1,
-              propPath: natureBushPath,
-              propPos: [centerP.x + 1.1, 0, centerP.z + 1.1],
-              propScale: 1.25,
+              scale: 0.9,
             });
             itemIdx += 6;
           } else {

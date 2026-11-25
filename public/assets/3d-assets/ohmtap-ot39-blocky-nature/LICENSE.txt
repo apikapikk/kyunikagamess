@@ -1,0 +1,30 @@
+OHMTAP ASSET LICENSE V1
+Product: OhmTap OT-39 - Blocky Nature v1.0.0
+Copyright (c) 2026 OhmTap. All rights reserved except as granted below.
+
+Draft terms written for this product. This is not legal advice; consult a lawyer if you need certainty.
+
+YOU MAY:
+  - Use the assets in unlimited personal and commercial projects: games, apps, videos, prototypes, game jams, including monetized ones.
+  - Modify, recolor, crop, resize and combine the assets.
+  - Team members of one studio working on the same project may share the single purchased copy.
+  - Credit is appreciated but not required ("Art: OhmTap").
+
+YOU MAY NOT:
+  - Redistributing or reselling the assets, original or modified, as an asset pack, template, sprite sheet, or stock resource.
+  - Uploading the assets to asset marketplaces, sharing sites or public repositories as separately downloadable files.
+  - Claiming authorship of the assets or registering them (or derivatives) as a trademark or logo.
+  - Using the assets to train machine-learning or generative-AI models.
+
+NOTES:
+  - The assets are provided as is, without warranty of any kind.
+  - No third-party artwork is included. Text baked into some images uses the DejaVu Sans font (free license, see Credits in README).
+  - Warning signs in this pack are stylized game props. They are not compliant safety signage and must not be used as real safety signs.
+  - This license text was written for the product and is not legal advice.
+
+THIRD-PARTY CREDITS:
+  - DejaVu Sans fonts (text baked into some images). DejaVu fonts are based on Bitstream Vera;
+    free license: https://dejavu-fonts.github.io/License.html. Font files are NOT included.
+
+AI DISCLOSURE:
+  Made with AI-assisted code. Every image is original vector-like art rendered procedurally by Python scripts (Pillow + NumPy). No image-generation model was used, and no third-party artwork is included.

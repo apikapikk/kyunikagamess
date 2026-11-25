@@ -1,0 +1,40 @@
+# OhmTap A05_birch_small materials
+newmtl birch
+Kd 0.9255 0.9098 0.8706
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl birch_mark
+Kd 0.1725 0.1725 0.1882
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl leaf_dark
+Kd 0.3686 0.6039 0.2431
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl leaf
+Kd 0.4863 0.7137 0.2824
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl leaf_light
+Kd 0.6588 0.8000 0.3373
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

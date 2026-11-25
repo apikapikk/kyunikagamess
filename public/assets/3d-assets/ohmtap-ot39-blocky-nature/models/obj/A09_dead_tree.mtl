@@ -1,0 +1,8 @@
+# OhmTap A09_dead_tree materials
+newmtl deadwood
+Kd 0.4863 0.4235 0.3608
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

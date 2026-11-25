@@ -1,0 +1,24 @@
+# OhmTap C08_lily_pad_flower materials
+newmtl lily
+Kd 0.2824 0.5569 0.2902
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl lily_flower
+Kd 0.9647 0.7059 0.7686
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl flower_core
+Kd 0.9255 0.5882 0.1569
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

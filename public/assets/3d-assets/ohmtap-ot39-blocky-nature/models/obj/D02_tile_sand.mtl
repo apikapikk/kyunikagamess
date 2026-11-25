@@ -1,0 +1,8 @@
+# OhmTap D02_tile_sand materials
+newmtl sand
+Kd 0.8392 0.7686 0.5882
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

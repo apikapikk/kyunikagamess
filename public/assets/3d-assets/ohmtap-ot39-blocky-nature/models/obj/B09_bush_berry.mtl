@@ -1,0 +1,32 @@
+# OhmTap B09_bush_berry materials
+newmtl leaf_dark
+Kd 0.3686 0.6039 0.2431
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl oak_leaf
+Kd 0.3216 0.5725 0.2275
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl leaf
+Kd 0.4863 0.7137 0.2824
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl berry
+Kd 0.8078 0.1569 0.2510
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

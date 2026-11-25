@@ -1,0 +1,16 @@
+# OhmTap C09_pier materials
+newmtl plank
+Kd 0.6902 0.5020 0.3294
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl trunk
+Kd 0.4392 0.2980 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

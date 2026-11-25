@@ -1,0 +1,32 @@
+# OhmTap A04_pine materials
+newmtl pine_bark
+Kd 0.6275 0.3765 0.2275
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl trunk
+Kd 0.4392 0.2980 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl pine_needle
+Kd 0.2196 0.4706 0.2588
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl needle_dark
+Kd 0.1333 0.3686 0.2510
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

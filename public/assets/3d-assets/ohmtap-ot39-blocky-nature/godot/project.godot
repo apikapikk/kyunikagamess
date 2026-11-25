@@ -1,0 +1,19 @@
+; Engine configuration file.
+; OhmTap OT-39 Blocky Nature demo: open it in Godot 4.4 or newer (Forward+ renderer).
+
+config_version=5
+
+[application]
+
+config/name="OhmTap OT-39 Blocky Nature"
+run/main_scene="res://demo.tscn"
+config/features=PackedStringArray("4.4", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+
+anti_aliasing/quality/msaa_3d=2

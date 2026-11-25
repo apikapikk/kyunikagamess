@@ -1,0 +1,24 @@
+# OhmTap A01_spruce_small materials
+newmtl trunk
+Kd 0.4392 0.2980 0.1961
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl needle_dark
+Kd 0.1333 0.3686 0.2510
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl needle
+Kd 0.1804 0.4549 0.2902
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2

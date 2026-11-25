@@ -1,0 +1,24 @@
+# OhmTap C06_reeds materials
+newmtl reed
+Kd 0.4392 0.5961 0.2824
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl grass_tip
+Kd 0.6039 0.7843 0.3294
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
+
+newmtl cattail
+Kd 0.4235 0.2745 0.1804
+Ka 0 0 0
+Ks 0.05 0.05 0.05
+Ns 20
+d 1
+illum 2
